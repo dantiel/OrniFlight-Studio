@@ -1,0 +1,30 @@
+.view-layout.layout-voice
+  %ViewArea{ area: 'proto' }
+    %Section{ heading: 'Receiver Protocol', subheading: 'The language the bird understands.' }
+      %ParamRow{ label: 'Type', display: 'CRSF (TBS Crossfire)' }
+      %ParamRow{ label: 'Baud', display: '420k / 8N1' }
+      %ParamRow{ label: 'Telemetry', display: 'Enabled · 150 Hz' }
+      %ParamRow{ label: 'Sync', display: 'Frame-locked' }
+    %Section{ heading: 'Binding', subheading: 'Receiver pairing state.' }
+      %ParamRow{ label: 'Mode', display: 'Bind · 8ch' }
+      %ParamRow{ label: 'UID', display: '0x1A:2F:88' }
+  %ViewArea{ area: 'chans' }
+    %Section{ heading: 'Channel Map', subheading: 'Stick → Surface assignment.' }
+      - for ch, i in props.chans
+        %ParamRow{ key: i, label: "CH#{i + 1}", display: "#{ch} → S#{i + 1}" }
+    %Section{ heading: 'Mixer', subheading: 'Channel weight and trim.' }
+      %ParamRow{ label: 'Weight', display: '100%' }
+      %ParamRow{ label: 'Expo', display: '20%' }
+      %ParamRow{ label: 'Trim', display: 'Center' }
+  %ViewArea{ area: 'link' }
+    %Section{ heading: 'Link Quality', subheading: 'Signal health and diagnostics.' }
+      %ParamRow{ label: 'RSSI', display: '-38 dBm' }
+      %ParamRow{ label: 'LQ', display: '100%' }
+      %ParamRow{ label: 'SNR', display: '32 dB' }
+      %ParamRow{ label: 'Packet Rate', display: '150 Hz' }
+      %ParamRow{ label: 'Lost', display: '0 / 14.2k' }
+    %Section{ heading: 'Warnings', subheading: 'Trigger thresholds.' }
+      %ParamRow{ label: 'RSSI Low', display: '-85 dBm' }
+      %ParamRow{ label: 'RSSI Crit', display: '-95 dBm' }
+  %ViewArea{ area: 'bird' }
+    %AircraftViewport{ attitude: props.snap.attitude || [0, 0, 0], wingAngleL: props.snap.wingAngleL || 0, wingAngleR: props.snap.wingAngleR || 0, flapFrequency: props.snap.flapFrequency || 0, onBump: props.sim.bump }

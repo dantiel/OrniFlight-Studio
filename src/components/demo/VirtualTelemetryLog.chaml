@@ -1,0 +1,24 @@
+###
+# VirtualTelemetryLog — @tanstack/react-virtual demo
+#
+# Renders 10,000 simulated telemetry frames in a
+# virtualized scroll container. Only the visible
+# rows are in the DOM. This is the pattern to use
+# when the firmware pushes high-rate telemetry
+# history for review.
+###
+import { useVirtualizer } from '@tanstack/react-virtual'
+import { useRef, useMemo } from 'react'
+- parentRef = useRef null
+  # Generate 10,000 synthetic telemetry frames
+  rows = useMemo (-> Array.from { length: 10000 }, (_, i) -> { t: i, roll: Math.sin(i * 0.1) * 3, pitch: Math.cos(i * 0.08) * 4, yaw: Math.sin(i * 0.05) * 2 }), []
+  virtualizer = useVirtualizer { count: rows.length, getScrollElement: (-> parentRef.current), estimateSize: (-> 32), overscan: 5 }{ ref: parentRef, style: { height: '400px', overflowY: 'auto', contain: 'strict' } }
+  .virtual-log-inner{ style: {height: virtualizer.getTotalSize() + 'px', width: '100%', position: 'relative'}, key: item.key, style: {position: 'absolute', top: 0, left: 0, width: '100%', height: item.size + 'px', transform: "translateY(#{item.start}px)"} }
+    %span.virtual-log-t
+      = "t=#{row.t}"
+    %span.virtual-log-val
+      = "roll=#{row.roll.toFixed(2)}"
+    %span.virtual-log-val
+      = "pitch=#{row.pitch.toFixed(2)}"
+    %span.virtual-log-val
+      = "yaw=#{row.yaw.toFixed(2)}"

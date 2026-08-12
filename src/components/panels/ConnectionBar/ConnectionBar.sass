@@ -1,0 +1,38 @@
+@use '../../../styles/tokens'
+
+// ═══════════════════════════════════════════
+// ConnectionBar — Top toolbar
+// ═══════════════════════════════════════════
+
+.connection-bar
+  display: flex
+  contain: layout style paint
+  align-items: center
+  height: var(--of-toolbar-height)
+  padding: 0 var(--of-space-5)
+  background: rgba(var(--of-header-rgb), var(--of-header-opacity))
+  backdrop-filter: blur(20px) saturate(1.6)
+  -webkit-backdrop-filter: blur(20px) saturate(1.6)
+  border-bottom: 1px solid rgba(255,255,255,0.06)
+  gap: var(--of-space-5)
+  flex-shrink: 0
+  user-select: none
+  z-index: 10
+  position: relative
+
+  .toolbar-status
+    display: flex
+    align-items: center
+    gap: var(--of-space-4)
+    font-size: var(--of-text-xs)
+    color: rgba(255,255,255,0.7)
+
+  .toolbar-theme
+    display: flex
+    align-items: center
+
+  .toolbar-version
+    display: flex
+    align-items: center
+    font-size: var(--of-text-xs)
+    color: rgba(255,255,255,0.7)

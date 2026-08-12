@@ -1,0 +1,50 @@
+@use 'tokens'
+@use 'forms'
+
+// ═══════════════════════════════════════════
+// ORNIFLIGHT STUDIO — Global Stylesheet
+// Resets only — all component styles live in co-located .sass files
+// ═══════════════════════════════════════════
+
+*, *::before, *::after
+  box-sizing: border-box
+  margin: 0
+  padding: 0
+
+html, body, #root
+  height: 100%
+  overflow: hidden
+  background: var(--of-body-bg)
+  color: var(--of-text-primary)
+  font-family: var(--of-font-body)
+  font-size: var(--of-text-base)
+  line-height: 1.5
+  -webkit-font-smoothing: antialiased
+  -moz-osx-font-smoothing: grayscale
+
+// ── Scrollbar ──────────────────────────────
+::-webkit-scrollbar
+  width: 5px
+  height: 5px
+::-webkit-scrollbar-track
+  background: transparent
+::-webkit-scrollbar-thumb
+  background: var(--of-surface-4)
+  border-radius: 3px
+  &:hover
+    background: var(--of-text-muted)
+
+// ── Selection ──────────────────────────────
+::selection
+  background: rgba(var(--of-accent-rgb), 0.28)
+  color: var(--of-text-primary)
+
+// ── Focus ──────────────────────────────────
+:focus-visible
+  outline: 1px solid var(--of-accent)
+  outline-offset: -1px
+
+// ── Monospace ──────────────────────────────
+code, pre, .mono
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-sm)

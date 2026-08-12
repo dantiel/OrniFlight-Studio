@@ -1,0 +1,16 @@
+- import { servoDefs, pidDefs, ondasDefs, servoDisplay, servoParse } from './helpers.coffee'
+- import { parsedFromEvent, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
+- mode = props.mode || 'all'
+.studio-inspector
+  - if mode == 'servos' or mode == 'all'
+    %Section{ heading: "Servo #{props.index + 1}: Wing Shape" }
+      - for s in servoDefs
+        %ParamRow{ key: s.id, label: s.label, value: (props.servo || {})[s.id] || 0, min: s.min, max: s.max, step: s.step, display: servoDisplay(props.servo || {}, s), onInput: parsedFromEvent(props.onParamChange, servoParse(s), props.index, s.id) }
+  - if mode == 'pid' or mode == 'all'
+    %Section{ heading: 'PID Response', subheading: 'How the bird corrects disturbance.' }
+      - for p in pidDefs
+        %ParamRow{ key: p.id, label: p.label, value: props.pidGains?[p.id] || 0, min: '0', max: (if p.id.includes('_I') then '0.2' else if p.id.includes('_D') then '50' else '15'), step: (if p.id.includes('_I') then '0.01' else if p.id.includes('_D') then '0.5' else '0.1'), display: String(props.pidGains?[p.id] || 0), onInput: floatFromEvent(props.onPidChange, p.id) }
+  - if mode == 'ondas' or mode == 'all'
+    %Section{ heading: 'ONDAS Mixer', subheading: 'Phase-aware modulation.' }
+      - for o in ondasDefs
+        %ParamRow{ key: o.id, label: o.label, value: props.ondasParams?[o.id] || 0, min: '0', max: '100', display: String(props.ondasParams?[o.id] || 0), onInput: intFromEvent(props.onOndasChange, o.id) }

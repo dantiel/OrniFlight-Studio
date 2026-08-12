@@ -1,0 +1,9 @@
+%div{ className: "sidebar-item#{if props.active then ' active' else '' }", onClick: props.onClick }
+  - if props.icon
+    %span.item-icon
+      = props.icon
+  %span.item-label
+    = props.label
+  - if props.badge
+    %span.item-badge
+      = props.badge

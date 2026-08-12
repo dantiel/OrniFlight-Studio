@@ -1,0 +1,39 @@
+// ═══════════════════════════════════════════
+// ViewModeToggle — Layout mode switcher
+// ═══════════════════════════════════════════
+
+.viewmode-toggle
+  display: flex
+  gap: 1px
+  -webkit-app-region: no-drag
+
+  .viewmode-btn
+    display: flex
+    align-items: center
+    gap: 3px
+    padding: 2px 8px
+    border: 1px solid rgba(255,255,255,0.1)
+    border-radius: var(--of-radius-sm)
+    background: transparent
+    color: rgba(255,255,255,0.45)
+    font-family: var(--of-font-heading)
+    font-size: 10px
+    font-weight: 500
+    letter-spacing: 0.04em
+    cursor: pointer
+    transition: all var(--of-dur-fast) var(--of-ease-out)
+
+    &:hover
+      color: rgba(255,255,255,0.75)
+      border-color: rgba(255,255,255,0.2)
+
+    &.active
+      background: rgba(255,255,255,0.12)
+      color: #fff
+      border-color: rgba(255,255,255,0.25)
+
+    .vm-icon
+      font-size: 10px
+
+    .vm-label
+      text-transform: uppercase

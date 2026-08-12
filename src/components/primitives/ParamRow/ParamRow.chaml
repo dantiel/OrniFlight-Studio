@@ -1,0 +1,7 @@
+.param-row
+  %span.param-label
+    = props.label
+  - if props.min != null
+    %input.param-slider{ type: 'range', min: "#{props.min}", max: "#{props.max}", step: "#{props.step || '1'}", value: "#{props.value}", onInput: props.onInput }/
+  %span.param-value
+    = props.display || String(props.value || 0)

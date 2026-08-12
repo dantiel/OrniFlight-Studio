@@ -1,0 +1,34 @@
+// ═══════════════════════════════════════════
+// FlightView — Flight Deck layout
+// medium viewport | params panel
+// -------- telemetry -----------------------
+// ═══════════════════════════════════════════
+
+.layout-flight
+  grid-template-columns: 1fr 340px
+  grid-template-rows: 1fr 180px
+  grid-template-areas: "vport params" "tele tele"
+
+  .view-area-vport
+    grid-area: vport
+
+  .view-area-params
+    grid-area: params
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-left: none
+    border-right: none
+    border-bottom: none
+    overflow-y: auto
+    display: flex
+    flex-direction: column
+
+  .view-area-tele
+    grid-area: tele
+    display: flex
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border-top: 1px solid var(--of-border-1)

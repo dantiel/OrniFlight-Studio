@@ -1,0 +1,51 @@
+// ═══════════════════════════════════════════
+// BrandMark — OrniFlight wordmark
+// ═══════════════════════════════════════════
+
+.toolbar-brand
+  display: flex
+  align-items: center
+  gap: var(--of-space-2)
+  font-family: var(--of-font-heading-ext)
+  font-size: var(--of-text-md)
+  font-weight: 700
+  color: #fff
+  letter-spacing: 0.03em
+  text-shadow: 0 1px 12px rgba(0,0,0,0.35)
+
+  .brand-bird
+    width: 20px
+    height: 20px
+    opacity: 0.90
+    margin-right: var(--of-space-2)
+
+  .brand-bird-light
+    display: none
+  .brand-bird-dark
+    display: block
+
+  .brand-orni
+    font-family: var(--of-font-heading)
+    font-style: italic
+    color: var(--of-brand-orni)
+    font-weight: 700
+  .brand-flight
+    font-family: var(--of-font-heading)
+    font-style: italic
+    color: var(--of-brand-flight)
+    font-weight: 700
+  .brand-studio
+    font-family: var(--of-font-heading)
+    font-style: normal
+    color: rgba(255,255,255,0.45)
+    font-weight: 300
+    font-size: var(--of-text-sm)
+    margin-left: var(--of-space-1)
+
+[data-theme="light"] .toolbar-brand
+  .brand-bird-light
+    display: block
+  .brand-bird-dark
+    display: none
+  .brand-studio
+    color: rgba(0,0,0,0.35)

@@ -1,0 +1,17 @@
+- import SidebarSection from '../../layout/SidebarSection/SidebarSection.coffee'
+- import SidebarItem from '../../primitives/SidebarItem/SidebarItem.chaml'
+- import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
+- import { callWith, intFromEvent } from '../../../lib/essential.coffee'
+.studio-sidebar
+  %SidebarSection{ heading: 'Wing Servos' }
+    - for servo, i in props.servos
+      %SidebarItem{ key: i, icon: '⚙️', label: servo.name, badge: "CH#{i + 1}", active: i == props.selectedServoIndex, onClick: callWith(props.onSelectServo, i) }
+  %SidebarSection{ heading: 'Pilot Input' }
+    %ParamRow{ label: 'THR', value: props.sticks.throttle, min: '1000', max: '2000', display: String(props.sticks.throttle), onInput: intFromEvent(props.onStickChange, 'throttle') }
+    %ParamRow{ label: 'ROL', value: props.sticks.roll, min: '1000', max: '2000', display: String(props.sticks.roll), onInput: intFromEvent(props.onStickChange, 'roll') }
+    %ParamRow{ label: 'PIT', value: props.sticks.pitch, min: '1000', max: '2000', display: String(props.sticks.pitch), onInput: intFromEvent(props.onStickChange, 'pitch') }
+    %ParamRow{ label: 'YAW', value: props.sticks.yaw, min: '1000', max: '2000', display: String(props.sticks.yaw), onInput: intFromEvent(props.onStickChange, 'yaw') }
+  %SidebarSection{ heading: 'Flight Character' }
+    %SidebarItem{ label: 'Gentle', onClick: callWith(props.onApplyPreset, 'gentle') }
+    %SidebarItem{ label: 'Acro', onClick: callWith(props.onApplyPreset, 'acro') }
+    %SidebarItem{ label: 'Race', onClick: callWith(props.onApplyPreset, 'race') }

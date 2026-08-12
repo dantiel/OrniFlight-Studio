@@ -1,0 +1,2 @@
+%div{ className: "view-area-card view-area-card#{props.index}" }
+  = props.children

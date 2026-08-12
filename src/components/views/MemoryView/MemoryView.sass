@@ -1,0 +1,21 @@
+// ═══════════════════════════════════════════
+// MemoryView — Anima Archive layout
+// card grid: 2×2
+// ═══════════════════════════════════════════
+
+.layout-memory
+  grid-template-columns: 1fr 1fr
+  grid-template-rows: 1fr 1fr
+  gap: var(--of-space-6)
+  padding: var(--of-space-8)
+  background: var(--of-body-bg)
+  grid-template-areas: "card0 card1" "card2 card3"
+
+  .view-area-card0
+    grid-area: card0
+  .view-area-card1
+    grid-area: card1
+  .view-area-card2
+    grid-area: card2
+  .view-area-card3
+    grid-area: card3

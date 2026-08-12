@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OrniFlight Studio</title>
+  <link rel="icon" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300..600&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    @font-face {
+      font-family: 'SF TransRobotics';
+      src: url('/SF TransRobotics.ttf') format('truetype');
+      font-weight: 400; font-style: normal;
+    }
+    @font-face {
+      font-family: 'SF TransRobotics';
+      src: url('/SF TransRobotics Bold.ttf') format('truetype');
+      font-weight: 700; font-style: normal;
+    }
+    @font-face {
+      font-family: 'SF TransRobotics';
+      src: url('/SF TransRobotics Italic.ttf') format('truetype');
+      font-weight: 400; font-style: italic;
+    }
+    @font-face {
+      font-family: 'SF TransRobotics';
+      src: url('/SF TransRobotics Bold Italic.ttf') format('truetype');
+      font-weight: 700; font-style: italic;
+    }
+    @font-face {
+      font-family: 'SF TransRobotics Extended';
+      src: url('/SF TransRobotics Extended.ttf') format('truetype');
+      font-weight: 400; font-style: normal;
+    }
+    @font-face {
+      font-family: 'SF TransRobotics Extended';
+      src: url('/SF TransRobotics Extended Bold.ttf') format('truetype');
+      font-weight: 700; font-style: normal;
+    }
+    html, body, #root { height: 100%; margin: 0; padding: 0; background: #1a1a1c; }
+    .boot-loader {
+      display: flex; align-items: center; justify-content: center;
+      height: 100%; color: #c0c0c8; font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 13px;
+    }
+    .boot-loader .pulse {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #8998fe; margin-right: 10px;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="boot-loader">
+      <div class="pulse"></div>
+      OrniFlight Studio · Awakening
+    </div>
+  </div>
+  <script type="module" src="/src/main.coffee"></script>
+</body>
+</html>

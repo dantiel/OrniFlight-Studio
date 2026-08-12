@@ -1,0 +1,54 @@
+- import { fmt1 } from '../../../lib/essential.coffee'
+- import { useDeferredValue } from 'react'
+- `const DEFAULT_GYRO = { roll: 0, pitch: 0, yaw: 0 }`
+- DEFAULT_SERVOS = [0, 0, 0, 0, 0, 0]
+- wc0 = (props.waveCurves || ['wingL', 'wingR'])[0] || 'wingL'
+- wc1 = (props.waveCurves || ['wingL', 'wingR'])[1] || 'wingR'
+- gc0 = (props.gyroCurves || ['gyroRoll'])[0] || 'gyroRoll'
+- deferredHistory = useDeferredValue(props.waveformHistory || [])
+- deferredGyro = useDeferredValue(props.gyro || DEFAULT_GYRO)
+- deferredServos = useDeferredValue(props.servoPositions || DEFAULT_SERVOS)
+.studio-telemetry-lab
+  %LabPanel
+    .lab-heading
+      %span
+        Wing Rhythm
+      %select.curve-select{ value: wc0, onChange: (e) -> props.onWaveCurveChange && props.onWaveCurveChange([e.target.value, wc1]) }
+        %option{ value: 'wingL' }
+          Left Wing
+        %option{ value: 'wingR' }
+          Right Wing
+        %option{ value: 'gyroRoll' }
+          Gyro Roll
+        %option{ value: 'gyroPitch' }
+          Gyro Pitch
+        %option{ value: 'gyroYaw' }
+          Gyro Yaw
+      %select.curve-select{ value: wc1, onChange: (e) -> props.onWaveCurveChange && props.onWaveCurveChange([wc0, e.target.value]) }
+        %option{ value: 'wingL' }
+          Left Wing
+        %option{ value: 'wingR' }
+          Right Wing
+        %option{ value: 'gyroRoll' }
+          Gyro Roll
+        %option{ value: 'gyroPitch' }
+          Gyro Pitch
+        %option{ value: 'gyroYaw' }
+          Gyro Yaw
+    %WaveformPlot{ history: deferredHistory, curves: (props.waveCurves || ['wingL', 'wingR']) }
+  %LabPanel
+    .lab-heading
+      %span
+        Body Response
+      %select.curve-select{ value: gc0, onChange: (e) -> props.onGyroCurveChange && props.onGyroCurveChange([e.target.value]) }
+        %option{ value: 'gyroRoll' }
+          Roll
+        %option{ value: 'gyroPitch' }
+          Pitch
+        %option{ value: 'gyroYaw' }
+          Yaw
+    %GyroBars{ gyro: deferredGyro }
+  %LabPanel
+    .lab-heading Servo Voice
+    %Readout{ items: deferredServos.map((val, i) -> ({label: "CH" + (i + 1), value: String(val)})) }
+    %Readout{ items: [{label: 'Rate Roll', value: fmt1(deferredGyro.roll)}, {label: 'Rate Pitch', value: fmt1(deferredGyro.pitch)}, {label: 'Rate Yaw', value: fmt1(deferredGyro.yaw)}] }

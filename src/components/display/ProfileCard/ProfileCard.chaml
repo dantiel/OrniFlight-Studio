@@ -1,0 +1,19 @@
+- act = props.isActive
+- badgeText = if act then 'Active' else "Profile #{props.index}"
+- btnText = if act then 'Active' else 'Activate'
+- btnClick = if act then undefined else props.onActivate
+.profile-card{ className: "profile-card#{if act then ' active' else ''}" }
+  .profile-card-header
+    %span.profile-card-title
+      = "#{props.icon || '◇'}  #{props.title}"
+    %span.profile-card-badge{ className: "profile-card-badge#{if act then ' active-badge' else ''}" }
+      = badgeText
+  .profile-card-desc
+  = props.description
+  .profile-card-actions
+    %button.profile-card-btn.primary{ onClick: btnClick }
+      = btnText
+    %button.profile-card-btn.ghost{ onClick: props.onClone || (->) }
+      Clone
+    %button.profile-card-btn.ghost{ onClick: props.onExport || (->) }
+      Export

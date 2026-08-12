@@ -1,0 +1,31 @@
+// ═══════════════════════════════════════════
+// InspectorSection — Reusable section inside inspector/panels
+// ═══════════════════════════════════════════
+
+.inspector-section
+  padding: var(--of-space-5)
+  border-bottom: 1px solid var(--of-border-1)
+
+  &:last-child
+    border-bottom: none
+
+.inspector-heading
+  font-family: var(--of-font-heading)
+  font-size: 10px
+  font-weight: 600
+  text-transform: uppercase
+  letter-spacing: 0.10em
+  color: var(--of-accent)
+  margin-bottom: var(--of-space-4)
+  opacity: 0.8
+
+  &.profile-heading-active
+    color: var(--of-accent)
+    opacity: 1
+
+.inspector-subheading
+  font-family: var(--of-font-body)
+  font-size: var(--of-text-xs)
+  color: var(--of-text-soft)
+  margin-bottom: var(--of-space-3)
+  font-style: italic

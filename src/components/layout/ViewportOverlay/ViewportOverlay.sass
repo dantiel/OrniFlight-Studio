@@ -1,0 +1,24 @@
+// ═══════════════════════════════════════════
+// ViewportOverlay — Badges on 3D viewport
+// ═══════════════════════════════════════════
+
+.vport-overlay
+  position: absolute
+  bottom: var(--of-space-4)
+  left: var(--of-space-4)
+  display: flex
+  gap: var(--of-space-3)
+  pointer-events: none
+  z-index: 2
+
+  .overlay-badge
+    padding: var(--of-space-1) var(--of-space-4)
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(8px)
+    -webkit-backdrop-filter: blur(8px)
+    border: 1px solid var(--of-border-1)
+    border-radius: var(--of-radius-md)
+    font-size: 10px
+    font-family: var(--of-font-mono)
+    color: var(--of-text-soft)
+    font-weight: 500

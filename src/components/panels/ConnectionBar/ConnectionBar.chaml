@@ -1,0 +1,15 @@
+- import { fmt1 } from '../../../lib/essential.coffee'
+- freq = fmt1(props.flapFrequency || 0) + ' Hz'
+  volts = fmt1(props.batteryVoltage || 0) + 'V'
+.connection-bar{ role: 'banner', aria-label: 'Studio toolbar' }
+  %BrandMark
+  %Separator
+  %ConnectionStatus{ connected: props.connected }
+  %Separator
+  %MetricBadge{ label: 'Flap', value: freq }
+  %MetricBadge{ label: 'Battery', value: volts }
+  %Separator
+  %VersionBadge
+  %ConfigTabs.toolbar-right{ activeTab: props.activeTab, onTabChange: props.onTabChange }
+    %ThemeToggle.toolbar-theme
+    %ViewModeToggle.toolbar-theme{ mode: props.viewMode || 'split', onModeChange: props.onViewModeChange || (->) }

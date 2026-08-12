@@ -1,0 +1,58 @@
+// ═══════════════════════════════════════════
+// AircraftViewport — Fullscreen 3D bird canvas
+// ═══════════════════════════════════════════
+
+.viewport-fullscreen
+  position: absolute
+  inset: 0
+  z-index: 0
+  overflow: hidden
+  background: radial-gradient(ellipse at 50% 45%, rgba(26,26,28,0.65) 0%, rgba(26,26,28,0.25) 60%, rgba(26,26,28,0.05) 100%)
+  &::before
+    content: ''
+    position: absolute
+    inset: 0
+    pointer-events: none
+    z-index: 1
+    background-image: var(--of-feathers)
+    background-repeat: repeat
+    background-size: clamp(300px, 25vw, 800px)
+    opacity: calc(var(--of-feather-opacity) * 0.6)
+
+  .viewport-canvas
+    width: 100%
+    height: 100%
+    position: relative
+    z-index: 0
+    canvas
+      display: block
+
+  .viewport-overlay
+    position: absolute
+    bottom: calc(var(--of-telemetry-height, 180px) + var(--of-space-4))
+    left: var(--of-space-4)
+    display: flex
+    gap: var(--of-space-3)
+    pointer-events: none
+    z-index: 2
+
+    .overlay-badge
+      padding: var(--of-space-1) var(--of-space-4)
+      background: var(--of-glass-bg)
+      backdrop-filter: blur(8px)
+      -webkit-backdrop-filter: blur(8px)
+      border: 1px solid var(--of-border-1)
+      border-radius: var(--of-radius-md)
+      font-size: 10px
+      font-family: var(--of-font-mono)
+      color: var(--of-text-soft)
+      font-weight: 500
+
+.studio-viewport
+  flex: 1
+  position: relative
+  min-width: 0
+  background: transparent
+
+[data-theme="light"] .viewport-fullscreen
+  background: radial-gradient(ellipse at 50% 45%, rgba(240,240,240,0.7) 0%, rgba(240,240,240,0.3) 60%, rgba(240,240,240,0.08) 100%)

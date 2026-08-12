@@ -1,0 +1,5 @@
+.battery-indicator
+  %span.battery-label
+    = props.label
+  %span.battery-voltage
+    = props.value

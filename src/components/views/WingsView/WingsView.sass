@@ -1,0 +1,45 @@
+// ═══════════════════════════════════════════
+// WingsView — Tuning Bay layout
+// sidebar | full viewport | inspector
+// -------- telemetry -----------------------
+// ═══════════════════════════════════════════
+
+.layout-wings
+  grid-template-columns: 220px 1fr 280px
+  grid-template-rows: 1fr 180px
+  grid-template-areas: "side vport insp" "tele tele tele"
+
+  .view-area-side
+    grid-area: side
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-right: none
+    border-top: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-vport
+    grid-area: vport
+    border-left: 1px solid var(--of-border-1)
+    border-right: 1px solid var(--of-border-1)
+
+  .view-area-insp
+    grid-area: insp
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-left: none
+    border-top: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-tele
+    grid-area: tele
+    display: flex
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border-top: 1px solid var(--of-border-1)

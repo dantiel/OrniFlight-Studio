@@ -1,0 +1,22 @@
+###
+# ORNIFLIGHT STUDIO — Reactive Telemetry Demo
+#
+# Demonstrates consuming the new architecture:
+#   - Zustand store for latest telemetry values
+#   - RxJS stream subscription via useTelemetry hook
+#   - XState connection state machine
+#
+# This component receives NO props. All data comes from
+# reactive sources — it can be placed anywhere in the tree.
+#
+# Usage: <ReactiveTelemetry />
+###
+import { useEffect } from 'react'
+import useTelemetryStore from '../../stores/useTelemetryStore.coffee'
+import { gyroStream, batteryStream } from '../../streams/telemetryStream.coffee'
+import useConnection from '../../hooks/useConnection.coffee'
+# Helper: subscribes a Zustand store to an RxJS stream
+useStreamSync = (stream, setter) ->
+useEffect ->
+sub = stream.subscribe setter
+- > sub.unsubscribe()

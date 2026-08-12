@@ -1,0 +1,9 @@
+.toolbar-brand
+  %img.brand-bird.brand-bird-light{ src: '/cf_logo_bird_white.svg', alt: 'Bird' }/
+  %img.brand-bird.brand-bird-dark{ src: '/cf_logo_bird_black.svg', alt: 'Bird' }/
+  %span.brand-orni
+    Orni
+  %span.brand-flight
+    Flight
+  %span.brand-studio
+    Studio

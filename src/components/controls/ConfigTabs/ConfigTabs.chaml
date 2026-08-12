@@ -1,0 +1,14 @@
+import { NavLink } from 'react-router-dom'
+
+- import { upper } from '../../../lib/essential.coffee'
+.config-view-selector{ role: 'navigation', aria-label: 'View navigation' }
+  %NavLink{ to: '/wings', end: true, className: 'config-view-btn' }
+    = upper('wings')
+  %NavLink{ to: '/flight', end: true, className: 'config-view-btn' }
+    = upper('flight')
+  %NavLink{ to: '/perception', end: true, className: 'config-view-btn' }
+    = upper('perception')
+  %NavLink{ to: '/voice', end: true, className: 'config-view-btn' }
+    = upper('voice')
+  %NavLink{ to: '/memory', end: true, className: 'config-view-btn' }
+    = upper('memory')

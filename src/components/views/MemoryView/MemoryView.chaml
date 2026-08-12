@@ -1,0 +1,5 @@
+- import { callWith } from '../../../lib/essential.coffee'
+.view-layout.layout-memory
+  - for entry, i in props.profiles
+    %ViewCard{ key: i, index: i }
+      %ProfileCard{ icon: props.profileIcons[i] || '◇', title: entry[0], description: entry[1], index: i + 1, isActive: (i + 1 == props.activeProfile), onActivate: callWith(props.onActiveProfileChange, i + 1) }

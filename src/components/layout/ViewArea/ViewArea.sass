@@ -1,0 +1,44 @@
+// ═══════════════════════════════════════════
+// ViewArea — Grid area placement
+// ═══════════════════════════════════════════
+
+.view-area
+  overflow: hidden
+  position: relative
+  min-width: 0
+  min-height: 0
+
+.view-area-vport
+  background: radial-gradient(ellipse at 50% 45%, rgba(26,26,28,0.65) 0%, rgba(26,26,28,0.25) 60%, rgba(26,26,28,0.05) 100%)
+  &::before
+    content: ''
+    position: absolute
+    inset: 0
+    pointer-events: none
+    z-index: 1
+    background-image: var(--of-feathers)
+    background-repeat: repeat
+    background-size: clamp(300px, 25vw, 800px)
+    opacity: calc(var(--of-feather-opacity) * 0.6)
+
+  .viewport-canvas
+    width: 100%
+    height: 100%
+    canvas
+      display: block
+
+.view-area-glass
+  background: var(--of-glass-bg)
+  backdrop-filter: blur(12px)
+  -webkit-backdrop-filter: blur(12px)
+  border: 1px solid var(--of-border-1)
+  overflow-y: auto
+
+.view-area-card
+  background: var(--of-glass-card)
+  backdrop-filter: blur(8px)
+  -webkit-backdrop-filter: blur(8px)
+  border: 1px solid var(--of-border-1)
+  border-radius: var(--of-radius-lg)
+  padding: var(--of-space-6)
+  overflow-y: auto

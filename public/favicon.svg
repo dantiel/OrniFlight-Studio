@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#0d1117"/>
+  <g transform="translate(32,28)">
+    <!-- Ornithopter silhouette -->
+    <ellipse cx="0" cy="0" rx="12" ry="3" fill="#f0a040" opacity="0.8"/>
+    <!-- Left wing -->
+    <path d="M-14,-2 Q-22,-16 -8,-20 Q-4,-20 -1,-8" fill="none" stroke="#f0883e" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Right wing -->
+    <path d="M14,-2 Q22,-16 8,-20 Q4,-20 1,-8" fill="none" stroke="#f0883e" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Body -->
+    <line x1="-8" y1="2" x2="8" y2="2" stroke="#e6edf3" stroke-width="2" stroke-linecap="round"/>
+    <!-- Tail -->
+    <path d="M8,2 L14,1 L14,3 Z" fill="#8b949e"/>
+  </g>
+</svg>

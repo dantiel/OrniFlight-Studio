@@ -1,0 +1,56 @@
+// ═══════════════════════════════════════════
+// VoiceView — Signal Path layout
+// protocol config | channel map
+// link quality   | small bird
+// ═══════════════════════════════════════════
+
+.layout-voice
+  grid-template-columns: 2fr 1fr
+  grid-template-rows: 1fr 1fr
+  grid-template-areas: "proto chans" "link bird"
+
+  .view-area-proto
+    grid-area: proto
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-left: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-chans
+    grid-area: chans
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-left: none
+    border-right: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-link
+    grid-area: link
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-left: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-bird
+    grid-area: bird
+    background: radial-gradient(ellipse at 50% 45%, rgba(26,26,28,0.65) 0%, rgba(26,26,28,0.25) 60%, rgba(26,26,28,0.05) 100%)
+    border-left: 1px solid var(--of-border-1)
+    &::before
+      content: ''
+      position: absolute
+      inset: 0
+      pointer-events: none
+      z-index: 1
+      background-image: var(--of-feathers)
+      background-repeat: repeat
+      background-size: clamp(200px, 15vw, 500px)
+      opacity: calc(var(--of-feather-opacity) * 0.4)

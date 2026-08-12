@@ -1,0 +1,51 @@
+// ═══════════════════════════════════════════
+// PerceptionView — Sensorium layout
+// gyro panel | accel panel
+// sensor config (full width)
+// --------- wave canvas --------------------
+// ═══════════════════════════════════════════
+
+.layout-perception
+  grid-template-columns: 1fr 1fr
+  grid-template-rows: 1fr 1fr 180px
+  grid-template-areas: "gyro accel" "sensors sensors" "waves waves"
+
+  .view-area-gyro
+    grid-area: gyro
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-left: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-accel
+    grid-area: accel
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-left: none
+    border-right: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-sensors
+    grid-area: sensors
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-left: none
+    border-right: none
+    border-bottom: none
+    border-top: 1px solid var(--of-border-1)
+    overflow-y: auto
+
+  .view-area-waves
+    grid-area: waves
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border-top: 1px solid var(--of-border-1)

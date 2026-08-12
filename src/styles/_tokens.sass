@@ -1,0 +1,166 @@
+// ═══════════════════════════════════════════
+// ORNIFLIGHT STUDIO — Design Tokens
+// Hermetic theme: indigo + periwinkle + glass
+// Dark default, light via [data-theme="light"]
+// ═══════════════════════════════════════════
+
+// ── Brand Colors ───────────────────────────
+// header-bg: #3a4192 (deep indigo)
+// accent:    #8998fe (periwinkle)
+// body-bg:   #1a1a1c (near-black)
+// content:   #202020 (dark card)
+
+:root
+  // ── Brand Logo Colors ──────────────────
+  --of-brand-orni: #8a99fe
+  --of-brand-flight: #e1e2f8
+  --of-header-opacity: 0.45
+
+  // ── Palette (Dark) ──────────────────────
+  --of-body-bg: #1a1a1c
+  --of-surface-0: #1a1a1c
+  --of-surface-1: #202020
+  --of-surface-2: #26262a
+  --of-surface-3: #3a3a3a
+  --of-surface-4: #4e4e4e
+  --of-header-bg: #3a4192
+  --of-border-1: rgba(255,255,255,0.06)
+  --of-border-2: rgba(255,255,255,0.10)
+  --of-border-accent: rgba(137,152,254,0.15)
+  --of-text-primary: #e0e0e0
+  --of-text-secondary: #c0c0c8
+  --of-text-muted: #6e6e78
+  --of-text-soft: #9c9ca4
+  --of-accent: #8998fe
+  --of-accent-alt: #aeb6f7
+  --of-accent-dim: #4a51b0
+  --of-accent-green: #3fb950
+  --of-accent-red: #f85149
+  --of-accent-amber: #f0a040
+  --of-accent-blue: #58a6ff
+  --of-accent-cyan: #39d2c0
+  --of-accent-purple: #bc8cff
+  --of-link-color: #bfc6fb
+  // RGB variants
+  --of-header-rgb: 58, 65, 146
+  --of-accent-rgb: 137, 152, 254
+  --of-accent-green-rgb: 63, 185, 80
+  --of-accent-amber-rgb: 240, 160, 64
+  --of-surface-2-rgb: 38, 38, 42
+  --of-body-rgb: 26, 26, 28
+  // Glass
+  --of-glass-bg: rgba(28, 28, 34, 0.28)
+  --of-glass-card: rgba(38, 38, 48, 0.18)
+  --of-glass-card-hover: rgba(38, 38, 48, 0.32)
+  --of-glass-edge: rgba(137, 152, 254, 0.06)
+  --of-glass-edge-hover: rgba(137, 152, 254, 0.20)
+  // Glows
+  --of-simulation-glow: rgba(137, 152, 254, 0.15)
+  --of-connected-glow: rgba(63, 185, 80, 0.3)
+  --of-disconnected-bg: rgba(248, 81, 73, 0.12)
+  // Feathers
+  --of-feathers: url('/feathers_dark.png')
+  --of-feather-opacity: 0.22
+
+  // ── Typography ──────────────────────────
+  --of-font-heading: 'SF TransRobotics', 'Outfit', sans-serif
+  --of-font-heading-ext: 'SF TransRobotics Extended', 'SF TransRobotics', sans-serif
+  --of-font-body: 'Outfit', 'SF Pro Text', system-ui, sans-serif
+  --of-font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace
+  --of-text-xs: 0.6875rem
+  --of-text-sm: 0.75rem
+  --of-text-base: 0.8125rem
+  --of-text-md: 0.875rem
+  --of-text-lg: 1rem
+  --of-text-xl: 1.125rem
+
+  // ── Spacing ─────────────────────────────
+  --of-space-1: 2px
+  --of-space-2: 4px
+  --of-space-3: 6px
+  --of-space-4: 8px
+  --of-space-5: 12px
+  --of-space-6: 16px
+  --of-space-7: 20px
+  --of-space-8: 24px
+  --of-space-9: 32px
+  --of-space-10: 48px
+
+  // ── Radii ───────────────────────────────
+  --of-radius-sm: 3px
+  --of-radius-md: 5px
+  --of-radius-lg: 8px
+
+  // ── Shadows ─────────────────────────────
+  --of-shadow-panel: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03)
+  --of-shadow-elevated: 0 4px 12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)
+  --of-shadow-glow: 0 0 8px var(--of-simulation-glow)
+
+  // ── Timing ──────────────────────────────
+  --of-ease-out: cubic-bezier(0.16, 1, 0.3, 1)
+  --of-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1)
+  --of-dur-fast: 120ms
+  --of-dur-normal: 200ms
+  --of-dur-slow: 350ms
+
+  // ── Layout ──────────────────────────────
+  --of-toolbar-height: 40px
+  --of-statusbar-height: 26px
+  --of-sidebar-width: 220px
+  --of-inspector-width: 280px
+
+  // ── Theme ───────────────────────────────
+  color-scheme: dark
+
+// ── Light Theme ────────────────────────────
+[data-theme="light"]
+  --of-header-opacity: 0.35
+  --of-body-bg: #f0f0f0
+  --of-surface-0: #f0f0f0
+  --of-surface-1: #ffffff
+  --of-surface-2: #f9f9f9
+  --of-surface-3: #e0e0e4
+  --of-surface-4: #d0d0d8
+  --of-header-bg: #5a62c4
+  --of-border-1: rgba(0,0,0,0.06)
+  --of-border-2: rgba(0,0,0,0.10)
+  --of-border-accent: rgba(74, 81, 176, 0.12)
+  --of-text-primary: #2a2a2a
+  --of-text-secondary: #484850
+  --of-text-muted: #a8a8b0
+  --of-text-soft: #787880
+  --of-accent: #4a51b0
+  --of-accent-alt: #5a61b0
+  --of-accent-dim: #3a4192
+  --of-accent-green: #2a8e3e
+  --of-accent-red: #c83030
+  --of-accent-amber: #c07020
+  --of-accent-blue: #3070cc
+  --of-accent-cyan: #1a9e8e
+  --of-accent-purple: #8a5ccc
+  --of-link-color: #3a4192
+  // RGB
+  --of-header-rgb: 58, 65, 146
+  --of-accent-rgb: 74, 81, 176
+  --of-accent-green-rgb: 42, 142, 62
+  --of-accent-amber-rgb: 192, 112, 32
+  --of-surface-2-rgb: 249, 249, 249
+  --of-body-rgb: 240, 240, 240
+  // Glass
+  --of-glass-bg: rgba(248, 248, 250, 0.28)
+  --of-glass-card: rgba(255, 255, 255, 0.22)
+  --of-glass-card-hover: rgba(255, 255, 255, 0.42)
+  --of-glass-edge: rgba(74, 81, 176, 0.08)
+  --of-glass-edge-hover: rgba(74, 81, 176, 0.20)
+  // Glows
+  --of-simulation-glow: rgba(74, 81, 176, 0.12)
+  --of-connected-glow: rgba(42, 142, 62, 0.2)
+  --of-disconnected-bg: rgba(200, 48, 48, 0.08)
+  // Feathers
+  --of-feathers: url('/feathers_white.png')
+  --of-feather-opacity: 0.15
+  // Shadows
+  --of-shadow-panel: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)
+  --of-shadow-elevated: 0 4px 12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05)
+  --of-shadow-glow: 0 0 8px var(--of-simulation-glow)
+  color-scheme: light

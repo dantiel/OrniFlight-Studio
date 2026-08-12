@@ -1,0 +1,47 @@
+// ═══════════════════════════════════════════════════════
+// ParamRow — compact label + control + value row
+// ═══════════════════════════════════════════════════════
+
+.param-row
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  padding: var(--of-space-1) 0
+
+.param-label
+  font-size: var(--of-text-sm)
+  font-family: var(--of-font-heading)
+  color: var(--of-text-soft)
+  min-width: 56px
+  font-weight: 500
+
+.param-slider
+  flex: 1
+  -webkit-appearance: none
+  appearance: none
+  height: 3px
+  background: var(--of-surface-3)
+  border-radius: 2px
+  outline: none
+
+  &::-webkit-slider-thumb
+    -webkit-appearance: none
+    appearance: none
+    width: 10px
+    height: 10px
+    border-radius: 50%
+    background: var(--of-accent)
+    cursor: pointer
+    border: 1.5px solid rgba(255,255,255,0.3)
+    box-shadow: 0 0 6px var(--of-simulation-glow)
+    transition: transform var(--of-dur-fast) var(--of-ease-out)
+
+  &::-webkit-slider-thumb:hover
+    transform: scale(1.3)
+
+.param-value
+  min-width: 42px
+  text-align: right
+  color: var(--of-accent)
+  font-weight: 500
+  font-size: var(--of-text-sm)

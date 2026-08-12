@@ -1,0 +1,49 @@
+// ═══════════════════════════════════════════
+// ServoInspector — Right inspector panel
+// ═══════════════════════════════════════════
+
+.studio-inspector
+  width: var(--of-inspector-width)
+  flex-shrink: 0
+  background: var(--of-glass-bg)
+  backdrop-filter: blur(12px)
+  -webkit-backdrop-filter: blur(12px)
+  border-left: 1px solid var(--of-border-1)
+  display: flex
+  flex-direction: column
+  overflow-y: auto
+  position: relative
+  z-index: 2
+
+  .profile-btn
+    padding: 2px 8px
+    border-radius: var(--of-radius-sm)
+    cursor: pointer
+    font-family: var(--of-font-heading)
+    font-size: 10px
+    font-weight: 500
+    letter-spacing: 0.03em
+    transition: all var(--of-dur-fast) var(--of-ease-out)
+    background: var(--of-surface-3)
+    color: var(--of-text-secondary)
+    border: 1px solid var(--of-border-1)
+    margin-right: 4px
+
+    &:hover
+      background: var(--of-surface-2)
+      color: var(--of-accent)
+
+    &.profile-btn-active
+      background: var(--of-accent)
+      color: #fff
+      border-color: var(--of-accent)
+      box-shadow: 0 0 10px rgba(137,152,254,0.2)
+
+    &.profile-btn-ghost
+      background: transparent
+      color: var(--of-text-muted)
+      border: 1px solid var(--of-border-1)
+
+      &:hover
+        color: var(--of-text-secondary)
+        background: var(--of-surface-2)

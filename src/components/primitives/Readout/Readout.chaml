@@ -1,0 +1,7 @@
+.readout
+  - for item, i in (props.items || [])
+    .readout-item{ key: i }
+      %span.readout-label
+        = item.label
+      %span.readout-value
+        = item.value

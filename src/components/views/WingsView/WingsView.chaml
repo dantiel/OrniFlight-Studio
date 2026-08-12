@@ -1,0 +1,11 @@
+- import { fmt1 } from '../../../lib/essential.coffee'
+.view-layout.layout-wings
+  %ViewArea{ area: 'side' }
+    %Sidebar{ servos: props.sim.servos, selectedServoIndex: props.sim.selectedServoIndex, onSelectServo: props.sim.selectServo, sticks: props.sim.sticks, onStickChange: props.sim.setStick, onApplyPreset: props.sim.applyPreset }
+  %ViewArea{ area: 'vport' }
+    %AircraftViewport{ attitude: props.snap.attitude || [0, 0, 0], wingAngleL: props.snap.wingAngleL || 0, wingAngleR: props.snap.wingAngleR || 0, flapFrequency: props.snap.flapFrequency || 0, onBump: props.sim.bump }
+    %ViewportOverlay{ badges: ["Cadence #{fmt1(props.snap.flapFrequency)} Hz", "Stroke #{fmt1(props.snap.amplitude)}°", "t #{fmt1(props.snap.t)}s"] }
+  %ViewArea{ area: 'insp' }
+    %ServoInspector{ servo: props.sim.servos[props.sim.selectedServoIndex], index: props.sim.selectedServoIndex, onParamChange: props.sim.setServoParam, pidGains: props.sim.pidGains, onPidChange: props.sim.setPidGain, ondasParams: props.sim.ondasParams, onOndasChange: props.sim.setOndasParam, mode: 'servos' }
+  %ViewArea{ area: 'tele' }
+    %TelemetryLab{ waveformHistory: props.snap.waveformHistory || [], gyro: props.snap.gyro || {roll: 0, pitch: 0, yaw: 0}, servoPositions: props.snap.servoPositions || [0, 0, 0, 0], waveCurves: props.waveCurves, onWaveCurveChange: props.onWaveCurveChange, gyroCurves: props.gyroCurves, onGyroCurveChange: props.onGyroCurveChange }

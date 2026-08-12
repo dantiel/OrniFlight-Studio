@@ -1,0 +1,3 @@
+.toolbar-version
+  %span
+    = props.label || "v0.2 · Hermetic"

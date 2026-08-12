@@ -1,0 +1,43 @@
+// ═══════════════════════════════════════════
+// ConnectionStatus — Breathing/simulation indicator
+// ═══════════════════════════════════════════
+
+.connection-indicator
+  display: flex
+  align-items: center
+  gap: var(--of-space-2)
+  padding: var(--of-space-1) var(--of-space-3)
+  border-radius: var(--of-radius-sm)
+  font-size: 10px
+  font-weight: 500
+  letter-spacing: 0.05em
+  font-family: var(--of-font-heading)
+
+  &.simulation
+    background: rgba(255,255,255,0.1)
+    color: #fff
+    .indicator-dot
+      width: 5px
+      height: 5px
+      border-radius: 50%
+      background: var(--of-accent)
+      box-shadow: 0 0 6px var(--of-simulation-glow)
+
+  &.connected
+    background: rgba(var(--of-accent-green-rgb), 0.18)
+    color: var(--of-accent-green)
+    .indicator-dot
+      width: 5px
+      height: 5px
+      border-radius: 50%
+      background: var(--of-accent-green)
+      box-shadow: 0 0 6px var(--of-connected-glow)
+
+  &.disconnected
+    background: var(--of-disconnected-bg)
+    color: var(--of-accent-red)
+    .indicator-dot
+      width: 5px
+      height: 5px
+      border-radius: 50%
+      background: var(--of-accent-red)

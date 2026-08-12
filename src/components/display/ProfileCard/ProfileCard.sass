@@ -1,0 +1,91 @@
+// ═══════════════════════════════════════════
+// ProfileCard — Anima profile card
+// ═══════════════════════════════════════════
+
+.profile-card
+  display: flex
+  flex-direction: column
+  height: 100%
+  border: 1px solid var(--of-border-1)
+  transition: all var(--of-dur-normal) var(--of-ease-out)
+
+  &:hover
+    border-color: var(--of-border-2)
+    background: var(--of-glass-card-hover)
+    box-shadow: 0 0 20px rgba(137,152,254,0.06)
+
+  &.active
+    border-color: var(--of-accent)
+    box-shadow: 0 0 24px rgba(137,152,254,0.12)
+    background: var(--of-glass-edge-hover)
+
+  .profile-card-header
+    display: flex
+    align-items: center
+    justify-content: space-between
+    margin-bottom: var(--of-space-4)
+
+  .profile-card-title
+    font-family: var(--of-font-heading)
+    font-size: var(--of-text-md)
+    font-weight: 600
+    color: var(--of-accent)
+    letter-spacing: 0.03em
+
+  .profile-card-badge
+    font-family: var(--of-font-mono)
+    font-size: 9px
+    padding: 2px 8px
+    border-radius: var(--of-radius-sm)
+    background: var(--of-surface-3)
+    color: var(--of-text-muted)
+    font-weight: 500
+
+    &.active-badge
+      background: rgba(137,152,254,0.2)
+      color: var(--of-accent)
+
+  .profile-card-desc
+    font-family: var(--of-font-body)
+    font-size: var(--of-text-sm)
+    color: var(--of-text-soft)
+    font-style: italic
+    margin-bottom: var(--of-space-5)
+    flex: 1
+
+  .profile-card-actions
+    display: flex
+    gap: var(--of-space-3)
+
+  .profile-card-btn
+    padding: var(--of-space-2) var(--of-space-5)
+    border-radius: var(--of-radius-sm)
+    cursor: pointer
+    font-family: var(--of-font-heading)
+    font-size: 10px
+    font-weight: 500
+    letter-spacing: 0.03em
+    transition: all var(--of-dur-fast) var(--of-ease-out)
+    background: var(--of-surface-3)
+    color: var(--of-text-secondary)
+    border: 1px solid var(--of-border-1)
+
+    &:hover
+      background: var(--of-surface-2)
+      color: var(--of-accent)
+
+    &.primary
+      background: var(--of-accent)
+      color: #fff
+      border-color: var(--of-accent)
+      box-shadow: 0 0 10px rgba(137,152,254,0.2)
+      &:hover
+        background: var(--of-accent-alt)
+
+    &.ghost
+      background: transparent
+      color: var(--of-text-muted)
+      border: 1px solid var(--of-border-1)
+      &:hover
+        color: var(--of-text-secondary)
+        background: var(--of-surface-2)

@@ -1,0 +1,41 @@
+// ═══════════════════════════════════════════
+// TabBar — Flight dynamics sub-tabs
+// ═══════════════════════════════════════════
+
+.tab-bar
+  display: flex
+  background: rgba(0,0,0,0.15)
+  border-bottom: 1px solid var(--of-border-1)
+  flex-shrink: 0
+
+  .tab-bar-item
+    display: flex
+    align-items: center
+    gap: var(--of-space-2)
+    padding: var(--of-space-3) var(--of-space-5)
+    border: none
+    border-bottom: 2px solid transparent
+    background: transparent
+    color: var(--of-text-muted)
+    font-family: var(--of-font-heading)
+    font-size: 10px
+    font-weight: 500
+    letter-spacing: 0.05em
+    cursor: pointer
+    transition: all var(--of-dur-fast) var(--of-ease-out)
+
+    &:hover
+      color: var(--of-text-primary)
+      background: rgba(var(--of-accent-rgb), 0.04)
+
+    &.active
+      color: var(--of-accent)
+      border-bottom-color: var(--of-accent)
+      background: rgba(var(--of-accent-rgb), 0.06)
+
+    .tab-icon
+      font-size: 11px
+      opacity: 0.6
+
+    .tab-label
+      text-transform: uppercase

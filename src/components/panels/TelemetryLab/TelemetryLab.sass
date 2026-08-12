@@ -1,0 +1,78 @@
+// ═══════════════════════════════════════════
+// TelemetryLab — Bottom waveform panel
+// ═══════════════════════════════════════════
+
+.studio-telemetry-lab
+  height: 180px
+  flex-shrink: 0
+  background: var(--of-glass-bg)
+  backdrop-filter: blur(12px)
+  -webkit-backdrop-filter: blur(12px)
+  border-top: 1px solid var(--of-border-1)
+  display: flex
+  position: relative
+  z-index: 2
+
+  .lab-panel
+    flex: 1
+    border-right: 1px solid var(--of-border-1)
+    padding: var(--of-space-4)
+    display: flex
+    flex-direction: column
+
+    &:last-child
+      border-right: none
+
+  .lab-heading
+    display: flex
+    align-items: center
+    justify-content: space-between
+    font-family: var(--of-font-heading)
+    font-size: 10px
+    font-weight: 600
+    text-transform: uppercase
+    letter-spacing: 0.08em
+    color: var(--of-accent)
+    margin-bottom: var(--of-space-3)
+    opacity: 0.8
+
+    .curve-select
+      font-family: var(--of-font-mono)
+      font-size: 9px
+      padding: 1px 4px
+      background: var(--of-surface-3)
+      color: var(--of-text-secondary)
+      border: 1px solid var(--of-border-1)
+      border-radius: var(--of-radius-sm)
+      cursor: pointer
+      text-transform: none
+      letter-spacing: 0
+      font-weight: 400
+
+      &:focus-visible
+        outline: 1px solid var(--of-accent)
+        outline-offset: 0
+
+  .lab-canvas
+    flex: 1
+    canvas
+      display: block
+      width: 100%
+      height: 100%
+
+  .lab-readout
+    display: flex
+    gap: var(--of-space-5)
+    font-family: var(--of-font-mono)
+    font-size: var(--of-text-xs)
+
+    .readout-item
+      display: flex
+      gap: var(--of-space-2)
+
+    .readout-label
+      color: var(--of-text-muted)
+
+    .readout-value
+      color: var(--of-text-primary)
+      font-weight: 500

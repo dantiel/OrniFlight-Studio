@@ -1,0 +1,58 @@
+// ═══════════════════════════════════════════
+// Sidebar — Left glass panel
+// ═══════════════════════════════════════════
+
+.studio-sidebar
+  width: var(--of-sidebar-width)
+  flex-shrink: 0
+  background: var(--of-glass-bg)
+  backdrop-filter: blur(12px)
+  -webkit-backdrop-filter: blur(12px)
+  border-right: 1px solid var(--of-border-1)
+  display: flex
+  flex-direction: column
+  overflow-y: auto
+  position: relative
+  z-index: 2
+
+  .sidebar-item
+    display: flex
+    align-items: center
+    gap: var(--of-space-3)
+    padding: var(--of-space-2) var(--of-space-3)
+    border-radius: var(--of-radius-sm)
+    font-size: var(--of-text-sm)
+    color: var(--of-text-secondary)
+    cursor: pointer
+    transition: all var(--of-dur-fast) var(--of-ease-out)
+    user-select: none
+    margin-bottom: 1px
+
+    &:hover
+      background: var(--of-glass-card-hover)
+      color: var(--of-text-primary)
+
+    &.active
+      background: var(--of-glass-edge-hover)
+      color: var(--of-accent)
+      box-shadow: inset 0 0 0 1px var(--of-glass-edge)
+
+    .item-icon
+      width: 14px
+      height: 14px
+      opacity: 0.5
+      flex-shrink: 0
+      font-size: 11px
+      display: flex
+      align-items: center
+      justify-content: center
+
+    .item-label
+      flex: 1
+      font-weight: 400
+
+    .item-badge
+      font-size: 9px
+      color: var(--of-text-muted)
+      font-family: var(--of-font-mono)
+      font-weight: 500
