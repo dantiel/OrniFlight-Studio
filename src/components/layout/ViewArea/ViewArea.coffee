@@ -7,6 +7,6 @@ ViewArea = (props) ->
     if Array.isArray(children) then children else [children]
   else
     []
-  h 'div', { className: "view-area-#{area}" }, kids...
+  h 'div', { className: "view-area view-area-#{area}" }, kids...
 
 export default ViewArea
