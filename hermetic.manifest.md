@@ -66,7 +66,7 @@ what happens inside.
 
 ## Code Style
 
-- **80-character line width** target — enforced by discipline, not tooling
+- **80-character line width** target — enforced by `npm run lint:width` (scripts/check-width.mjs)
 - **Single-line HAML attributes**: `%div{ className: "base #{mod}" }` — never multiline `{}` blocks
 - **No trailing `/` on void elements**: `%img{...}` not `%img{...}/`
 - **Explicit `if/then`**: `if conn then 'BREATHING'` — never `if conn'BREATHING'`
@@ -87,7 +87,7 @@ behind it breathes**.
 
 - `#id` shorthand without `%div` merges into the preceding component as props → use `%div#id`
 - `- for` loop variables are IIFE-scoped, invisible to sibling elements → use explicit elements or `#{}` interpolation
-- Prettier plugin (coffeehaml/prettier) **not safe** as of 0.7.2 — multiline `{}`, void `/`, and structural corruption bugs
+- Prettier plugin (coffeehaml/prettier) **safe** as of 0.7.7 — import prologue, `->` arrow, multiline `{}`, object literals, and destructuring all resolved
 - Conditional classNames: use `"#{if cond then ' active' else ''}"` inside `#{}`
 
 ## Build Toolchain
