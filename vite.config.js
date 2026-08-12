@@ -168,11 +168,21 @@ function prePlugin() {
         }
         const imports = compImports + lines.slice(0, splitAt).join('\n');
         const body = lines.slice(splitAt).join('\n');
+        // The JSX expression is the last top-level jsx/jsxs call.
+        // Find it and prepend `return ` so the component actually renders.
+        const bodyLines = body.split('\n');
+        for (let i = bodyLines.length - 1; i >= 0; i--) {
+          const trimmed = bodyLines[i].trimStart();
+          if (/^jsxs?\(/.test(trimmed)) {
+            bodyLines[i] = bodyLines[i].replace(/^(\s*)/, '$1return ');
+            break;
+          }
+        }
         code = [
           '// @refresh reset',
           imports,
           `export default function ${name}(props) {`,
-          body,
+          bodyLines.join('\n'),
           '}',
         ].join('\n');
         return { code, map: null };

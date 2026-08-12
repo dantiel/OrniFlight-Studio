@@ -12,6 +12,7 @@
 #   root.render h ErrorBoundary, null, h App, null
 ###
 import { Component } from 'react'
+import h from '../../app/h.coffee'
 
 class ErrorBoundary extends Component
   constructor: (props) ->
