@@ -37,7 +37,10 @@ useTelemetryStore = create(
         ringBuffer[ringIndex] = frame
         set
           t:              frame.t || 0
-          gyro:           { roll: frame.gyroRoll || 0, pitch: frame.gyroPitch || 0, yaw: frame.gyroYaw || 0 }
+          gyro:
+            roll:  frame.gyroRoll || 0
+            pitch: frame.gyroPitch || 0
+            yaw:   frame.gyroYaw || 0
           servos:         frame.servos || []
           batteryVoltage: frame.batteryVoltage || 0
           flapFrequency:  frame.flapFrequency || 0

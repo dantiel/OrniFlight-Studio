@@ -14,7 +14,9 @@
 ###
 import { useRef, useEffect } from 'react'
 import { createActor } from 'xstate'
-import connectionMachine, { STATE_LABELS, isLive, isDegraded } from '../machines/connectionMachine.coffee'
+import connectionMachine, {
+  STATE_LABELS, isLive, isDegraded
+} from '../machines/connectionMachine.coffee'
 
 # Singleton actor — one connection per app
 _actor = null
@@ -22,7 +24,8 @@ _subscribers = []
 
 getActor = ->
   _actor ?= createActor connectionMachine
-  _actor.start() unless _actor.getSnapshot().status is 'active' or _actor.getSnapshot().status is 'running'
+  status = _actor.getSnapshot().status
+  _actor.start() unless status is 'active' or status is 'running'
   _actor
 
 # ═══════════════════════════════════════════════════════════════
@@ -51,7 +54,8 @@ useConnection = ->
     isDegraded: isDegraded state
     attempts: snap?.context?.attempts || 0
     lastError: snap?.context?.lastError
-    send:     (event) -> actor.send if typeof event is 'string' then { type: event } else event
+    send:     (event) ->
+      actor.send (if typeof event is 'string' then { type: event } else event)
   }
 
 export default useConnection

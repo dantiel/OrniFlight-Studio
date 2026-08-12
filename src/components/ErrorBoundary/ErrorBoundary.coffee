@@ -40,7 +40,10 @@ class ErrorBoundary extends Component
           background: 'var(--of-bg)'
           textAlign: 'center'
         h 'h1',
-          style: fontSize: '2rem', marginBottom: '1rem', color: 'var(--of-accent)'
+          style:
+            fontSize: '2rem'
+            marginBottom: '1rem'
+            color: 'var(--of-accent)'
           'Æther Fracture'
         h 'p',
           style: marginBottom: '0.5rem', color: 'var(--of-text-muted)'

@@ -42,8 +42,12 @@ import useAppStore from './stores/useAppStore.coffee'
 import useTelemetryStore from './stores/useTelemetryStore.coffee'
 import useConnection from './hooks/useConnection.coffee'
 import useTelemetry from './hooks/useTelemetry.coffee'
-import { pushTelemetry, gyroStream, batteryStream } from './streams/telemetryStream.coffee'
-import { parseTelemetry, TelemetryFrame } from './schemas/telemetrySchema.coffee'
+import {
+  pushTelemetry, gyroStream, batteryStream
+} from './streams/telemetryStream.coffee'
+import {
+  parseTelemetry, TelemetryFrame
+} from './schemas/telemetrySchema.coffee'
 import * as _ from './lib/essential.coffee'
 
 export {

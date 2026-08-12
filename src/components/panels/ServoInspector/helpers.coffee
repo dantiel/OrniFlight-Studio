@@ -23,11 +23,11 @@ export ondasDefs = [
 ]
 
 export servoDefs = [
-  { id: 'midpoint',       label: 'Midpoint',   min: '500',  max: '2500', step: '1' }
-  { id: 'min',            label: 'Min PWM',    min: '500',  max: '2500', step: '1' }
-  { id: 'max',            label: 'Max PWM',    min: '500',  max: '2500', step: '1' }
-  { id: 'rate',           label: 'Rate',       min: '-100', max: '100',  step: '1' }
-  { id: 'amplitudeScale', label: 'Amplitude',  min: '0',    max: '2',    step: '0.1' }
+  { id: 'midpoint', label: 'Midpoint', min: '500', max: '2500', step: '1' }
+  { id: 'min', label: 'Min PWM', min: '500', max: '2500', step: '1' }
+  { id: 'max', label: 'Max PWM', min: '500', max: '2500', step: '1' }
+  { id: 'rate', label: 'Rate', min: '-100', max: '100', step: '1' }
+  { id: 'amplitudeScale', label: 'Amplitude', min: '0', max: '2', step: '0.1' }
 ]
 
 export servoDisplay = (servo, s) ->

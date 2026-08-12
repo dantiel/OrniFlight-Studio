@@ -8,7 +8,9 @@
 # The stores themselves stay pure — Reactotron subscribes
 # from the outside. This is the "external observer" pattern.
 ###
-import { attachStore, attachMachine, registerCommand } from './reactotron.coffee'
+import {
+  attachStore, attachMachine, registerCommand
+} from './reactotron.coffee'
 import useAppStore from '../stores/useAppStore.coffee'
 import useTelemetryStore from '../stores/useTelemetryStore.coffee'
 import { getActor } from '../hooks/useConnection.coffee'

@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useCallback, startTransition } from 'react'
+import {
+  useState, useEffect, useRef, useCallback, startTransition
+} from 'react'
 import { OrnithopterModel } from './OrnithopterModel.coffee'
 
 # ═══════════════════════════════════════════════════════════════

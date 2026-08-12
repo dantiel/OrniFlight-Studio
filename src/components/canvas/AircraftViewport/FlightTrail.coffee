@@ -55,7 +55,10 @@ FlightTrail = (scene) ->
       colors[idx + 1] = 0.82 * t
       colors[idx + 2] = 0.75 * t
 
-    start = if count <= TRAIL_LENGTH then 0 else (writeIndex - TRAIL_LENGTH + MAX_POINTS) % MAX_POINTS
+    if count <= TRAIL_LENGTH
+      start = 0
+    else
+      start = (writeIndex - TRAIL_LENGTH + MAX_POINTS) % MAX_POINTS
     # Build an ordered index array for drawRange
     # Since BufferGeometry with non-contiguous buffer is tricky,
     # we shift positions to keep the active range contiguous.

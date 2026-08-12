@@ -16,7 +16,7 @@
 #                                                              ↓
 #                                                           stalled
 #                                                              ↓
-#                                                        reconnecting → streaming
+#                                                       reconnecting → streaming
 #
 # Events: CONNECT | DISCONNECT | CONNECTED | DISCONNECTED |
 #         DATA_TIMEOUT | RECONNECT | FIRMWARE_READY | PROTOCOL_MISMATCH

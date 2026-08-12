@@ -7,7 +7,9 @@ import ConnectionBar from '../components/panels/ConnectionBar/ConnectionBar.cham
 describe 'ConnectionBar', ->
 
   renderConn = (props = {}) ->
-    defaults = { connected: false, batteryVoltage: 0, flapFrequency: 0, viewMode: 'split', onViewModeChange: (->) }
+    defaults =
+      connected: false, batteryVoltage: 0, flapFrequency: 0
+      viewMode: 'split', onViewModeChange: (->)
     merged = { defaults..., props... }
     render h(MemoryRouter, null, h(ConnectionBar, merged))
 

@@ -7,7 +7,8 @@ Section = (props) ->
     h 'div', { className: 'inspector-heading', key: 'h' }, heading
   ]
   if subheading
-    kids.push h 'div', { className: 'inspector-subheading', key: 'sh' }, subheading
+    kids.push h 'div', { className: 'inspector-subheading', key: 'sh' },
+      subheading
   if children?
     if Array.isArray children
       kids = kids.concat children

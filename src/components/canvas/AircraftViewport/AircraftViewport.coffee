@@ -10,7 +10,9 @@ import AttitudeRings from './AttitudeRings.coffee'
 # Receives attitude + wing angles from telemetry snapshot.
 # ═══════════════════════════════════════════════════════════════
 
-AircraftViewport = ({ attitude, wingAngleL, wingAngleR, onBump, flapFrequency }) ->
+AircraftViewport = ({
+  attitude, wingAngleL, wingAngleR, onBump, flapFrequency
+}) ->
 
   mountRef = useRef null
   sceneRef = useRef null
@@ -128,7 +130,13 @@ AircraftViewport = ({ attitude, wingAngleL, wingAngleR, onBump, flapFrequency })
     wingShape.bezierCurveTo 0.35, 0.05, 0.7, 0.02, 0.85, -0.08
     wingShape.bezierCurveTo 0.7, -0.03, 0.35, -0.01, 0, -0.04
     wingShape.closePath()
-    extrudeSettings = steps: 1, depth: 0.2, bevelEnabled: true, bevelThickness: 0.01, bevelSize: 0.01, bevelSegments: 3
+    extrudeSettings =
+      steps: 1
+      depth: 0.2
+      bevelEnabled: true
+      bevelThickness: 0.01
+      bevelSize: 0.01
+      bevelSegments: 3
     wingGeo = new THREE.ExtrudeGeometry wingShape, extrudeSettings
     wingGeo.translate 0, 0, -0.1
 
@@ -213,7 +221,9 @@ AircraftViewport = ({ attitude, wingAngleL, wingAngleR, onBump, flapFrequency })
 
   # ── Update model transforms from props ──────────────────
   useEffect ->
-    return unless modelRef.current and wingPivotLRef.current and wingPivotRRef.current
+    hasRefs =
+      modelRef.current and wingPivotLRef.current and wingPivotRRef.current
+    return unless hasRefs
 
     roll  = attitude?.roll  or 0
     pitch = attitude?.pitch or 0

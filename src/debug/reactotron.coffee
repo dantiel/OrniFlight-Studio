@@ -105,8 +105,12 @@ export default Reactotron
 summarizeStore = (name, state) ->
   switch name
     when 'AppStore'
-      "#{state.configView || '—'} · #{state.activeTab || '—'} · #{state.connectionState || 'disconnected'}"
+      "#{state.configView || '—'} · " +
+        "#{state.activeTab || '—'} · " +
+        "#{state.connectionState || 'disconnected'}"
     when 'TelemetryStore'
-      "t=#{state.t || 0} · roll=#{state.gyro?.roll?.toFixed? 2 || state.gyro?.roll || 0} · ring=#{state.ringIndex || 0}"
+      "t=#{state.t || 0} · " +
+        "roll=#{state.gyro?.roll?.toFixed? 2 || state.gyro?.roll || 0} · " +
+        "ring=#{state.ringIndex || 0}"
     else
       JSON.stringify(state)?.slice 0, 80

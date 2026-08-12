@@ -8,7 +8,9 @@
 ###
 import { createActor } from 'xstate'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import connectionMachine, { STATE_LABELS, isLive, isDegraded } from '../machines/connectionMachine.coffee'
+import connectionMachine, {
+  STATE_LABELS, isLive, isDegraded
+} from '../machines/connectionMachine.coffee'
 
 describe 'connectionMachine', ->
 

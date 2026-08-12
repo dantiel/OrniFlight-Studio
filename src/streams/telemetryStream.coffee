@@ -27,7 +27,9 @@
 #                          .map(diff)      Changed()       (1000)
 ###
 import { BehaviorSubject, Subject } from 'rxjs'
-import { map, pairwise, distinctUntilChanged, throttleTime, bufferTime, share } from 'rxjs/operators'
+import {
+  map, pairwise, distinctUntilChanged, throttleTime, bufferTime, share
+} from 'rxjs/operators'
 
 # ═══════════════════════════════════════════════════════════════
 # Primary stream — one frame pushed per simulation tick

@@ -80,6 +80,7 @@ parseProfile = (data) -> Profile.parse data
 
 export {
   TelemetryFrame, ServoConfig, PIDConfig, Profile, ConnectionEvent
-  parseTelemetry, safeParseTelemetry, parseServoConfig, parsePIDConfig, parseProfile
+  parseTelemetry, safeParseTelemetry, parseServoConfig
+  parsePIDConfig, parseProfile
   TelemetryFrame as default
 }

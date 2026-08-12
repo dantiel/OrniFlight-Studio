@@ -30,10 +30,12 @@ GyroBars = ({ gyro }) ->
     barX = labelW + 8
     barMaxW = cw - barX - 60
     
+    radToDeg = (rad) -> (rad or 0) * 180 / Math.PI
+
     axes = [
-      { name: 'ROLL',  color: '#f0883e', value: (gyro?.roll  or 0) * 180 / Math.PI }
-      { name: 'PITCH', color: '#58a6ff', value: (gyro?.pitch or 0) * 180 / Math.PI }
-      { name: 'YAW',   color: '#3fb950', value: (gyro?.yaw   or 0) * 180 / Math.PI }
+      { name: 'ROLL',  color: '#f0883e', value: radToDeg gyro?.roll }
+      { name: 'PITCH', color: '#58a6ff', value: radToDeg gyro?.pitch }
+      { name: 'YAW',   color: '#3fb950', value: radToDeg gyro?.yaw }
     ]
     
     ctx.font = '10px "SF Mono", "Fira Code", monospace'
@@ -65,7 +67,8 @@ GyroBars = ({ gyro }) ->
       # Value
       ctx.fillStyle = '#e6edf3'
       ctx.textAlign = 'left'
-      ctx.fillText "#{axis.value.toFixed(0)}°/s", barX + barMaxW + 6, y + barH - 3
+      ctx.fillText "#{axis.value.toFixed(0)}°/s",
+        barX + barMaxW + 6, y + barH - 3
     return
   , [gyro]
   

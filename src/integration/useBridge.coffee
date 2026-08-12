@@ -50,7 +50,8 @@ useBridge = (sim, snap) ->
       flapFrequency:  snap.flapFrequency  || 0
     pushTelemetry frame
     updateTelemetry frame
-    setConnectionState (if sim.connected then 'streaming' else 'disconnected'), sim.connected
+    connectionState = if sim.connected then 'streaming' else 'disconnected'
+    setConnectionState connectionState, sim.connected
     setBattery snap.batteryVoltage || 0, snap.flapFrequency || 0
   , [snap.t]
 

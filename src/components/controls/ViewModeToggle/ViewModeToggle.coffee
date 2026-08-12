@@ -7,9 +7,18 @@ import { createElement } from 'react'
 # ═══════════════════════════════════════════════════════════════
 
 MODES = [
-  { id: 'full',    label: 'Horizon', icon: '\u25A3', title: 'Horizon — bird only, full viewport' }
-  { id: 'split',   label: 'Nest',    icon: '\u25A7', title: 'Nest — bird + inspector side by side' }
-  { id: 'compact', label: 'Roost',   icon: '\u25B1', title: 'Roost — compact bird + expanded telemetry' }
+  {
+    id: 'full', label: 'Horizon', icon: '\u25A3',
+    title: 'Horizon — bird only, full viewport'
+  }
+  {
+    id: 'split', label: 'Nest', icon: '\u25A7',
+    title: 'Nest — bird + inspector side by side'
+  }
+  {
+    id: 'compact', label: 'Roost', icon: '\u25B1',
+    title: 'Roost — compact bird + expanded telemetry'
+  }
 ]
 
 ViewModeToggle = ({ mode, onModeChange }) ->
