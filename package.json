@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.14.9",
-    "coffeehaml": "^0.7.5",
+    "coffeehaml": "^0.7.7",
     "coffeescript": "^2.7.0",
     "framer-motion": "^13.1.0",
     "react": "^18.3.1",

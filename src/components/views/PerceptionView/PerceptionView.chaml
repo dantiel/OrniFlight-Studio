@@ -1,6 +1,6 @@
 - import { fmt0, fmt1, fmt2 } from '../../../lib/essential.coffee'
 - import { useDeferredValue } from 'react'
-- `const DEFAULT_GYRO = { roll: 0, pitch: 0, yaw: 0 }`
+- DEFAULT_GYRO = { roll: 0, pitch: 0, yaw: 0 }
 - DEFAULT_SERVOS = [0, 0, 0, 0, 0, 0]
 - gc0 = (props.gyroCurves || ['gyroRoll'])[0] || 'gyroRoll'
 - t = props.t || 0
