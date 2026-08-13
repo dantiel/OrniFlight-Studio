@@ -1,5 +1,6 @@
 import './TabBar.sass'
 import { createElement } from 'react'
+import { classNames as cx } from '../../../lib/essential.coffee'
 
 # ═══════════════════════════════════════════════════════════════
 # TabBar — Flight dynamics sub-tabs
@@ -16,11 +17,9 @@ TABS = [
 TabBar = ({ activeTab, onTabChange }) ->
   createElement 'div', { className: 'tab-bar' },
     TABS.map (tab) ->
-      cls = 'tab-bar-item'
-      cls += ' active' if tab.id is activeTab
       createElement 'button',
         key: tab.id
-        className: cls
+        className: cx 'tab-bar-item', ['active', tab.id is activeTab]
         onClick: -> onTabChange tab.id
         title: tab.label
         createElement('span', { className: 'tab-icon' }, tab.icon),

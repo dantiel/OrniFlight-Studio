@@ -1,5 +1,6 @@
 import './ViewModeToggle.sass'
 import { createElement } from 'react'
+import { classNames as cx } from '../../../lib/essential.coffee'
 
 # ═══════════════════════════════════════════════════════════════
 # ViewModeToggle — layout modes
@@ -24,11 +25,9 @@ MODES = [
 ViewModeToggle = ({ mode, onModeChange }) ->
   createElement 'div', { className: 'viewmode-toggle' },
     MODES.map (m) ->
-      cls = 'viewmode-btn'
-      cls += ' active' if m.id is mode
       createElement 'button',
         key: m.id
-        className: cls
+        className: cx 'viewmode-btn', ['active', m.id is mode]
         onClick: -> onModeChange m.id
         title: m.title
         createElement('span', { className: 'vm-icon' }, m.icon),

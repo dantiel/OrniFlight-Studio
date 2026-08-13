@@ -80,6 +80,15 @@ isFunction = isType 'Function'
 isString = isType 'String'
 isNumber = isType 'Number'
 
+# ── List coercion ─────────────────────────────
+# asList(x) — the "children normalizer":
+#   undefined/null → []   array → itself   scalar → [scalar]
+asList = (x) ->
+  switch
+    when not x? then []
+    when isArray x then x
+    else [x]
+
 # ── React event helpers ────────────────────────
 # callWith(f, a)         → () -> f(a)
 # valueFromEvent(f)      → (e) -> f(e.target.value)
@@ -156,6 +165,9 @@ classNames = (base, mods...) ->
     out += " #{m[0]}" if m[1]
   out
 
+# poetic shorthand
+cx = classNames
+
 # ── Number formatting ────────────────────────
 fmt0 = (n) -> (n || 0).toFixed(0)
 fmt1 = (n) -> (n || 0).toFixed(1)
@@ -179,7 +191,8 @@ export {
   notF, eq, notEq, isType, isArray, isObject, isFunction, isString, isNumber
   callWith, valueFromEvent, fromEvent, targetFromEvent
   intFromEvent, floatFromEvent, parsedFromEvent
-  classNames
+  classNames, cx
+  asList
   fmt0, fmt1, fmt2
   upper, lower, fmt
   Result, Maybe, match, thrush

@@ -1,12 +1,8 @@
 import './ViewArea.sass'
 import h from '../../../app/h.coffee'
+import { asList } from '../../../lib/essential.coffee'
 
-ViewArea = (props) ->
-  { area, children } = props
-  kids = if children?
-    if Array.isArray(children) then children else [children]
-  else
-    []
-  h 'div', { className: "view-area view-area-#{area}" }, kids...
+ViewArea = ({ area, children }) ->
+  h 'div', { className: "view-area view-area-#{area}" }, asList(children)...
 
 export default ViewArea

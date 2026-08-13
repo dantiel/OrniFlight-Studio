@@ -30,11 +30,13 @@ export servoDefs = [
   { id: 'amplitudeScale', label: 'Amplitude', min: '0', max: '2', step: '0.1' }
 ]
 
-export servoDisplay = (servo, s) ->
-  v = servo[s.id] || 0
-  if s.id == 'rate' then "#{v}%"
-  else if s.id == 'amplitudeScale' then v.toFixed(1)
-  else String(v)
+SERVO_FORMATS =
+  rate: (v) -> "#{v}%"
+  amplitudeScale: (v) -> v.toFixed 1
 
-export servoParse = (s) ->
-  if s.id == 'amplitudeScale' then parseFloat else parseInt
+SERVO_PARSERS = amplitudeScale: parseFloat
+
+export servoDisplay = (servo, s) ->
+  (SERVO_FORMATS[s.id] ? String)(servo[s.id] ? 0)
+
+export servoParse = (s) -> SERVO_PARSERS[s.id] ? parseInt
