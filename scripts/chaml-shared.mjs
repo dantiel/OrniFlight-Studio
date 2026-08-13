@@ -134,7 +134,18 @@ export const compileChamlComponent = (
     }
     break;
   }
-  const imports = compImports + lines.slice(0, splitAt).join('\n');
+  // Co-located .sass is the .chaml styling convention — the grid templates
+  // and panel chrome live in the sibling .sass (not in App.sass). .coffee
+  // components import theirs explicitly; .chaml has no import mechanism, so
+  // inject it here (single source of truth for both vite and vitest).
+  const sassFile = realId.replace(CHAML_RE, '.sass');
+  const sassBasename = path.basename(sassFile);
+  const sassImport =
+    fs.existsSync(sassFile) && !src.includes(sassBasename)
+      ? `import './${sassBasename}';\n`
+      : '';
+
+  const imports = sassImport + compImports + lines.slice(0, splitAt).join('\n');
   const body = lines.slice(splitAt).join('\n');
 
   // The JSX expression is the last top-level jsx/jsxs call — prepend `return`.
