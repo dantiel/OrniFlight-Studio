@@ -1,93 +1,55 @@
-import {
-  useState, useEffect, useRef, useCallback, startTransition
-} from 'react'
-import { OrnithopterModel } from './OrnithopterModel.coffee'
+###
+# ORNIFLIGHT STUDIO — Simulation Loop
+#
+# useSimulation() mounts the engine's rAF loop and pushes every
+# telemetry frame into the reactive core (RxJS stream + Zustand
+# telemetry store). Push, don't poll: the loop is the single
+# producer, every consumer reads the stores.
+#
+# Returns nothing — the hook exists for its effect only. Call it
+# once in App.chaml. No component receives snapshot props anymore.
+###
+import { useEffect, useRef } from 'react'
+import { engine } from './engine.coffee'
+import { pushTelemetry } from '../streams/telemetryStream.coffee'
+import useTelemetryStore from '../stores/useTelemetryStore.coffee'
 
-# ═══════════════════════════════════════════════════════════════
-# Singleton engine — one simulation per application.
-# React hook pulls presentation-rate snapshots via rAF.
-# ═══════════════════════════════════════════════════════════════
+useSimulation = ->
+  rafRef  = useRef null
+  lastRef = useRef performance.now()
 
-engine = new OrnithopterModel()
-engine.connect()
-
-export useSimulation = ->
-
-  # Snapshot state updated at ~60fps
-  [snapshot, setSnapshot] = useState -> engine.telemetry
-  [selectedServoIndex, setSelectedServoIndex] = useState 0
-  rafRef = useRef null
-  lastTimeRef = useRef performance.now()
-
-  # ── Animation loop ──────────────────────────────────────
   useEffect ->
     tick = (now) ->
-      dt = Math.min((now - lastTimeRef.current) / 1000, 0.05)  # cap at 50ms
-      lastTimeRef.current = now
-      engine.step(dt)
-      # Shallow-clone telemetry for React diff
-      # startTransition: non-urgent update — React 18 keeps UI responsive
+      dt = Math.min((now - lastRef.current) / 1000, 0.05)
+      lastRef.current = now
+      engine.step dt
+
       tel = engine.telemetry
-      startTransition -> setSnapshot
-        attitude: { tel.attitude... }
-        gyro: { tel.gyro... }
-        wingAngleL: tel.wingAngleL
-        wingAngleR: tel.wingAngleR
-        flapFrequency: tel.flapFrequency
-        amplitude: tel.amplitude
-        batteryVoltage: tel.batteryVoltage
-        servoPositions: [...tel.servoPositions]
+      frame =
+        t:               engine.t
+        gyroRoll:        tel.gyro.roll
+        gyroPitch:       tel.gyro.pitch
+        gyroYaw:         tel.gyro.yaw
+        attitude:        { tel.attitude... }
+        wingAngleL:      tel.wingAngleL
+        wingAngleR:      tel.wingAngleR
+        amplitude:       tel.amplitude
+        batteryVoltage:  tel.batteryVoltage
+        flapFrequency:   tel.flapFrequency
+        servos:          tel.servoPositions[...]
         waveformHistory: tel.waveformHistory[...]
-        t: engine.t
+        rssi:            0
+        linkQuality:     0
+
+      pushTelemetry frame
+      useTelemetryStore.getState().update frame
       rafRef.current = requestAnimationFrame tick
 
     rafRef.current = requestAnimationFrame tick
-    -> cancelAnimationFrame rafRef.current if rafRef.current
+    ->
+      cancelAnimationFrame rafRef.current if rafRef.current
   , []
 
-  # ── Actions ─────────────────────────────────────────────
-  setStick = useCallback (axis, value) ->
-    engine.setStick axis, value
-  , []
+  null
 
-  setOndasParam = useCallback (name, value) ->
-    engine.setOndasParam name, value
-  , []
-
-  setPidGain = useCallback (name, value) ->
-    engine.setPidGain name, value
-  , []
-
-  setServoParam = useCallback (index, param, value) ->
-    engine.setServoParam index, param, value
-  , []
-
-  bump = useCallback ->
-    engine.bump()
-  , []
-
-  applyPreset = useCallback (name) ->
-    engine.applyPreset name
-  , []
-
-  selectServo = useCallback (i) ->
-    setSelectedServoIndex i
-  , []
-
-  # ── Return ──────────────────────────────────────────────
-  {
-    snapshot
-    servos: engine.servos
-    pidGains: engine.pidGains
-    ondasParams: engine.ondas
-    sticks: engine.sticks
-    connected: engine.connected
-    selectedServoIndex
-    setStick
-    setOndasParam
-    setPidGain
-    setServoParam
-    selectServo
-    bump
-    applyPreset
-  }
+export { useSimulation }

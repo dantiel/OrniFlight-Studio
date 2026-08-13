@@ -1,10 +1,23 @@
 - import { fmt1 } from '../../../lib/essential.coffee'
-- freq = fmt1(props.flapFrequency || 0) + ' Hz'
-  volts = fmt1(props.batteryVoltage || 0) + 'V'
+- import useConnection from '../../../hooks/useConnection.coffee'
+- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+- import useAppStore from '../../../stores/useAppStore.coffee'
+- conn = useConnection()
+  teleBattery = useTelemetryStore (s) -> s.batteryVoltage
+  teleFlap = useTelemetryStore (s) -> s.flapFrequency
+  storeViewMode = useAppStore (s) -> s.viewMode
+  storeSetViewMode = useAppStore (s) -> s.setViewMode
+  connected = props.connected ? conn.connected
+  batteryVoltage = props.batteryVoltage ? teleBattery
+  flapFrequency = props.flapFrequency ? teleFlap
+  viewMode = props.viewMode ? storeViewMode
+  onViewModeChange = props.onViewModeChange ? storeSetViewMode
+  freq = fmt1(flapFrequency || 0) + ' Hz'
+  volts = fmt1(batteryVoltage || 0) + 'V'
 .connection-bar{ role: 'banner', aria-label: 'Studio toolbar' }
   %BrandMark
   %Separator
-  %ConnectionStatus{ connected: props.connected }
+  %ConnectionStatus{ connected: connected }
   %Separator
   %MetricBadge{ label: 'Flap', value: freq }
   %MetricBadge{ label: 'Battery', value: volts }
@@ -12,4 +25,4 @@
   %VersionBadge
   %ConfigTabs.toolbar-right{ activeTab: props.activeTab, onTabChange: props.onTabChange }
     %ThemeToggle.toolbar-theme
-    %ViewModeToggle.toolbar-theme{ mode: props.viewMode || 'split', onModeChange: props.onViewModeChange || (->) }
+    %ViewModeToggle.toolbar-theme{ mode: viewMode || 'split', onModeChange: onViewModeChange || (->) }

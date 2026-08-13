@@ -1,5 +1,10 @@
 - import { callWith } from '../../../lib/essential.coffee'
+- import useAppStore from '../../../stores/useAppStore.coffee'
+- PROFILES = [['Gentle Glide', 'Slow, stable soaring.'], ['Agile Swirl', 'High-rate acrobatics with flips.'], ['Race Wind', 'Maximum thrust, minimal correction.'], ['Night Murmur', 'Quiet flight, reduced cadence.']]
+- PROFILE_ICONS = ['🕊️', '🦅', '⚡', '🦉']
+- activeProfile = useAppStore (s) -> s.activeProfile
+- setActiveProfile = useAppStore (s) -> s.setActiveProfile
 .view-layout.layout-memory
-  - for entry, i in props.profiles
+  - for entry, i in PROFILES
     %ViewCard{ key: i, index: i }
-      %ProfileCard{ icon: props.profileIcons[i] || '◇', title: entry[0], description: entry[1], index: i + 1, isActive: (i + 1 == props.activeProfile), onActivate: callWith(props.onActiveProfileChange, i + 1) }
+      %ProfileCard{ icon: PROFILE_ICONS[i] || '◇', title: entry[0], description: entry[1], index: i + 1, isActive: (i + 1 == activeProfile), onActivate: callWith(setActiveProfile, i + 1) }

@@ -1,3 +1,8 @@
+- import useEngineStore from '../../../stores/useEngineStore.coffee'
+- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+- CHANS = ['Throttle', 'Aileron', 'Elevator', 'Rudder']
+- sim = useEngineStore()
+- tele = useTelemetryStore()
 .view-layout.layout-voice
   %ViewArea{ area: 'proto' }
     %Section{ heading: 'Receiver Protocol', subheading: 'The language the bird understands.' }
@@ -10,7 +15,7 @@
       %ParamRow{ label: 'UID', display: '0x1A:2F:88' }
   %ViewArea{ area: 'chans' }
     %Section{ heading: 'Channel Map', subheading: 'Stick → Surface assignment.' }
-      - for ch, i in props.chans
+      - for ch, i in CHANS
         %ParamRow{ key: i, label: "CH#{i + 1}", display: "#{ch} → S#{i + 1}" }
     %Section{ heading: 'Mixer', subheading: 'Channel weight and trim.' }
       %ParamRow{ label: 'Weight', display: '100%' }
@@ -27,4 +32,4 @@
       %ParamRow{ label: 'RSSI Low', display: '-85 dBm' }
       %ParamRow{ label: 'RSSI Crit', display: '-95 dBm' }
   %ViewArea{ area: 'bird' }
-    %AircraftViewport{ attitude: props.snap.attitude || [0, 0, 0], wingAngleL: props.snap.wingAngleL || 0, wingAngleR: props.snap.wingAngleR || 0, flapFrequency: props.snap.flapFrequency || 0, onBump: props.sim.bump }
+    %AircraftViewport{ attitude: tele.attitude || [0, 0, 0], wingAngleL: tele.wingAngleL || 0, wingAngleR: tele.wingAngleR || 0, flapFrequency: tele.flapFrequency || 0, onBump: sim.bump }

@@ -1,11 +1,20 @@
 - import { fmt1 } from '../../../lib/essential.coffee'
+- import useEngineStore from '../../../stores/useEngineStore.coffee'
+- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+- import useAppStore from '../../../stores/useAppStore.coffee'
+- sim = useEngineStore()
+- tele = useTelemetryStore()
+- waveCurves = useAppStore (s) -> s.waveCurves
+- setWaveCurves = useAppStore (s) -> s.setWaveCurves
+- gyroCurves = useAppStore (s) -> s.gyroCurves
+- setGyroCurves = useAppStore (s) -> s.setGyroCurves
 .view-layout.layout-wings
   %ViewArea{ area: 'side' }
-    %Sidebar{ servos: props.sim.servos, selectedServoIndex: props.sim.selectedServoIndex, onSelectServo: props.sim.selectServo, sticks: props.sim.sticks, onStickChange: props.sim.setStick, onApplyPreset: props.sim.applyPreset }
+    %Sidebar{ servos: sim.servos, selectedServoIndex: sim.selectedServoIndex, onSelectServo: sim.selectServo, sticks: sim.sticks, onStickChange: sim.setStick, onApplyPreset: sim.applyPreset }
   %ViewArea{ area: 'vport' }
-    %AircraftViewport{ attitude: props.snap.attitude || [0, 0, 0], wingAngleL: props.snap.wingAngleL || 0, wingAngleR: props.snap.wingAngleR || 0, flapFrequency: props.snap.flapFrequency || 0, onBump: props.sim.bump }
-    %ViewportOverlay{ badges: ["Cadence #{fmt1(props.snap.flapFrequency)} Hz", "Stroke #{fmt1(props.snap.amplitude)}°", "t #{fmt1(props.snap.t)}s"] }
+    %AircraftViewport{ attitude: tele.attitude || [0, 0, 0], wingAngleL: tele.wingAngleL || 0, wingAngleR: tele.wingAngleR || 0, flapFrequency: tele.flapFrequency || 0, onBump: sim.bump }
+    %ViewportOverlay{ badges: ["Cadence #{fmt1(tele.flapFrequency)} Hz", "Stroke #{fmt1(tele.amplitude)}°", "t #{fmt1(tele.t)}s"] }
   %ViewArea{ area: 'insp' }
-    %ServoInspector{ servo: props.sim.servos[props.sim.selectedServoIndex], index: props.sim.selectedServoIndex, onParamChange: props.sim.setServoParam, pidGains: props.sim.pidGains, onPidChange: props.sim.setPidGain, ondasParams: props.sim.ondasParams, onOndasChange: props.sim.setOndasParam, mode: 'servos' }
+    %ServoInspector{ servo: sim.servos[sim.selectedServoIndex], index: sim.selectedServoIndex, onParamChange: sim.setServoParam, pidGains: sim.pidGains, onPidChange: sim.setPidGain, ondasParams: sim.ondasParams, onOndasChange: sim.setOndasParam, mode: 'servos' }
   %ViewArea{ area: 'tele' }
-    %TelemetryLab{ waveformHistory: props.snap.waveformHistory || [], gyro: props.snap.gyro || {roll: 0, pitch: 0, yaw: 0}, servoPositions: props.snap.servoPositions || [0, 0, 0, 0], waveCurves: props.waveCurves, onWaveCurveChange: props.onWaveCurveChange, gyroCurves: props.gyroCurves, onGyroCurveChange: props.onGyroCurveChange }
+    %TelemetryLab{ waveformHistory: tele.waveformHistory || [], gyro: tele.gyro || {roll: 0, pitch: 0, yaw: 0}, servoPositions: tele.servos || [0, 0, 0, 0], waveCurves: waveCurves, onWaveCurveChange: setWaveCurves, gyroCurves: gyroCurves, onGyroCurveChange: setGyroCurves }

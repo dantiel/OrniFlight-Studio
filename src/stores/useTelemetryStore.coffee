@@ -2,10 +2,12 @@
 # ORNIFLIGHT STUDIO — Telemetry Store (Zustand)
 #
 # Architectural role: high-frequency telemetry buffer.
-# Updated every rAF frame (~60Hz) by simulation engine.
+# Updated every rAF frame (~60Hz) by the simulation loop.
 #
-# Middleware: devtools only (persist excluded — telemetry
-# is ephemeral; ring buffer would waste localStorage).
+# Frame shape (pushed by useSimulation):
+#   t, gyroRoll, gyroPitch, gyroYaw, attitude, wingAngleL,
+#   wingAngleR, amplitude, batteryVoltage, flapFrequency,
+#   servos, waveformHistory, rssi, linkQuality
 #
 # Ring buffer: 256 frames for waveform rendering.
 ###
@@ -17,40 +19,50 @@ RING_SIZE = 256
 useTelemetryStore = create(
   devtools(
     (set, get) ->
-      # ── Latest snapshot ──
-      t: 0
-      gyro:       { roll: 0, pitch: 0, yaw: 0 }
-      servos:     (Array 16).fill 0
-      batteryVoltage: 0
-      flapFrequency:  0
-      rssi:        0
-      linkQuality: 0
-      connected:    false
+      # ———— Latest snapshot ————
+      t:               0
+      gyro:            { roll: 0, pitch: 0, yaw: 0 }
+      attitude:        { roll: 0, pitch: 0, yaw: 0 }
+      wingAngleL:      0
+      wingAngleR:      0
+      amplitude:       0
+      servos:          (Array 16).fill 0
+      waveformHistory: []
+      batteryVoltage:  0
+      flapFrequency:   0
+      rssi:            0
+      linkQuality:     0
+      connected:       false
 
-      # ── Ring buffer ──
-      ringIndex: 0
+      # ———— Ring buffer ————
+      ringIndex:  0
       ringBuffer: (new Array RING_SIZE).fill null
 
-      # ── Actions ──
+      # ———— Actions ————
       update: (frame) ->
         { ringIndex, ringBuffer } = get()
         ringBuffer[ringIndex] = frame
         set
-          t:              frame.t || 0
+          t:               frame.t || 0
           gyro:
             roll:  frame.gyroRoll || 0
             pitch: frame.gyroPitch || 0
             yaw:   frame.gyroYaw || 0
-          servos:         frame.servos || []
-          batteryVoltage: frame.batteryVoltage || 0
-          flapFrequency:  frame.flapFrequency || 0
-          rssi:           frame.rssi || 0
-          linkQuality:    frame.linkQuality || 0
-          ringIndex:      (ringIndex + 1) % RING_SIZE
+          attitude:        frame.attitude || { roll: 0, pitch: 0, yaw: 0 }
+          wingAngleL:      frame.wingAngleL || 0
+          wingAngleR:      frame.wingAngleR || 0
+          amplitude:       frame.amplitude || 0
+          servos:          frame.servos || []
+          waveformHistory: frame.waveformHistory || []
+          batteryVoltage:  frame.batteryVoltage || 0
+          flapFrequency:   frame.flapFrequency || 0
+          rssi:            frame.rssi || 0
+          linkQuality:     frame.linkQuality || 0
+          ringIndex:       (ringIndex + 1) % RING_SIZE
           ringBuffer
 
-      getRing:  -> get().ringBuffer
-      getGyro:  -> get().gyro
+      getRing: -> get().ringBuffer
+      getGyro: -> get().gyro
     ,
     name: '📡 TelemetryStore'
   )

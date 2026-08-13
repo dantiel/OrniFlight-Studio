@@ -1,43 +1,30 @@
 import './App.sass'
 import h from './h.coffee'
-import { useState } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { useSimulation } from '../simulation/useSimulation.coffee'
+import useBridge from '../integration/useBridge.coffee'
 import AnimatedPage from './AnimatedPage.coffee'
 import ConnectionBar from '../components/panels/ConnectionBar/ConnectionBar.chaml'
-import ConfigTabs from '../components/controls/ConfigTabs/ConfigTabs.chaml'
 import WingsView from '../components/views/WingsView/WingsView.chaml'
 import FlightView from '../components/views/FlightView/FlightView.chaml'
 import PerceptionView from '../components/views/PerceptionView/PerceptionView.chaml'
 import VoiceView from '../components/views/VoiceView/VoiceView.chaml'
 import MemoryView from '../components/views/MemoryView/MemoryView.chaml'
 
-- sim = useSimulation()
-  snap = sim.snapshot || {}
-  [activeTab, setActiveTab] = useState 'servos'
-  [viewMode, setViewMode] = useState 'split'
-  [waveCurves, setWaveCurves] = useState ['wingL', 'wingR']
-  [gyroCurves, setGyroCurves] = useState ['gyroRoll']
-  [activeProfile, setActiveProfile] = useState 1
-  gD = snap.gyro || {}
-  gyroRoll  = gD.roll || 0
-  gyroPitch = gD.pitch || 0
-  gyroYaw   = gD.yaw || 0
-  chans    = ['Throttle', 'Aileron', 'Elevator', 'Rudder']
-  profiles = [['Gentle Glide', 'Slow, stable soaring.'], ['Agile Swirl', 'High-rate acrobatics with flips.'], ['Race Wind', 'Maximum thrust, minimal correction.'], ['Night Murmur', 'Quiet flight, reduced cadence.']]
-  profileIcons = ['🕊️', '🦅', '⚡', '🦉']
-  location = useLocation()
-- `const wingsEl = h(AnimatedPage, null, h(WingsView, {sim, snap, waveCurves, onWaveCurveChange: setWaveCurves, gyroCurves, onGyroCurveChange: setGyroCurves}))`
-- `const flightEl = h(AnimatedPage, null, h(FlightView, {sim, snap, activeTab, onTabChange: setActiveTab, waveCurves, onWaveCurveChange: setWaveCurves, gyroCurves, onGyroCurveChange: setGyroCurves}))`
-- `const perceptionEl = h(AnimatedPage, null, h(PerceptionView, {snap, gyroRoll, gyroPitch, gyroYaw, t: snap.t || 0, gyroCurves, onGyroCurveChange: setGyroCurves}))`
-- `const voiceEl = h(AnimatedPage, null, h(VoiceView, {snap, chans, sim}))`
-- `const memoryEl = h(AnimatedPage, null, h(MemoryView, {profiles, profileIcons, activeProfile, onActiveProfileChange: setActiveProfile}))`
+- useSimulation()
+- useBridge()
+- location = useLocation()
+- `const wingsEl = h(AnimatedPage, null, h(WingsView, null))`
+- `const flightEl = h(AnimatedPage, null, h(FlightView, null))`
+- `const perceptionEl = h(AnimatedPage, null, h(PerceptionView, null))`
+- `const voiceEl = h(AnimatedPage, null, h(VoiceView, null))`
+- `const memoryEl = h(AnimatedPage, null, h(MemoryView, null))`
 - `const navEl = h(Navigate, {to: '/wings', replace: true})`
 .studio-shell{ role: 'application', aria-label: 'OrniFlight Studio' }
   %a.skip-link{ href: '#main-content' }
     Skip to content
-  %ConnectionBar{ connected: sim.connected, batteryVoltage: snap.batteryVoltage || 0, flapFrequency: snap.flapFrequency || 0, viewMode: viewMode, onViewModeChange: setViewMode }
+  %ConnectionBar
   %div#main-content{ role: 'main' }
     %AnimatePresence{ mode: 'wait' }
       %Routes{ location: location, key: location.pathname }

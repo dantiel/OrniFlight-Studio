@@ -23,9 +23,11 @@ _actor = null
 _subscribers = []
 
 getActor = ->
+  # XState v5: getSnapshot().status reports 'active' even before start(),
+  # so a status check here would never start the actor. start() is
+  # idempotent — call it unconditionally.
   _actor ?= createActor connectionMachine
-  status = _actor.getSnapshot().status
-  _actor.start() unless status is 'active' or status is 'running'
+  _actor.start()
   _actor
 
 # ═══════════════════════════════════════════════════════════════

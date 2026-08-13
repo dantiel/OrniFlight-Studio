@@ -1,20 +1,26 @@
 - import { fmt0, fmt1, fmt2 } from '../../../lib/essential.coffee'
 - import { useDeferredValue } from 'react'
+- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+- import useAppStore from '../../../stores/useAppStore.coffee'
 - DEFAULT_GYRO = { roll: 0, pitch: 0, yaw: 0 }
 - DEFAULT_SERVOS = [0, 0, 0, 0, 0, 0]
-- gc0 = (props.gyroCurves || ['gyroRoll'])[0] || 'gyroRoll'
-- t = props.t || 0
-- deferredGyro = useDeferredValue(props.snap.gyro || DEFAULT_GYRO)
-- deferredHistory = useDeferredValue(props.snap.waveformHistory || [])
-- deferredServos = useDeferredValue(props.snap.servoPositions || DEFAULT_SERVOS)
+- tele = useTelemetryStore()
+- gyroCurves = useAppStore (s) -> s.gyroCurves
+- setGyroCurves = useAppStore (s) -> s.setGyroCurves
+- gyro = tele.gyro || DEFAULT_GYRO
+- t = tele.t || 0
+- gc0 = (gyroCurves || ['gyroRoll'])[0] || 'gyroRoll'
+- deferredGyro = useDeferredValue(gyro)
+- deferredHistory = useDeferredValue(tele.waveformHistory || [])
+- deferredServos = useDeferredValue(tele.servos || DEFAULT_SERVOS)
 .view-layout.layout-perception
   %ViewArea{ area: 'gyro' }
     %Section{ heading: 'Gyroscope', subheading: "Roll · Pitch · Yaw — the bird's inner ear." }
       %GyroBars{ gyro: deferredGyro }
     %Section{ heading: 'Angular Rates' }
-      %ParamRow{ label: 'Rate Roll', display: fmt1(props.gyroRoll) + ' °/s' }
-      %ParamRow{ label: 'Rate Pitch', display: fmt1(props.gyroPitch) + ' °/s' }
-      %ParamRow{ label: 'Rate Yaw', display: fmt1(props.gyroYaw) + ' °/s' }
+      %ParamRow{ label: 'Rate Roll', display: fmt1(gyro.roll) + ' °/s' }
+      %ParamRow{ label: 'Rate Pitch', display: fmt1(gyro.pitch) + ' °/s' }
+      %ParamRow{ label: 'Rate Yaw', display: fmt1(gyro.yaw) + ' °/s' }
   %ViewArea{ area: 'accel' }
     %Section{ heading: 'Accelerometer', subheading: 'Linear acceleration in body frame.' }
       %ParamRow{ label: 'Accel X', display: fmt2(Math.sin(t) * 0.15 - 0.12) + 'g' }
@@ -37,14 +43,14 @@
       .lab-heading
         %span
           Gyro Traces
-        %select.curve-select{ value: gc0, onChange: (e) -> props.onGyroCurveChange && props.onGyroCurveChange([e.target.value]) }
+        %select.curve-select{ value: gc0, onChange: (e) -> setGyroCurves && setGyroCurves([e.target.value]) }
           %option{ value: 'gyroRoll' }
             Roll
           %option{ value: 'gyroPitch' }
             Pitch
           %option{ value: 'gyroYaw' }
             Yaw
-      %WaveformPlot{ history: deferredHistory, curves: props.gyroCurves }
+      %WaveformPlot{ history: deferredHistory, curves: gyroCurves }
     %LabPanel{ style: {padding: 'var(--of-space-4)', display: 'flex', flexDirection: 'column'} }
       .lab-heading Servo Voice
       %Readout{ items: deferredServos.map((val, i) -> ({label: "CH" + (i + 1), value: String(val)})) }
