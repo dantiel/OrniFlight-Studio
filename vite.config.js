@@ -26,35 +26,39 @@ function prePlugin() {
   const compiled = new Map();
   const { generateComponentImports } = createComponentRegistry(__dirname);
 
-  const compileChamlAt = (realId) => {
-    if (compiled.has(realId)) return compiled.get(realId);
+  const compileChamlAt = (ctx, realId) => {
     let src;
     try { src = fs.readFileSync(realId, 'utf8'); }
     catch { return null; }
+    ctx.addWatchFile(realId);
+    const cached = compiled.get(realId);
+    if (cached && cached.src === src) return cached.out;
     const stem = path.basename(realId).split('.').shift() || 'Cmp';
     const name = stem.charAt(0).toUpperCase() + stem.slice(1);
     const code = compileChamlComponent(realId, src, name, {
       generateComponentImports,
       useCreateElement: false,
-      fail: (err) => this.error({ message: err.message, id: realId }),
+      fail: (err) => ctx.error({ message: err.message, id: realId }),
     });
     if (code == null) return null;
     const out = { code, map: null };
-    compiled.set(realId, out);
+    compiled.set(realId, { src, out });
     return out;
   };
 
-  const compileCoffeeAt = (realId) => {
-    if (compiled.has(realId)) return compiled.get(realId);
+  const compileCoffeeAt = (ctx, realId) => {
     let src;
     try { src = fs.readFileSync(realId, 'utf8'); }
     catch { return null; }
+    ctx.addWatchFile(realId);
+    const cached = compiled.get(realId);
+    if (cached && cached.src === src) return cached.out;
     try {
       const out = compileCoffee(src, realId);
-      compiled.set(realId, out);
+      compiled.set(realId, { src, out });
       return out;
     } catch (e) {
-      this.error({ message: e.message, id: realId });
+      ctx.error({ message: e.message, id: realId });
       return null;
     }
   };
@@ -76,19 +80,19 @@ function prePlugin() {
     load(id) {
       // Handle raw .coffee files (from HTML entry, bypassing resolveId)
       if (id.endsWith('.coffee') && !id.endsWith('.coffee.jsx')) {
-        return compileCoffeeAt(id);
+        return compileCoffeeAt(this, id);
       }
       // Handle raw .chaml files (from HTML entry)
       if (CHAML_RE.test(id) && !id.endsWith('.chaml.jsx')) {
-        return compileChamlAt(id);
+        return compileChamlAt(this, id);
       }
       // chaml virtual
       if (id.endsWith('.chaml.jsx')) {
-        return compileChamlAt(id.replace(/\.jsx$/, ''));
+        return compileChamlAt(this, id.replace(/\.jsx$/, ''));
       }
       // coffee virtual
       if (id.endsWith('.coffee.jsx')) {
-        return compileCoffeeAt(id.replace(/\.jsx$/, ''));
+        return compileCoffeeAt(this, id.replace(/\.jsx$/, ''));
       }
       return null;
     },
@@ -104,7 +108,7 @@ function prePlugin() {
         });
         if (result.errors.length > 0) return null;
         const out = '// @refresh reset\n' + result.code.replace(/jsx\(([^,]+), null\)/g, 'jsx($1, {})');
-        compiled.set(id, out);
+        compiled.set(id, { src: code, out });
         return { code: out, map: result.sourceMap ? { mappings: result.sourceMap } : null };
       }
       if (COFFEE_RE.test(id)) {
@@ -116,6 +120,25 @@ function prePlugin() {
         }
       }
       return null;
+    },
+
+    // Vite dev invalidates modules via fileToModulesMap, keyed by
+    // mod.file = cleanUrl(resolvedId). Our resolveId appends `.jsx` to
+    // .coffee/.chaml, so the virtual module is keyed by a path that does
+    // not exist on disk — a change to the real source file finds nothing
+    // to invalidate and the stale transform is served forever. Map the
+    // changed source back to its virtual module and invalidate it.
+    handleHotUpdate(ctx) {
+      const { file, server } = ctx;
+      if (!CHAML_RE.test(file) && !COFFEE_RE.test(file)) return;
+      compiled.delete(path.resolve(file));
+      const virtualId = path.resolve(file) + '.jsx';
+      const mod = server.moduleGraph.getModuleById(virtualId);
+      if (mod) {
+        server.moduleGraph.invalidateModule(mod);
+        return [mod];
+      }
+      return [];
     },
   };
 }
