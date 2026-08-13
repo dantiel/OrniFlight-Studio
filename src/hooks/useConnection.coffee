@@ -12,7 +12,7 @@
 #   useSelector from @xstate/react — components never interact
 #   with the machine directly.
 ###
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { createActor } from 'xstate'
 import connectionMachine, {
   STATE_LABELS, isLive, isDegraded
@@ -36,7 +36,7 @@ getActor = ->
 # ═══════════════════════════════════════════════════════════════
 useConnection = ->
   actor = getActor()
-  [snapshot, setSnapshot] = (require 'react').useState -> actor.getSnapshot()
+  [snapshot, setSnapshot] = useState -> actor.getSnapshot()
   subRef = useRef null
 
   useEffect ->
