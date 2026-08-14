@@ -40,26 +40,34 @@ useTelemetryStore = create(
 
       # ———— Actions ————
       update: (frame) ->
+        {
+          t = 0
+          gyroRoll = 0, gyroPitch = 0, gyroYaw = 0
+          attitude = { roll: 0, pitch: 0, yaw: 0 }
+          wingAngleL = 0, wingAngleR = 0, amplitude = 0
+          servos = [], waveformHistory = []
+          batteryVoltage = 0, flapFrequency = 0
+          rssi = 0, linkQuality = 0
+        } = frame
+
         { ringIndex, ringBuffer } = get()
         ringBuffer[ringIndex] = frame
-        set
-          t:               frame.t || 0
-          gyro:
-            roll:  frame.gyroRoll || 0
-            pitch: frame.gyroPitch || 0
-            yaw:   frame.gyroYaw || 0
-          attitude:        frame.attitude || { roll: 0, pitch: 0, yaw: 0 }
-          wingAngleL:      frame.wingAngleL || 0
-          wingAngleR:      frame.wingAngleR || 0
-          amplitude:       frame.amplitude || 0
-          servos:          frame.servos || []
-          waveformHistory: frame.waveformHistory || []
-          batteryVoltage:  frame.batteryVoltage || 0
-          flapFrequency:   frame.flapFrequency || 0
-          rssi:            frame.rssi || 0
-          linkQuality:     frame.linkQuality || 0
-          ringIndex:       (ringIndex + 1) % RING_SIZE
+        set {
+          t
+          gyro: { roll: gyroRoll, pitch: gyroPitch, yaw: gyroYaw }
+          attitude
+          wingAngleL
+          wingAngleR
+          amplitude
+          servos
+          waveformHistory
+          batteryVoltage
+          flapFrequency
+          rssi
+          linkQuality
+          ringIndex: (ringIndex + 1) % RING_SIZE
           ringBuffer
+        }
 
       getRing: -> get().ringBuffer
       getGyro: -> get().gyro

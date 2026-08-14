@@ -10,7 +10,15 @@
 import { create } from 'zustand'
 import { engine } from '../simulation/engine.coffee'
 
+# delegate-then-reflect — run engine[action], then mirror engine[key]
+# back into the store. Curried: (set) → (action, key) → (args…)
+mirror = (set) -> (action, key) -> (args...) ->
+  engine[action] args...
+  set { "#{key}": { engine[key]... } }
+
 useEngineStore = create (set) ->
+  action = mirror set
+
   servos:             engine.servos
   pidGains:           engine.pidGains
   ondasParams:        engine.ondas
@@ -18,24 +26,11 @@ useEngineStore = create (set) ->
   connected:          engine.connected
   selectedServoIndex: 0
 
-  selectServo: (i) ->
-    set { selectedServoIndex: i }
-
-  setStick: (axis, value) ->
-    engine.setStick axis, value
-    set { sticks: { engine.sticks... } }
-
-  setOndasParam: (name, value) ->
-    engine.setOndasParam name, value
-    set { ondasParams: { engine.ondas... } }
-
-  setPidGain: (name, value) ->
-    engine.setPidGain name, value
-    set { pidGains: { engine.pidGains... } }
-
-  setServoParam: (index, param, value) ->
-    engine.setServoParam index, param, value
-    set { servos: engine.servos.map (s) -> { s... } }
+  selectServo:   (i) -> set { selectedServoIndex: i }
+  setStick:      action 'setStick',      'sticks'
+  setOndasParam: action 'setOndasParam', 'ondasParams'
+  setPidGain:    action 'setPidGain',    'pidGains'
+  setServoParam: action 'setServoParam', 'servos'
 
   applyPreset: (name) ->
     engine.applyPreset name
@@ -43,7 +38,6 @@ useEngineStore = create (set) ->
       servos:   engine.servos.map (s) -> { s... }
       pidGains: { engine.pidGains... }
 
-  bump: ->
-    engine.bump()
+  bump: -> engine.bump()
 
 export default useEngineStore

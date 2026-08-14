@@ -6,13 +6,31 @@
 # telemetry store). Push, don't poll: the loop is the single
 # producer, every consumer reads the stores.
 #
-# Returns nothing — the hook exists for its effect only. Call it
-# once in App.chaml. No component receives snapshot props anymore.
+# snapshot(engine) is the pure projection engine → frame; the
+# loop is pure effect. No component receives snapshot props anymore.
 ###
 import { useEffect, useRef } from 'react'
 import { engine } from './engine.coffee'
 import { pushTelemetry } from '../streams/telemetryStream.coffee'
 import useTelemetryStore from '../stores/useTelemetryStore.coffee'
+
+# Pure projection: simulation engine → one telemetry frame
+snapshot = (engine) ->
+  tel = engine.telemetry
+  t:               engine.t
+  gyroRoll:        tel.gyro.roll
+  gyroPitch:       tel.gyro.pitch
+  gyroYaw:         tel.gyro.yaw
+  attitude:        { tel.attitude... }
+  wingAngleL:      tel.wingAngleL
+  wingAngleR:      tel.wingAngleR
+  amplitude:       tel.amplitude
+  batteryVoltage:  tel.batteryVoltage
+  flapFrequency:   tel.flapFrequency
+  servos:          tel.servoPositions[...]
+  waveformHistory: tel.waveformHistory[...]
+  rssi:            0
+  linkQuality:     0
 
 useSimulation = ->
   rafRef  = useRef null
@@ -23,24 +41,7 @@ useSimulation = ->
       dt = Math.min((now - lastRef.current) / 1000, 0.05)
       lastRef.current = now
       engine.step dt
-
-      tel = engine.telemetry
-      frame =
-        t:               engine.t
-        gyroRoll:        tel.gyro.roll
-        gyroPitch:       tel.gyro.pitch
-        gyroYaw:         tel.gyro.yaw
-        attitude:        { tel.attitude... }
-        wingAngleL:      tel.wingAngleL
-        wingAngleR:      tel.wingAngleR
-        amplitude:       tel.amplitude
-        batteryVoltage:  tel.batteryVoltage
-        flapFrequency:   tel.flapFrequency
-        servos:          tel.servoPositions[...]
-        waveformHistory: tel.waveformHistory[...]
-        rssi:            0
-        linkQuality:     0
-
+      frame = snapshot engine
       pushTelemetry frame
       useTelemetryStore.getState().update frame
       rafRef.current = requestAnimationFrame tick
@@ -52,4 +53,4 @@ useSimulation = ->
 
   null
 
-export { useSimulation }
+export { useSimulation, snapshot }

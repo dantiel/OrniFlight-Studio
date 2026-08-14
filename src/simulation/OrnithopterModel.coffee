@@ -21,6 +21,46 @@ rcToRate = (val) -> ((val - 1500) / 500) * 720 * PI / 180
 angleToPwm = (angleDeg) ->
   clamp 1000, 2000, Math.round 1500 + (angleDeg / 45.0) * 500
 
+# Flight presets — data, not control flow
+PRESETS =
+  gentle:
+    baseAmplitude: 30.0
+    flapFrequency: 4.0
+    roll_P: 2.0
+    pitch_P: 3.0
+    yaw_P: 1.5
+  acro:
+    baseAmplitude: 45.0
+    flapFrequency: 6.0
+    roll_P: 4.0
+    pitch_P: 6.0
+    yaw_P: 3.0
+  race:
+    baseAmplitude: 55.0
+    flapFrequency: 8.0
+    roll_P: 7.0
+    pitch_P: 9.0
+    yaw_P: 5.0
+
+# ONDAS gain defaults (mirror of constructor @ondas) + scaling
+ONDAS_DEFAULTS =
+  cadence_gain: 30
+  ferocity_d_gain: 40
+  ferocity_p_gain: 20
+  balance_gain: 10
+  ferocity_roll_gain: 30
+  ferocity_yaw_gain: 25
+  warp_gain: 20
+  warp_yaw_gain: 15
+  anchor_gain: 50
+  resonance_gain: 10
+
+scaleGains = (gains) ->
+  scaled = {}
+  for own k, d of ONDAS_DEFAULTS
+    scaled[k] = (gains[k] || d) * 0.01
+  scaled
+
 # ═══════════════════════════════════════════════════════════════
 # OrnithopterModel — the bird's physics, PID, and ONDAS soul
 # ═══════════════════════════════════════════════════════════════
@@ -191,25 +231,13 @@ export class OrnithopterModel
   # ── Presets ────────────────────────────────────────────────
 
   applyPreset: (name) ->
-    switch name
-      when 'gentle'
-        @baseAmplitude    = 30.0
-        @flapFrequency    = 4.0
-        @pidGains.roll_P  = 2.0
-        @pidGains.pitch_P = 3.0
-        @pidGains.yaw_P   = 1.5
-      when 'acro'
-        @baseAmplitude    = 45.0
-        @flapFrequency    = 6.0
-        @pidGains.roll_P  = 4.0
-        @pidGains.pitch_P = 6.0
-        @pidGains.yaw_P   = 3.0
-      when 'race'
-        @baseAmplitude    = 55.0
-        @flapFrequency    = 8.0
-        @pidGains.roll_P  = 7.0
-        @pidGains.pitch_P = 9.0
-        @pidGains.yaw_P   = 5.0
+    p = PRESETS[name]
+    return @ unless p
+    @baseAmplitude      = p.baseAmplitude
+    @flapFrequency      = p.flapFrequency
+    @pidGains.roll_P    = p.roll_P
+    @pidGains.pitch_P   = p.pitch_P
+    @pidGains.yaw_P     = p.yaw_P
     @
 
   # ═══════════════════════════════════════════════════════════
@@ -272,25 +300,15 @@ export class OrnithopterModel
       @gyro[axis] += correction * @dt
 
   _ondasStep: ->
-    p = @ondas
-
-    cadenceGain   = (p.cadence_gain   || 30) * 0.01
-    ferocityD     = (p.ferocity_d_gain || 40) * 0.01
-    ferocityP     = (p.ferocity_p_gain || 20) * 0.01
-    balanceGain   = (p.balance_gain   || 10) * 0.01
-    ferocityRoll  = (p.ferocity_roll_gain || 30) * 0.01
-    ferocityYaw   = (p.ferocity_yaw_gain  || 25) * 0.01
-    warpGain      = (p.warp_gain      || 20) * 0.01
-    warpYawGain   = (p.warp_yaw_gain  || 15) * 0.01
-    anchorGain    = (p.anchor_gain    || 50) * 0.01
-    resonanceGain = (p.resonance_gain || 10) * 0.01
+    g = scaleGains @ondas
 
     rateError =
       roll:  @targetRates.roll  - @gyro.roll
       pitch: @targetRates.pitch - @gyro.pitch
       yaw:   @targetRates.yaw   - @gyro.yaw
 
-    cadenceFreq = @flapFrequency * (1.0 + rateError.pitch * cadenceGain * 0.01)
+    cadenceFreq =
+      @flapFrequency * (1.0 + rateError.pitch * g.cadence_gain * 0.01)
     cadenceFreq = clamp 1.0, 20.0, cadenceFreq
 
     @flapPhase += cadenceFreq * TWO_PI * @dt
@@ -300,21 +318,21 @@ export class OrnithopterModel
     cosPhi = Math.cos @flapPhase
     amp    = @baseAmplitude * (PI / 180)
 
-    rollDiff  = rateError.roll * warpGain * 0.3
-    rollDiff += rateError.roll * ferocityRoll * 0.1 *
+    rollDiff  = rateError.roll * g.warp_gain * 0.3
+    rollDiff += rateError.roll * g.ferocity_roll_gain * 0.1 *
       (if sinPhi > 0 then 1.0 else 0.6)
 
-    yawDiff  = rateError.yaw * warpYawGain * 0.2
-    yawDiff += rateError.yaw * ferocityYaw * 0.08 * Math.abs sinPhi
+    yawDiff  = rateError.yaw * g.warp_yaw_gain * 0.2
+    yawDiff += rateError.yaw * g.ferocity_yaw_gain * 0.08 * Math.abs sinPhi
 
-    pitchMod     = rateError.pitch * cadenceGain * 0.4
-    resonanceMod = (rateError.roll * sinPhi) * resonanceGain * 0.1
-    balanceMod   = @pidI.pitch * balanceGain * 0.2
+    pitchMod     = rateError.pitch * g.cadence_gain * 0.4
+    resonanceMod = (rateError.roll * sinPhi) * g.resonance_gain * 0.1
+    balanceMod   = @pidI.pitch * g.balance_gain * 0.2
 
     totalRate =
       Math.abs(@gyro.roll) + Math.abs(@gyro.pitch) +
         Math.abs(@gyro.yaw)
-    anchorMod = 1.0 / (1.0 + totalRate * anchorGain * 0.5)
+    anchorMod = 1.0 / (1.0 + totalRate * g.anchor_gain * 0.5)
 
     # Left wing
     ampL  = amp * (1.0 + pitchMod + resonanceMod) * anchorMod
