@@ -42,7 +42,7 @@ self.onmessage = (e) ->
         self.postMessage
           type: 'FRAME'
           frame: validated
-          timestamp: timestamp || performance.now()
+          timestamp: timestamp ? performance.now()
       catch err
         self.postMessage
           type: 'ERROR'

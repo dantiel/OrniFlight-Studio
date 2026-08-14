@@ -176,8 +176,9 @@ fmt2 = (n) -> (n || 0).toFixed(2)
 # ── String ───────────────────────────────────
 upper = (s) -> s.charAt(0).toUpperCase() + s.slice 1
 lower = (s) -> s.charAt(0).toLowerCase() + s.slice 1
+# Kanon: 0 ist Konfiguration, null ist Abwesenheit — `?` prüft existenzial
 fmt = curry (str, args...) ->
-  str.replace /%(\\d+)/g, (_, i) -> args[--i] or ''
+  str.replace /%(\\d+)/g, (_, i) -> args[--i] ? ''
 
 # ── Exports ──────────────────────────────────
 export {

@@ -58,7 +58,7 @@ ONDAS_DEFAULTS =
 scaleGains = (gains) ->
   scaled = {}
   for own k, d of ONDAS_DEFAULTS
-    scaled[k] = (gains[k] || d) * 0.01
+    scaled[k] = (gains[k] ? d) * 0.01
   scaled
 
 # ═══════════════════════════════════════════════════════════════
