@@ -325,7 +325,11 @@ export class OrnithopterModel
     yawDiff  = rateError.yaw * g.warp_yaw_gain * 0.2
     yawDiff += rateError.yaw * g.ferocity_yaw_gain * 0.08 * Math.abs sinPhi
 
-    pitchMod     = rateError.pitch * g.cadence_gain * 0.4
+    # rateError is in rad/s (±12.57 at full stick). A 0.4 factor here
+    # drove pitchMod to ±1.5 — amplitude swung 0.5×…2.5×, pegging the
+    # servos on the way up and reversing wing phase on the way down.
+    # 0.1 keeps pitchMod ≈ ±0.4 (amplitude 0.6×…1.4×) at full stick.
+    pitchMod     = rateError.pitch * g.cadence_gain * 0.1
     resonanceMod = (rateError.roll * sinPhi) * g.resonance_gain * 0.1
     balanceMod   = @pidI.pitch * g.balance_gain * 0.2
 
@@ -352,7 +356,11 @@ export class OrnithopterModel
     @wingVelocityL = cosPhi * ampL * cadenceFreq * TWO_PI
     @wingVelocityR = cosPhi * ampR * cadenceFreq * TWO_PI
 
-    @flapFrequency = cadenceFreq
+    # cadenceFreq is the *instantaneous* modulated cadence — it drives
+    # phase advance and wing velocity only. Writing it back to
+    # @flapFrequency would compound the pitch modulation every substep
+    # and rocket the base cadence to the 20 Hz clamp (positive feedback).
+    # @flapFrequency stays the base, set by preset/thrust physics.
 
     @_computeServoSignals sinPhi, ampL, ampR
 
