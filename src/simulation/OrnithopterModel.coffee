@@ -211,7 +211,7 @@ export class OrnithopterModel
     for [0...subSteps]
       @_physicsStep subDt
       @_pidStep subDt
-      @_ondasStep()
+      @_ondasStep subDt
 
       damp = 0.98
       @attitude.roll  =
@@ -305,7 +305,7 @@ export class OrnithopterModel
       correction = pOut + iOut + dOut
       @gyro[axis] += correction * subDt
 
-  _ondasStep: ->
+  _ondasStep: (subDt) ->
     g = scaleGains @ondas
 
     rateError =
@@ -317,7 +317,7 @@ export class OrnithopterModel
       @flapFrequency * (1.0 + rateError.pitch * g.cadence_gain * 0.01)
     cadenceFreq = clamp 1.0, 20.0, cadenceFreq
 
-    @flapPhase += cadenceFreq * TWO_PI * @dt
+    @flapPhase += cadenceFreq * TWO_PI * subDt
     @flapPhase %= TWO_PI
 
     sinPhi = Math.sin @flapPhase
