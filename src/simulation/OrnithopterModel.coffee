@@ -17,6 +17,7 @@ PI     = Math.PI
 # ═══════════════════════════════════════════════════════════════
 
 clamp    = (lo, hi, x) -> Math.max lo, Math.min hi, x
+wrapAngle = (a) -> ((a + PI) % TWO_PI + TWO_PI) % TWO_PI - PI
 rcToRate = (val) -> ((val - 1500) / 500) * 720 * PI / 180
 angleToPwm = (angleDeg) ->
   clamp 1000, 2000, Math.round 1500 + (angleDeg / 45.0) * 500
@@ -78,7 +79,7 @@ export class OrnithopterModel
 
     @targetRates = { roll: 0, pitch: 0, yaw: 0 }
     @pidI        = { roll: 0, pitch: 0, yaw: 0 }
-    @prevError   = { roll: 0, pitch: 0, yaw: 0 }
+    @prevGyro    = { roll: 0, pitch: 0, yaw: 0 }
 
     @flapPhase     = 0.0
     @flapFrequency = 6.0
@@ -173,7 +174,7 @@ export class OrnithopterModel
     @attitude   = { roll: 0, pitch: 0, yaw: 0 }
     @gyro       = { roll: 0, pitch: 0, yaw: 0 }
     @pidI       = { roll: 0, pitch: 0, yaw: 0 }
-    @prevError  = { roll: 0, pitch: 0, yaw: 0 }
+    @prevGyro   = { roll: 0, pitch: 0, yaw: 0 }
     @flapPhase  = 0.0
     @
 
@@ -209,16 +210,16 @@ export class OrnithopterModel
 
     for [0...subSteps]
       @_physicsStep subDt
-      @_pidStep()
+      @_pidStep subDt
       @_ondasStep()
 
       damp = 0.98
       @attitude.roll  =
-        (@attitude.roll  + @gyro.roll  * subDt) * damp
+        wrapAngle (@attitude.roll  + @gyro.roll  * subDt) * damp
       @attitude.pitch =
-        (@attitude.pitch + @gyro.pitch * subDt) * damp
+        wrapAngle (@attitude.pitch + @gyro.pitch * subDt) * damp
       @attitude.yaw   =
-        (@attitude.yaw   + @gyro.yaw   * subDt)
+        wrapAngle (@attitude.yaw   + @gyro.yaw   * subDt)
       @t += subDt
 
     @_updateTelemetrySnapshot()
@@ -254,8 +255,8 @@ export class OrnithopterModel
       @throttle * @baseAmplitude *
         @flapFrequency * @flapFrequency * 0.00015
 
-    wingRoll  = (@wingAngleL - @wingAngleR) * 0.02 * 1.0
-    wingPitch = (@wingAngleL + @wingAngleR) * 0.02 *
+    wingRoll  = (@wingAngleL - @wingAngleR) * 0.02
+    wingPitch = (@wingAngleL + @wingAngleR) * 0.02
 
     @gyro.roll  = wingRoll  * thrustFactor
     @gyro.pitch = wingPitch * thrustFactor
@@ -276,9 +277,8 @@ export class OrnithopterModel
     @gyro.yaw   += @disturbancePulse * (Math.random() - 0.5) * 0.05
     @disturbancePulse *= 0.85
 
-  _pidStep: ->
-    axes = ['roll', 'pitch', 'yaw']
-    for axis in axes
+  _pidStep: (subDt) ->
+    for axis in ['roll', 'pitch', 'yaw']
       P = @pidGains["#{axis}_P"]
       I = @pidGains["#{axis}_I"]
       D = @pidGains["#{axis}_D"]
@@ -288,16 +288,22 @@ export class OrnithopterModel
       error   = target - current
 
       pOut = error * P
-      @pidI[axis] += error * I * @dt
-      @pidI[axis] = clamp -100, 100, @pidI[axis]
+
+      # Integrate over the substep dt — the old `@dt` was the full
+      # frame delta, wound 5x per frame, and kept the model spinning
+      # after stick release (integrator windup).
+      @pidI[axis] = clamp -20, 20, @pidI[axis] + error * I * subDt
       iOut = @pidI[axis]
 
-      dErr = error - @prevError[axis]
-      dOut = if @dt > 0 then dErr / @dt * D else 0
-      @prevError[axis] = error
+      # Derivative on measurement, not error. Differentiating the error
+      # turned every setpoint jump into a derivative kick — a stick
+      # release spiked gyro to -289 rad/s and whipped the model back.
+      dMeas = current - @prevGyro[axis]
+      dOut  = if subDt > 0 then -(dMeas / subDt) * D else 0
+      @prevGyro[axis] = current
 
       correction = pOut + iOut + dOut
-      @gyro[axis] += correction * @dt
+      @gyro[axis] += correction * subDt
 
   _ondasStep: ->
     g = scaleGains @ondas
