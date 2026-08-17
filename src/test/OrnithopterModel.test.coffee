@@ -110,3 +110,10 @@ describe 'OrnithopterModel', ->
     model.flapFrequency = 10  # faster for test
     model.step 0.1
     expect(model.flapPhase).toBeGreaterThan 0
+
+  it 'flap phase advances at base cadence, not 5x substep overshoot', ->
+    # One frame at 60 fps. At 6 Hz base, phase advances 6·2π/60 ≈ 0.6283 rad.
+    # The old frame-@dt misuse inside the 5-substep loop advanced 5× that
+    # (≈ 3.1416 rad = 30 Hz effective) while telemetry still reported 6 Hz.
+    model.step (1 / 60)
+    expect(model.flapPhase).toBeCloseTo (6 * 2 * Math.PI / 60), 2
