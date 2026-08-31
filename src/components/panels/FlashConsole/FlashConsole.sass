@@ -1,0 +1,114 @@
+// ═══════════════════════════════════════════
+// FlashConsole — the ritual transcript
+// ═══════════════════════════════════════════
+
+.flash-console
+  display: flex
+  flex-direction: column
+  height: 100%
+  min-height: 0
+
+.console-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: var(--of-space-4) var(--of-space-5)
+  border-bottom: 1px solid var(--of-border-1)
+
+.console-title
+  font-family: var(--of-font-heading)
+  font-size: 10px
+  font-weight: 600
+  letter-spacing: 0.1em
+  text-transform: uppercase
+  color: var(--of-accent)
+
+.console-clear
+  border: none
+  background: transparent
+  color: var(--of-text-muted)
+  font-size: var(--of-text-xs)
+  cursor: pointer
+  text-transform: uppercase
+  letter-spacing: 0.06em
+
+  &:hover
+    color: var(--of-text-primary)
+
+.console-body
+  flex: 1
+  overflow-y: auto
+  padding: var(--of-space-4) var(--of-space-5)
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-xs)
+  position: relative
+
+  &::after
+    content: ''
+    position: absolute
+    inset: 0
+    pointer-events: none
+    background: repeating-linear-gradient(
+      0deg,
+      transparent 0 3px,
+      rgba(0, 0, 0, 0.12) 3px 4px
+    )
+    mix-blend-mode: overlay
+
+.console-empty
+  color: var(--of-text-muted)
+  font-style: italic
+
+.console-line
+  display: flex
+  gap: var(--of-space-3)
+  padding: 1px 0
+  animation: console-in 0.24s var(--of-ease-out)
+
+.console-time
+  color: var(--of-text-muted)
+
+.console-level
+  min-width: 44px
+  letter-spacing: 0.04em
+
+.console-text
+  color: var(--of-text-secondary)
+
+.console-line-info .console-level
+  color: var(--of-text-soft)
+
+.console-line-fetch .console-level
+  color: var(--of-accent-amber)
+
+.console-line-sync .console-level
+  color: var(--of-accent-purple)
+
+.console-line-erase .console-level
+  color: var(--of-accent-purple)
+
+.console-line-write .console-level
+  color: var(--of-accent-cyan)
+
+.console-line-verify .console-level
+  color: var(--of-accent-blue)
+
+.console-line-done .console-level
+  color: var(--of-accent-green)
+
+.console-line-ready .console-level
+  color: var(--of-accent-green)
+
+.console-line-reboot .console-level
+  color: var(--of-accent-amber)
+
+.console-line-error .console-level
+  color: var(--of-accent-red)
+
+@keyframes console-in
+  from
+    opacity: 0
+    transform: translateY(-3px)
+  to
+    opacity: 1
+    transform: translateY(0)

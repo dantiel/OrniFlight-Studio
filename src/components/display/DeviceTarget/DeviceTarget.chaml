@@ -1,0 +1,54 @@
+- d = props.device || {}
+- transport = props.transport || 'sim'
+- isLive = transport in ['serial', 'webusb']
+- serialSupported = !!props.serialSupported
+- webUsbSupported = !!props.webUsbSupported
+- anySupported = serialSupported or webUsbSupported
+- status = if isLive then 'BREATHING' else 'DRY-RUN'
+- transportLabel = if transport == 'serial' then 'SERIAL' else if transport == 'webusb' then 'USB DFU' else 'DRY-RUN'
+- detectLabel = if props.detecting then 'Scanning…' else 'Detect board'
+- detectDisabled = !!props.detecting
+- onDetectSerial = props.onDetectSerial || (->)
+- onDetectWebUsb = props.onDetectWebUsb || (->)
+- releaseOnClick = props.onDisconnect || (->)
+- targetClass = "device-target#{if isLive then ' live' else ''}"
+- transportClass = "device-transport#{if isLive then ' live' else ''}"
+- statusClass = "device-status#{if isLive then ' live' else ''}"
+.device-target{ className: targetClass }
+  .device-head
+    %span.device-glyph
+      = '🐦'
+    .device-name
+      .device-title= d.name || 'OrniFlight'
+      .device-sub= d.target || 'ORNI-F4'
+    %span.device-transport{ className: transportClass }
+      = transportLabel
+  .device-body
+    .device-row
+      %span.device-row-label MCU
+      %span.device-row-value= d.mcu || '—'
+    .device-row
+      %span.device-row-label Flash
+      %span.device-row-value= d.flash || '—'
+    .device-row
+      %span.device-row-label Firmware
+      %span.device-row-value= d.firmware || '—'
+    .device-row
+      %span.device-row-label Bootloader
+      %span.device-row-value= d.bootloader || '—'
+  .device-foot
+    %span.device-uid= d.uid || ''
+    %span.device-status{ className: statusClass }
+      = status
+  - if anySupported
+    .device-actions
+      - if isLive
+        %button.device-btn{ onClick: releaseOnClick }
+          = 'Release'
+      - else
+        - if serialSupported
+          %button.device-btn{ onClick: onDetectSerial, disabled: detectDisabled }
+            = 'Serial'
+        - if webUsbSupported
+          %button.device-btn.usb{ onClick: onDetectWebUsb, disabled: detectDisabled }
+            = 'USB DFU'

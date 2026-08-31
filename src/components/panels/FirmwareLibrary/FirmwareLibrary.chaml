@@ -1,0 +1,49 @@
+- import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
+- catalog = props.catalog || []
+- localImage = props.localImage
+- selectedId = props.selectedId
+- loading = !!props.loading
+- onLocal = props.onLoadLocal || (->)
+- total = catalog.length + (if localImage then 1 else 0)
+.firmware-library
+  .fw-head
+    %span.fw-head-title Firmware Images
+    %span.fw-head-count= String(total)
+  .fw-local
+    %label.fw-local-btn
+      %span.fw-local-glyph 🪶
+      %span.fw-local-text Load local image
+      %input.fw-local-input{ type: 'file', accept: '.bin,.hex,.elf', onChange: (e) -> onLocal(e.target.files?[0]) }
+  - if loading
+    .fw-empty
+      %span.fw-empty-glyph 📡
+      .fw-empty-text Scanning the nest for images…
+  - else if total == 0
+    .fw-empty
+      %span.fw-empty-glyph 🪶
+      .fw-empty-text No firmware found — load a local image.
+  - else
+    .fw-list
+      - if localImage
+        %button.fw-card{ className: "fw-card#{if selectedId == 'local' then ' active' else ''}", onClick: (-> props.onSelect && props.onSelect('local')) }
+          .fw-card-top
+            %span.fw-card-name= localImage.name
+            %span.fw-channel{ className: 'fw-channel fw-channel-local' }
+              = 'local'
+          .fw-card-version= 'custom'
+          .fw-card-meta
+            %span= localImage.target
+            %span= fmtBytes(localImage.size)
+          .fw-card-notes= localImage.notes
+      - for fw, i in catalog
+        %button.fw-card{ key: i, className: "fw-card#{if fw.id == selectedId then ' active' else ''}", onClick: (-> props.onSelect && props.onSelect(fw.id)) }
+          .fw-card-top
+            %span.fw-card-name= fw.name
+            %span.fw-channel{ className: "fw-channel fw-channel-#{fw.channel}" }
+              = fw.channel
+          .fw-card-version= "v#{fw.version}"
+          .fw-card-meta
+            %span= fw.target
+            %span= fmtBytes(fw.size)
+          .fw-card-date= fw.date
+          .fw-card-notes= fw.notes

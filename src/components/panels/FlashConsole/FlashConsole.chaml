@@ -1,0 +1,16 @@
+- log = props.log || []
+- reversed = log.slice().reverse()
+.flash-console
+  .console-head
+    %span.console-title Flash Log
+    %button.console-clear{ onClick: props.onClear || (->) }
+      = 'clear'
+  .console-body
+    - if log.length == 0
+      .console-empty The console is silent. Awaiting transmigration…
+    - else
+      - for entry, i in reversed
+        %div.console-line{ key: i, className: "console-line console-line-#{entry.level.toLowerCase()}" }
+          %span.console-time= entry.t
+          %span.console-level= entry.level
+          %span.console-text= entry.text

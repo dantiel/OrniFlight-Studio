@@ -12,3 +12,5 @@ import { NavLink } from 'react-router-dom'
     = upper('voice')
   %NavLink{ to: '/memory', end: true, className: 'config-view-btn' }
     = upper('memory')
+  %NavLink{ to: '/flash', end: true, className: 'config-view-btn' }
+    = upper('flash')

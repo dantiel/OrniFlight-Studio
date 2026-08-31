@@ -17,15 +17,16 @@ describe 'ConfigTabs — Interaction', ->
   getTabLink = (text) ->
     document.querySelector "a.config-view-btn[href=\"/#{text.toLowerCase()}\"]"
 
-  it 'renders all five config tabs with text labels', ->
+  it 'renders all six config tabs with text labels', ->
     renderApp()
     links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 5
+    expect(links.length).toBe 6
     expect(links[0].textContent).toBe 'Wings'
     expect(links[1].textContent).toBe 'Flight'
     expect(links[2].textContent).toBe 'Perception'
     expect(links[3].textContent).toBe 'Voice'
     expect(links[4].textContent).toBe 'Memory'
+    expect(links[5].textContent).toBe 'Flash'
 
   it 'navigates to /perception when Perception tab clicked', ->
     renderApp()

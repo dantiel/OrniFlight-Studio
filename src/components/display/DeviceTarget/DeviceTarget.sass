@@ -1,0 +1,126 @@
+// ═══════════════════════════════════════════
+// DeviceTarget — the connected bird's vitals
+// ═══════════════════════════════════════════
+
+.device-target
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-4)
+  padding: var(--of-space-5)
+
+.device-head
+  display: flex
+  align-items: center
+  gap: var(--of-space-4)
+
+.device-glyph
+  font-size: 26px
+  line-height: 1
+  filter: drop-shadow(0 0 6px rgba(var(--of-accent-rgb), 0.4))
+
+.device-name
+  display: flex
+  flex-direction: column
+
+.device-title
+  font-family: var(--of-font-heading)
+  font-size: var(--of-text-md)
+  font-weight: 600
+
+.device-sub
+  font-size: var(--of-text-xs)
+  color: var(--of-accent)
+  letter-spacing: 0.06em
+  text-transform: uppercase
+
+.device-transport
+  margin-left: auto
+  font-family: var(--of-font-mono)
+  font-size: 9px
+  letter-spacing: 0.08em
+  padding: 3px 8px
+  border-radius: 999px
+  border: 1px solid var(--of-border-1)
+  color: var(--of-text-muted)
+  text-transform: uppercase
+
+  &.serial
+    color: var(--of-accent-green)
+    border-color: var(--of-accent-green)
+    box-shadow: 0 0 10px rgba(var(--of-accent-green-rgb, 92, 184, 92), 0.25)
+
+.device-body
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-2)
+  border-top: 1px solid var(--of-border-1)
+  border-bottom: 1px solid var(--of-border-1)
+  padding: var(--of-space-3) 0
+
+.device-row
+  display: flex
+  align-items: center
+  justify-content: space-between
+
+.device-row-label
+  font-size: var(--of-text-xs)
+  color: var(--of-text-soft)
+
+.device-row-value
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-xs)
+  color: var(--of-accent)
+
+.device-foot
+  display: flex
+  align-items: center
+  justify-content: space-between
+
+.device-uid
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-xs)
+  color: var(--of-text-muted)
+
+.device-status
+  font-size: var(--of-text-xs)
+  letter-spacing: 0.08em
+  color: var(--of-text-muted)
+
+  &.live
+    color: var(--of-accent-green)
+
+.device-actions
+  display: flex
+  padding-top: var(--of-space-4)
+
+.device-btn
+  flex: 1
+  padding: var(--of-space-3) var(--of-space-4)
+  border: 1px solid var(--of-border-1)
+  border-radius: var(--of-radius, 8px)
+  background: transparent
+  color: var(--of-text-secondary)
+  font-size: var(--of-text-xs)
+  letter-spacing: 0.06em
+  text-transform: uppercase
+  cursor: pointer
+  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s
+
+  &:hover:not(:disabled)
+    border-color: var(--of-accent)
+    color: var(--of-accent)
+    box-shadow: 0 0 12px rgba(var(--of-accent-rgb, 120, 180, 255), 0.2)
+
+  &:disabled
+    opacity: 0.5
+    cursor: default
+
+  &.usb
+    border-color: var(--of-accent-blue, #4a90e2)
+    color: var(--of-accent-blue, #4a90e2)
+
+    &:hover:not(:disabled)
+      border-color: var(--of-accent-blue, #4a90e2)
+      color: #fff
+      background: var(--of-accent-blue, #4a90e2)
+      box-shadow: 0 0 14px rgba(74, 144, 226, 0.3)

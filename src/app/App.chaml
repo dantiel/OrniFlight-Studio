@@ -11,6 +11,7 @@ import FlightView from '../components/views/FlightView/FlightView.chaml'
 import PerceptionView from '../components/views/PerceptionView/PerceptionView.chaml'
 import VoiceView from '../components/views/VoiceView/VoiceView.chaml'
 import MemoryView from '../components/views/MemoryView/MemoryView.chaml'
+import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 
 - useSimulation()
 - useBridge()
@@ -20,6 +21,7 @@ import MemoryView from '../components/views/MemoryView/MemoryView.chaml'
 - `const perceptionEl = h(AnimatedPage, null, h(PerceptionView, null))`
 - `const voiceEl = h(AnimatedPage, null, h(VoiceView, null))`
 - `const memoryEl = h(AnimatedPage, null, h(MemoryView, null))`
+- `const flashEl = h(AnimatedPage, null, h(FlashingView, null))`
 - `const navEl = h(Navigate, {to: '/wings', replace: true})`
 .studio-shell{ role: 'application', aria-label: 'OrniFlight Studio' }
   %a.skip-link{ href: '#main-content' }
@@ -34,3 +36,4 @@ import MemoryView from '../components/views/MemoryView/MemoryView.chaml'
         %Route{ path: '/perception', element: perceptionEl }
         %Route{ path: '/voice', element: voiceEl }
         %Route{ path: '/memory', element: memoryEl }
+        %Route{ path: '/flash', element: flashEl }

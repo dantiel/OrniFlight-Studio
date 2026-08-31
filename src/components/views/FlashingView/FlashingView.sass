@@ -1,0 +1,102 @@
+// ═══════════════════════════════════════════
+// FlashingView — Molting Bay
+// device | forge | console
+// library| forge | console
+// ═══════════════════════════════════════════
+
+.layout-flash
+  grid-template-columns: 300px 1fr 340px
+  grid-template-rows: 176px 1fr
+  grid-template-areas: "device forge console" "library forge console"
+
+  .view-area-device
+    grid-area: device
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border-bottom: 1px solid var(--of-border-1)
+    overflow-y: auto
+
+  .view-area-library
+    grid-area: library
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border-right: 1px solid var(--of-border-1)
+    overflow: hidden
+
+  .view-area-forge
+    grid-area: forge
+    display: flex
+    align-items: center
+    justify-content: center
+    background: radial-gradient(
+      ellipse at 50% 42%,
+      rgba(var(--of-accent-rgb), 0.10) 0%,
+      rgba(26, 26, 28, 0) 62%
+    )
+    position: relative
+
+    &::before
+      content: ''
+      position: absolute
+      inset: 0
+      pointer-events: none
+      background-image: var(--of-feathers)
+      background-repeat: repeat
+      background-size: clamp(300px, 25vw, 800px)
+      opacity: calc(var(--of-feather-opacity) * 0.5)
+
+  .view-area-console
+    grid-area: console
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border-left: 1px solid var(--of-border-1)
+    overflow: hidden
+
+.forge-stage
+  position: relative
+  z-index: 1
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: var(--of-space-8)
+
+.forge-actions
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: var(--of-space-4)
+
+.forge-options
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-3)
+  min-width: 260px
+
+.fw-option
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  cursor: pointer
+
+.fw-option-check
+  accent-color: var(--of-accent)
+
+.fw-option-label
+  font-size: var(--of-text-sm)
+  color: var(--of-text-secondary)
+  font-weight: 500
+
+.fw-option-hint
+  margin-left: auto
+  font-size: var(--of-text-xs)
+  color: var(--of-text-muted)
+  font-style: italic
+
+.forge-error
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-sm)
+  color: var(--of-accent-red)
+  text-align: center

@@ -1,0 +1,163 @@
+// ═══════════════════════════════════════════
+// FirmwareLibrary — auto-discovered image cards
+// ═══════════════════════════════════════════
+
+.firmware-library
+  display: flex
+  flex-direction: column
+  height: 100%
+  min-height: 0
+
+.fw-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: var(--of-space-4) var(--of-space-5)
+  border-bottom: 1px solid var(--of-border-1)
+
+.fw-head-title
+  font-family: var(--of-font-heading)
+  font-size: 10px
+  font-weight: 600
+  letter-spacing: 0.1em
+  text-transform: uppercase
+  color: var(--of-accent)
+
+.fw-head-count
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-xs)
+  color: var(--of-text-muted)
+
+.fw-empty
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: var(--of-space-3)
+  padding: var(--of-space-8) var(--of-space-5)
+  color: var(--of-text-soft)
+
+.fw-empty-glyph
+  font-size: 28px
+  animation: fw-scan 2.2s var(--of-ease-in-out) infinite
+
+.fw-empty-text
+  font-size: var(--of-text-xs)
+  text-align: center
+
+.fw-local
+  padding: var(--of-space-3) var(--of-space-4) 0
+
+.fw-local-btn
+  display: flex
+  align-items: center
+  justify-content: center
+  gap: var(--of-space-2)
+  padding: var(--of-space-3)
+  border: 1px dashed var(--of-border-1)
+  border-radius: var(--of-radius-lg)
+  cursor: pointer
+  font-size: var(--of-text-xs)
+  letter-spacing: 0.05em
+  text-transform: uppercase
+  color: var(--of-text-soft)
+  transition: all var(--of-dur-fast) var(--of-ease-out)
+
+  &:hover
+    border-color: var(--of-accent)
+    color: var(--of-accent)
+    background: rgba(var(--of-accent-rgb), 0.06)
+
+.fw-local-glyph
+  font-size: 14px
+
+.fw-local-input
+  display: none
+
+.fw-list
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-3)
+  padding: var(--of-space-4)
+  overflow-y: auto
+
+.fw-card
+  text-align: left
+  border: 1px solid var(--of-border-1)
+  border-radius: var(--of-radius-lg)
+  background: var(--of-glass-card)
+  padding: var(--of-space-4)
+  cursor: pointer
+  transition: all var(--of-dur-fast) var(--of-ease-out)
+  color: var(--of-text-primary)
+
+  &:hover
+    border-color: var(--of-glass-edge-hover)
+    background: var(--of-glass-card-hover)
+    transform: translateY(-1px)
+
+  &.active
+    border-color: var(--of-accent)
+    box-shadow: 0 0 12px rgba(var(--of-accent-rgb), 0.25)
+
+.fw-card-top
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: var(--of-space-2)
+
+.fw-card-name
+  font-family: var(--of-font-heading)
+  font-weight: 600
+  font-size: var(--of-text-sm)
+
+.fw-channel
+  font-size: 9px
+  letter-spacing: 0.06em
+  text-transform: uppercase
+  padding: 1px 6px
+  border-radius: var(--of-radius-sm)
+
+.fw-channel-stable
+  color: var(--of-accent-green)
+  background: rgba(var(--of-accent-green-rgb), 0.14)
+
+.fw-channel-rc
+  color: var(--of-accent-amber)
+  background: rgba(var(--of-accent-amber-rgb), 0.14)
+
+.fw-channel-beta
+  color: var(--of-accent-purple)
+  background: rgba(188, 140, 255, 0.14)
+
+.fw-channel-local
+  color: var(--of-accent-cyan)
+  background: rgba(57, 210, 192, 0.14)
+
+.fw-card-version
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-md)
+  color: var(--of-accent)
+  margin: var(--of-space-2) 0
+
+.fw-card-meta
+  display: flex
+  gap: var(--of-space-3)
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-xs)
+  color: var(--of-text-soft)
+
+.fw-card-date
+  font-size: var(--of-text-xs)
+  color: var(--of-text-muted)
+
+.fw-card-notes
+  font-size: var(--of-text-xs)
+  color: var(--of-text-soft)
+  margin-top: var(--of-space-2)
+  font-style: italic
+
+@keyframes fw-scan
+  0%, 100%
+    transform: rotate(-12deg)
+  50%
+    transform: rotate(12deg)

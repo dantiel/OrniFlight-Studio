@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "note": "Simulation catalog — payloads are placeholders; sizes reflect real targets.",
+    "updated": "2026-08-24"
+  },
+  "images": [
+    {
+      "name": "OrniFlight",
+      "target": "ORNI-F4",
+      "mcu": "STM32F405RGT6",
+      "version": "2.1.0",
+      "channel": "stable",
+      "file": "/firmware/orniflight-f4-2.1.0.bin",
+      "size": 262144,
+      "sha256": "9f3c1a7e4b8d20c5a1f6e3d9b7c2a4f8e1d3c5b7a9e2f4d6c8a0b2e4f6a8c0d1",
+      "date": "2026-08-24",
+      "notes": "Coaxial servo deck, cadence stabilization, overshoot-free attitude."
+    },
+    {
+      "name": "OrniFlight",
+      "target": "ORNI-F4",
+      "mcu": "STM32F405RGT6",
+      "version": "2.0.0",
+      "channel": "stable",
+      "file": "/firmware/orniflight-f4-2.0.0.bin",
+      "size": 249856,
+      "sha256": "1b4d8c2e6f9a3b7d0e5c1a8f2b6d4e0c7a9b3d5f1e8c0a2b4d6f8a0c2e4b6d7",
+      "date": "2026-08-10",
+      "notes": "Reactive core, ONDAS mixer, XState connection lifecycle."
+    },
+    {
+      "name": "OrniFlight",
+      "target": "ORNI-F7",
+      "mcu": "STM32F722RET6",
+      "version": "2.1.0-rc1",
+      "channel": "rc",
+      "file": "/firmware/orniflight-f7-2.1.0-rc1.bin",
+      "size": 385024,
+      "sha256": "c7e2a4b6d8f0e1a3c5b7d9e1f3a5c7b9d1e3f5a7c9b1d3e5f7a9c1b3d5e7f9a",
+      "date": "2026-08-22",
+      "notes": "F7 bring-up: dual-core mixer, faster fusion, coaxial deck."
+    },
+    {
+      "name": "OrniFlight",
+      "target": "ORNI-F7",
+      "mcu": "STM32F722RET6",
+      "version": "2.1.0-beta3",
+      "channel": "beta",
+      "file": "/firmware/orniflight-f7-2.1.0-beta3.bin",
+      "size": 372736,
+      "sha256": "e8d1a3c5b7e9f1d3a5c7b9e1f3d5a7c9b1e3d5f7a9c1b3d5e7f9a1c3b5d7e9b",
+      "date": "2026-08-19",
+      "notes": "Experimental feather waveform FFT on F7."
+    }
+  ]
+}

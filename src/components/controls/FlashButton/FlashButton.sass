@@ -1,0 +1,50 @@
+// ═══════════════════════════════════════════
+// FlashButton — the transmigration trigger
+// ═══════════════════════════════════════════
+
+.flash-button
+  display: inline-flex
+  align-items: center
+  gap: var(--of-space-4)
+  padding: 12px 26px
+  border: 1px solid var(--of-border-accent)
+  border-radius: var(--of-radius-lg)
+  background: linear-gradient(135deg, var(--of-accent-dim), var(--of-accent))
+  color: #fff
+  font-family: var(--of-font-heading)
+  font-size: var(--of-text-md)
+  font-weight: 600
+  letter-spacing: 0.08em
+  cursor: pointer
+  transition: all var(--of-dur-normal) var(--of-ease-out)
+  box-shadow: 0 0 20px rgba(var(--of-accent-rgb), 0.35)
+
+  &:hover:not(:disabled)
+    transform: translateY(-1px)
+    box-shadow: 0 4px 26px rgba(var(--of-accent-rgb), 0.55)
+
+  &:disabled
+    cursor: not-allowed
+    opacity: 0.55
+
+.flash-button-glyph
+  font-size: 18px
+
+.flash-button-label
+  letter-spacing: 0.1em
+
+.flash-button-flashing
+  background: linear-gradient(135deg, var(--of-accent-blue), var(--of-accent-cyan))
+  animation: flash-pulse 1.4s var(--of-ease-in-out) infinite
+
+.flash-button-done
+  background: linear-gradient(135deg, #1f6f3a, var(--of-accent-green))
+
+.flash-button-error
+  background: linear-gradient(135deg, #7a2a2a, var(--of-accent-red))
+
+@keyframes flash-pulse
+  0%, 100%
+    box-shadow: 0 0 16px rgba(var(--of-accent-rgb), 0.3)
+  50%
+    box-shadow: 0 0 34px rgba(var(--of-accent-rgb), 0.65)

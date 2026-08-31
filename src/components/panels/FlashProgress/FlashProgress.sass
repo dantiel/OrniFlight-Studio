@@ -1,0 +1,61 @@
+// ═══════════════════════════════════════════
+// FlashProgress — animated molting ring + glyph
+// ═══════════════════════════════════════════
+
+.flash-progress
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: var(--of-space-5)
+  user-select: none
+
+.flash-ring
+  position: relative
+  width: 132px
+  height: 132px
+
+  svg
+    transform: rotate(-90deg)
+
+.ring-track
+  stroke: var(--of-surface-3)
+
+.ring-value
+  stroke: var(--of-accent)
+  stroke-linecap: round
+  transition: stroke-dashoffset 0.2s var(--of-ease-out), stroke 0.4s var(--of-ease-out)
+
+.flash-glyph
+  position: absolute
+  inset: 0
+  display: flex
+  align-items: center
+  justify-content: center
+  font-size: 44px
+  line-height: 1
+
+.flash-phase-label
+  font-family: var(--of-font-heading)
+  font-size: var(--of-text-sm)
+  letter-spacing: 0.08em
+  text-transform: uppercase
+  color: var(--of-text-soft)
+
+.flash-percent
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-xl)
+  color: var(--of-accent)
+
+.flash-progress
+  &.phase-erasing .ring-value
+    stroke: var(--of-accent-purple)
+  &.phase-writing .ring-value
+    stroke: var(--of-accent-cyan)
+  &.phase-verifying .ring-value
+    stroke: var(--of-accent-blue)
+  &.phase-done .ring-value
+    stroke: var(--of-accent-green)
+  &.phase-error .ring-value
+    stroke: var(--of-accent-red)
+  &.phase-reboot .ring-value
+    stroke: var(--of-accent-green)

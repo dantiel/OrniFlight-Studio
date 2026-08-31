@@ -28,13 +28,14 @@ describe 'ConnectionBar — Interaction', ->
     expect(screen.getByText 'Orni').toBeInTheDocument()
     expect(screen.getByText 'Studio').toBeInTheDocument()
 
-  it 'renders five config tab navigation links', ->
+  it 'renders six config tab navigation links', ->
     renderApp()
     links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 5
+    expect(links.length).toBe 6
     texts = Array.from(links).map (l) -> l.textContent
     expect(texts).toContain 'Wings'
     expect(texts).toContain 'Flight'
     expect(texts).toContain 'Perception'
     expect(texts).toContain 'Voice'
     expect(texts).toContain 'Memory'
+    expect(texts).toContain 'Flash'
