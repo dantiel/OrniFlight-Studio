@@ -41,7 +41,7 @@ isSupported = ->
 requestDevice = ->
   unless isSupported()
     throw new Error 'WebUSB is not available in this browser'
-  devices = await globalThis.navigator.usb.requestDevice filters: [
+  globalThis.navigator.usb.requestDevice filters: [
     { vendorId: 0x0483, productId: 0xDF11 }   # STM32 DFU
   ]
 
@@ -55,7 +55,7 @@ detect = (device, onLog = (->)) ->
   # Try to get chip ID via GETSTATUS (some bootloaders return it in wValue)
   # For now, we infer from USB VID/PID
   vid = device.vendorId
-  pid = device.productIdId
+  pid = device.productId
   chipId = if vid is 0x0483 and pid is 0xDF11 then 0x439 else null   # Assume F303
   info = dfu.CHIP_IDS[chipId] or { target: 'STM32F303', mcu: 'STM32F303xC', flash: '256 KB' }
   onLog 'INFO', "Detected #{info.mcu} (#{info.flash}) via USB DFU"
