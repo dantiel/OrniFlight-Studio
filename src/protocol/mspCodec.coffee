@@ -47,6 +47,9 @@ class MspCrcError extends Error
     @name = 'MspCrcError'
     @command = command
 
+isHeaderAt = (bytes, offset) ->
+  bytes[offset] == 0x24 and bytes[offset + 1] == 0x58
+
 class MspV2Parser
   constructor: ->
     @buffer = new Uint8Array 0
@@ -55,50 +58,54 @@ class MspV2Parser
 
   push: (chunk) ->
     incoming = asBytes chunk
-    merged = new Uint8Array @buffer.length + incoming.length
-    merged.set @buffer
-    merged.set incoming, @buffer.length
-    @buffer = merged
+    merged =
+      if @buffer.length == 0
+        incoming
+      else
+        combined = new Uint8Array @buffer.length + incoming.length
+        combined.set @buffer
+        combined.set incoming, @buffer.length
+        combined
     frames = []
+    pos = 0
 
-    while @buffer.length >= 3
-      start = -1
-      for index in [0...@buffer.length - 1]
-        if @buffer[index] == 0x24 and @buffer[index + 1] == 0x58
-          start = index
-          break
+    loop
+      # single left-to-right scan — skips advance pos without rescanning
+      while pos + 1 < merged.length and not isHeaderAt(merged, pos)
+        pos++
+      break if pos + 1 >= merged.length # no $X pair left
+      break if pos + FRAME_OVERHEAD > merged.length # incomplete header
 
-      if start < 0
-        @buffer = if @buffer[@buffer.length - 1] == 0x24 then @buffer.slice(-1) else new Uint8Array 0
-        break
-      @buffer = @buffer.slice start if start > 0
-      break if @buffer.length < FRAME_OVERHEAD
-
-      direction = String.fromCharCode @buffer[2]
+      direction = String.fromCharCode merged[pos + 2]
       unless direction in ['<', '>', '!']
-        @buffer = @buffer.slice 1
+        pos++
         continue
 
-      command = @buffer[4] | @buffer[5] << 8
-      length = @buffer[6] | @buffer[7] << 8
-      flags = @buffer[3]
+      command = merged[pos + 4] | merged[pos + 5] << 8
+      length = merged[pos + 6] | merged[pos + 7] << 8
+      flags = merged[pos + 3]
       frameLength = FRAME_OVERHEAD + length
-      break if @buffer.length < frameLength
+      break if pos + frameLength > merged.length # incomplete frame
 
       crc = 0
-      for index in [3...HEADER_SIZE]
-        crc = crc8DvbS2 crc, @buffer[index]
-      for index in [HEADER_SIZE...HEADER_SIZE + length]
-        crc = crc8DvbS2 crc, @buffer[index]
+      for index in [pos + 3...pos + HEADER_SIZE]
+        crc = crc8DvbS2 crc, merged[index]
+      for index in [pos + HEADER_SIZE...pos + HEADER_SIZE + length]
+        crc = crc8DvbS2 crc, merged[index]
 
-      receivedCrc = @buffer[frameLength - 1]
-      payload = @buffer.slice HEADER_SIZE, HEADER_SIZE + length
-      @buffer = @buffer.slice frameLength
+      receivedCrc = merged[pos + frameLength - 1]
+      payload = merged.slice pos + HEADER_SIZE, pos + HEADER_SIZE + length
       if crc != receivedCrc
         frames.push { error: new MspCrcError(command), command, direction }
       else
         frames.push { command, direction, flags, payload }
+      pos += frameLength
 
+    @buffer =
+      if merged[pos] == 0x24
+        if pos == 0 and merged != incoming then merged else merged.slice pos
+      else
+        new Uint8Array 0
     frames
 
 export {

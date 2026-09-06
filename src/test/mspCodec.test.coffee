@@ -99,6 +99,20 @@ describe 'mspCodec', ->
     expect(frames.length).toBe 1
     expect(frames[0].command).toBe 4
 
+  it 'parses a $X-spam chunk in a single linear pass', ->
+    # 32 KiB of $X + invalid-direction bytes: the old rescan parser was
+    # quadratic here; this guards against the serial-channel CPU DoS.
+    spam = new Uint8Array 32769
+    for index in [0...spam.length] by 3
+      spam[index] = 0x24
+      spam[index + 1] = 0x58
+    parser = new MspV2Parser()
+    expect(parser.push(spam)).toEqual []
+    # the trailing $X is a plausible partial header — keep only that
+    expect(parser.buffer.length).toBeLessThan FRAME_OVERHEAD
+    frame = encodeMspV2 6, [0x09]
+    expect(parser.push(frame)[0].command).toBe 6
+
   it 'accepts command 0 and 0xffff at the 16-bit boundary', ->
     expect(toFrame(encodeMspV2 0, []).command).toBe 0
     expect(toFrame(encodeMspV2 0xffff, []).command).toBe 0xffff

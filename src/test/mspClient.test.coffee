@@ -174,3 +174,34 @@ describe 'mspClient', ->
     expect(client.pending.command).toBe 5
     transport.emitFrame 5, [0x02]
     expect(Array.from await promise).toEqual [0x02]
+
+  it 'is idempotent when opened concurrently', ->
+    transport = new MockMspTransport()
+    client = new MspClient transport
+    await Promise.all [client.open(), client.open()]
+    expect(transport.dataHandlers.size).toBe 1
+    expect(transport.disconnectHandlers.size).toBe 1
+    expect(client.opened).toBe true
+
+  it 'isolates a throwing frame listener from the data path', ->
+    transport = new MockMspTransport()
+    client = await openClient transport
+    client.onFrame -> throw new Error 'subscriber boom'
+    received = null
+    client.onFrame (frame) -> received = frame
+    promise = client.request 3
+    await Promise.resolve()
+    expect(-> transport.emitFrame 3, [0x05]).not.toThrow()
+    expect(Array.from await promise).toEqual [0x05]
+    expect(received.command).toBe 3
+
+  it 'isolates throwing error listeners from CRC and disconnect paths', ->
+    transport = new MockMspTransport()
+    client = await openClient transport
+    client.onError -> throw new Error 'error subscriber boom'
+    frame = encodeMspV2 9, [0x01]
+    corrupted = Uint8Array.from frame
+    corrupted[corrupted.length - 1] ^= 0xFF
+    expect(-> transport.emit corrupted).not.toThrow()
+    expect(-> transport.disconnect()).not.toThrow()
+    expect(client.opened).toBe false

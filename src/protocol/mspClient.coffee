@@ -28,11 +28,17 @@ class MspClient
     @errorListeners = new Set()
 
   open: ->
-    return if @opened
-    @transport.onData (bytes) => @_receive bytes
-    @transport.onDisconnect (error) => @_disconnected error
-    await @transport.open()
-    @opened = true
+    return @opening if @opening
+    @opening = do =>
+      return if @opened
+      @transport.onData (bytes) => @_receive bytes
+      @transport.onDisconnect (error) => @_disconnected error
+      await @transport.open()
+      @opened = true
+    try
+      await @opening
+    finally
+      @opening = null
 
   close: ->
     @opened = false
@@ -88,14 +94,23 @@ class MspClient
   _receive: (bytes) ->
     for frame in @parser.push bytes
       if frame.error
-        @errorListeners.forEach (listener) -> listener frame.error
+        @_dispatch @errorListeners, frame.error
         continue
-      @frameListeners.forEach (listener) -> listener frame
+      @_dispatch @frameListeners, frame
       continue unless @pending?.command == frame.command
       if frame.direction == '!'
         @pending.reject new MspUnsupportedError(frame.command)
       else if frame.direction == '>'
         @pending.resolve frame.payload
+
+  # Listener exceptions must never tear down the transport read loop.
+  # forEach — not `for..in` — because these are Sets without .length.
+  _dispatch: (listeners, argument) ->
+    listeners.forEach (listener) ->
+      try
+        listener argument
+      catch error
+        null
 
   _rejectPending: (error) -> @pending?.reject error
 
@@ -103,8 +118,7 @@ class MspClient
     wasOpen = @opened
     @opened = false
     @_rejectPending error or new MspDisconnectedError()
-    if wasOpen
-      @errorListeners.forEach (listener) -> listener error
+    @_dispatch @errorListeners, error if wasOpen
 
 export default MspClient
 export {
