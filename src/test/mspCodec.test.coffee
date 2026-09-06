@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   asBytes, crc8DvbS2, encodeMspV2, MspV2Parser, MspCrcError
-  HEADER_SIZE, FRAME_OVERHEAD
+  HEADER_SIZE, FRAME_OVERHEAD, MAX_PAYLOAD
 } from '../protocol/mspCodec.coffee'
 
 toFrame = (bytes) -> new MspV2Parser().push(bytes)[0]
@@ -98,3 +98,25 @@ describe 'mspCodec', ->
     frames = new MspV2Parser().push merged
     expect(frames.length).toBe 1
     expect(frames[0].command).toBe 4
+
+  it 'accepts command 0 and 0xffff at the 16-bit boundary', ->
+    expect(toFrame(encodeMspV2 0, []).command).toBe 0
+    expect(toFrame(encodeMspV2 0xffff, []).command).toBe 0xffff
+
+  it 'round-trips a zero-length payload', ->
+    frame = encodeMspV2 11, []
+    expect(frame.length).toBe FRAME_OVERHEAD
+    parsed = toFrame frame
+    expect(parsed.command).toBe 11
+    expect(parsed.payload.length).toBe 0
+
+  it 'accepts a maximum-size payload and rejects one byte more', ->
+    maxFrame = encodeMspV2 1, new Uint8Array(MAX_PAYLOAD)
+    expect(maxFrame.length).toBe MAX_PAYLOAD + FRAME_OVERHEAD
+    expect((-> encodeMspV2 1, new Uint8Array(MAX_PAYLOAD + 1))).toThrow RangeError
+
+  it 'returns nothing for empty and frame-less chunks', ->
+    parser = new MspV2Parser()
+    expect(parser.push(new Uint8Array 0)).toEqual []
+    expect(parser.push(Uint8Array.from [0x11, 0x22, 0x33])).toEqual []
+    expect(parser.buffer.length).toBe 0

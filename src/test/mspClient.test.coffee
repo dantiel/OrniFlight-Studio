@@ -142,3 +142,35 @@ describe 'mspClient', ->
     await expect(promise).rejects.toBeInstanceOf MspDisconnectedError
     expect(client.opened).toBe false
     expect(transport.closed).toBe true
+
+  it 'requestOptional rethrows errors other than MspUnsupportedError', ->
+    vi.useFakeTimers()
+    try
+      transport = new MockMspTransport()
+      client = await openClient transport, { timeoutMs: 200 }
+      caught = null
+      client.requestOptional(9).catch (error) -> caught = error
+      await vi.advanceTimersByTimeAsync 250
+      expect(caught).toBeInstanceOf MspTimeoutError
+    finally
+      vi.useRealTimers()
+
+  it 'forwards a disconnect error object to error listeners', ->
+    transport = new MockMspTransport()
+    client = await openClient transport
+    errors = []
+    client.onError (error) -> errors.push error
+    boom = new Error 'port vanished'
+    transport.disconnect boom
+    expect(errors).toEqual [boom]
+    expect(client.opened).toBe false
+
+  it 'leaves the pending request waiting on a non-matching command', ->
+    transport = new MockMspTransport()
+    client = await openClient transport
+    promise = client.request 5
+    await Promise.resolve()
+    transport.emitFrame 6, [0x01]
+    expect(client.pending.command).toBe 5
+    transport.emitFrame 5, [0x02]
+    expect(Array.from await promise).toEqual [0x02]

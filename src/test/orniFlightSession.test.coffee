@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import MSP_CODES from '../protocol/mspCodes.coffee'
-import MspClient from '../protocol/mspClient.coffee'
+import MspClient, { MspTimeoutError } from '../protocol/mspClient.coffee'
 import OrniFlightSession, {
   FirmwareCompatibilityError
 } from '../protocol/orniFlightSession.coffee'
@@ -213,3 +213,45 @@ describe 'orniFlightSession', ->
     await session.handshake()
     error = await session.setCraftName('X').catch (error) -> error
     expect(error.message).toContain 'armed'
+
+  it 'stops polling and reports the failure when a round throws', ->
+    vi.useFakeTimers()
+    try
+      script = handshakeScript # no pollScript: RAW_IMU request times out
+      failures = []
+      { session } = await openSession script, {
+        onFailure: (error) -> failures.push error
+      }
+      await session.handshake()
+      session.start()
+      await vi.advanceTimersByTimeAsync 600
+      expect(failures.length).toBe 1
+      expect(failures[0]).toBeInstanceOf MspTimeoutError
+      expect(session.running).toBe false
+      await session.close()
+    finally
+      vi.useRealTimers()
+
+  it 'rejects craft names at the boundary (empty and over 24)', ->
+    { session } = await openSession handshakeScript
+    await session.handshake()
+    await expect(session.setCraftName '').rejects.toThrow 'Craft name must contain'
+    await expect(session.setCraftName('A'.repeat 25)).rejects.toThrow(
+      'Craft name must contain'
+    )
+
+  it 'throws when the craft name read-back diverges', ->
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      return { command, direction: '>', payload: [] } if command == MSP_CODES.SET_NAME
+      return { command, direction: '>', payload: [] } if command == MSP_CODES.EEPROM_WRITE
+      if command == MSP_CODES.NAME
+        return { command, direction: '>', payload: asciiBytes 'STALE-NAME' }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    await expect(session.setCraftName 'SKYFISH-2').rejects.toThrow 'read-back failed'
