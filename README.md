@@ -68,6 +68,10 @@ physics, and sensor noise.
 
 ## Architecture
 
+The **MSP protocol layer** (MSPv2 codec, client, decoders, session, and the
+polymorphic transport boundary) is documented in
+[docs/MSP-PROTOCOL.md](docs/MSP-PROTOCOL.md).
+
 ```
 orniflight-studio/
 ├── src/
