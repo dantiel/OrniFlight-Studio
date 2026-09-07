@@ -62,9 +62,11 @@ inEscape = (state, ch) ->
       cleared: false
     else if 0x40 <= code <= 0x7e
       seq = esc + ch
-      nextState: { line: state.line, esc: null, cr: false }
+      isClear = seq.includes('2J') or seq.includes('1;1H')
+      nextLine = if isClear then '' else state.line
+      nextState: { line: nextLine, esc: null, cr: false }
       flush: null
-      cleared: seq.includes('2J') or seq.includes('1;1H')
+      cleared: isClear
     else
       assembleByte { line: state.line, esc: null, cr: false }, ch
 

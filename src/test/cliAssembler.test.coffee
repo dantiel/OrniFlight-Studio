@@ -49,3 +49,19 @@ describe 'cliAssembler', ->
   it 'treats a bare LF as a line end when no CR precedes it', ->
     { flushes } = assembleChunk emptyState(), 'abc\ndef\n'
     expect(flushes).toEqual ['abc', 'def']
+
+  it 'no-ops backspace on an empty line', ->
+    { state, flushes } = assembleChunk emptyState(), '\b\b'
+    expect(state.line).toBe ''
+    expect(flushes).toEqual []
+
+  it 'ignores a bare CR on an empty line and keeps assembling', ->
+    { flushes } = assembleChunk emptyState(), '\rabc\r\n'
+    expect(flushes).toEqual ['abc']
+
+  it 'resets the pending line when a clear sequence interrupts it', ->
+    { state, flushes, cleared } =
+      assembleChunk emptyState(), 'foo\u001b[2Jbar\r\n'
+    expect(cleared).toBe true
+    expect(flushes).toEqual ['bar']
+    expect(state.line).toBe ''

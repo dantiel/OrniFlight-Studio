@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
-import useCliStore from '../stores/useCliStore.coffee'
+import useCliStore, { MAX_LINES } from '../stores/useCliStore.coffee'
 import useDeviceStore from '../stores/useDeviceStore.coffee'
 import useCliSession, {
   SIM_VERSION
@@ -78,6 +78,13 @@ describe 'useCliSession — simulation mode', ->
     expect(result.current.mode).toBe 'sim'
     error = result.current.lines.find (l) -> l.kind == 'error'
     expect(error.text).toBe '###ERROR: no flight controller connected'
+
+  it 'ignores whitespace-only submission', ->
+    { result } = makeSimHook()
+    await act -> result.current.submit '   '
+    texts = result.current.lines.map (l) -> l.text
+    expect(texts).not.toContain '#    '
+    expect(result.current.history()).toEqual []
 
 describe 'useCliSession — device mode', ->
   beforeEach ->
@@ -175,6 +182,27 @@ describe 'useCliSession — device mode', ->
     hook.unmount()
     expect(deps._leaves()).toBe 1
     expect(useCliStore.getState().mode).toBe 'sim'
+
+  it 'folds back to sim when a device write rejects', ->
+    deps = makeDeviceDeps()
+    deps.writeDevice = -> Promise.reject new Error 'transport closed'
+    { result } = makeSimHook deps
+    await act -> result.current.enter()
+    await act -> result.current.submit 'status'
+    expect(result.current.mode).toBe 'sim'
+    error = result.current.lines.find (l) -> l.kind == 'error'
+    expect(error.text).toContain 'CLI write failed'
+
+describe 'useCliStore — scrollback boundary', ->
+  beforeEach -> useCliStore.getState().reset()
+
+  it 'caps the scrollback at MAX_LINES', ->
+    entries = ({ text: "line #{i}", kind: 'out' } for i in [1..505])
+    useCliStore.getState().appendLines entries
+    lines = useCliStore.getState().lines
+    expect(lines.length).toBe MAX_LINES
+    expect(lines[0].text).toBe 'line 6'
+    expect(lines[MAX_LINES - 1].text).toBe 'line 505'
 
 describe 'MspClient — CLI byte routing', ->
   it 'routes raw bytes to the detached listener and back to MSP', ->

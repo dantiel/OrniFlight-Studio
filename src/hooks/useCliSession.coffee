@@ -131,11 +131,29 @@ useCliSession = (deps = {}) ->
       runSimCommand command
       return
     store.addTx command.length + 1
-    await writeDevice new TextEncoder().encode "#{cmd}\r"
+    try
+      await writeDevice new TextEncoder().encode "#{cmd}\r"
+    catch error
+      message = "###ERROR: CLI write failed: #{error?.message or error}"
+      foldToSim message, 'error'
 
   pushHistory = (cmd) ->
     hist = historyRef.current
     hist.push cmd unless hist[hist.length - 1] == cmd
+
+  # Folds a failed device-mode write back into sim, restoring MSP
+  # routing. Guards against unhandled rejections when the transport
+  # drops mid-command — the session must settle before the await.
+  foldToSim = (message = null, kind = 'info') ->
+    ownedRef.current = false
+    assemblerRef.current = emptyState()
+    store = useCliStore.getState()
+    store.setMode 'sim'
+    store.setPending ''
+    store.appendLines [{ text: message, kind }] if message
+    try
+      await leaveDevice()
+    catch error then null
 
   # Completes the draft: in device mode the firmware completes on
   # '\t'; in sim mode known command names are matched locally.
@@ -143,10 +161,16 @@ useCliSession = (deps = {}) ->
     store = useCliStore.getState()
     if store.mode == 'device'
       store.addTx 1
-      await writeDevice new TextEncoder().encode '\t'
+      try
+        await writeDevice new TextEncoder().encode '\t'
+      catch error
+        message = "###ERROR: CLI write failed: #{error?.message or error}"
+        foldToSim message, 'error'
       return null
+    trimmed = draft.trim()
+    return null unless trimmed
     for name in SIM_COMMAND_NAMES
-      if name.startsWith(draft.trim()) and name != draft.trim()
+      if name.startsWith(trimmed) and name != trimmed
         return name
     null
 
@@ -157,7 +181,12 @@ useCliSession = (deps = {}) ->
       return
     store.appendLines [{ text: 'exit', kind: 'in' }]
     store.addTx 5
-    await writeDevice new TextEncoder().encode 'exit\r'
+    try
+      await writeDevice new TextEncoder().encode 'exit\r'
+    catch error
+      message = "###ERROR: CLI write failed: #{error?.message or error}"
+      foldToSim message, 'error'
+      return
     # Firmware reboots on exit — the disconnect routes through
     # failConnection. The timer is a grace fallback for targets
     # that stay alive (mock transports, lab rigs). The fold-back

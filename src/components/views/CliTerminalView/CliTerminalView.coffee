@@ -40,7 +40,7 @@ CliTerminalView = ->
       setCommand hist[next]
     else
       next = histIdx + delta
-      if next >= hist.length
+      if next >= hist.length or next < 0
         setHistIdx -1
         setCommand draftRef.current
       else

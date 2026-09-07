@@ -49,6 +49,16 @@ describe 'CliTerminalView', ->
     fireEvent.keyDown input(), { key: 'ArrowDown' }
     expect(input().value).toBe 'help'
 
+  it 'returns to the draft when navigating past the history top', ->
+    render h(CliTerminalView, null)
+    fireEvent.change input(), { target: { value: 'version' } }
+    fireEvent.keyDown input(), { key: 'Enter' }
+    fireEvent.change input(), { target: { value: 'draft' } }
+    fireEvent.keyDown input(), { key: 'ArrowUp' }
+    expect(input().value).toBe 'version'
+    fireEvent.keyDown input(), { key: 'ArrowUp' }
+    expect(input().value).toBe 'draft'
+
   it 'clears the scrollback with the clear button', ->
     render h(CliTerminalView, null)
     fireEvent.change input(), { target: { value: 'version' } }
