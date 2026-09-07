@@ -13,6 +13,7 @@ ROUTES = [
   ['Power', '/power', 'ϟ']
   ['Sensors', '/sensors', '◎']
   ['Safety', '/safety', '◇']
+  ['OSD', '/osd', '⌗']
   ['Data', '/data', '▦']
   ['Flash Firmware', '/flash', '↯']
   ['CLI Terminal', '/cli', '❯']

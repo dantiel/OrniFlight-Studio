@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createElement as h } from 'react'
 import { MemoryRouter } from 'react-router-dom'
@@ -17,13 +17,13 @@ describe 'ConfigTabs — Interaction', ->
   getTabLink = (text) ->
     document.querySelector "a.config-view-btn[href=\"/#{text.toLowerCase()}\"]"
 
-  it 'renders all ten domain workspaces with full labels', ->
+  it 'renders all eleven domain workspaces with full labels', ->
     renderApp()
     links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 10
+    expect(links.length).toBe 11
     labels = [
       'Device', 'Airframe', 'Flight Control', 'Receiver', 'Power',
-      'Sensors', 'Safety', 'Data', 'Flash Firmware', 'CLI'
+      'Sensors', 'Safety', 'OSD', 'Data', 'Flash Firmware', 'CLI'
     ]
     expect(Array.from(links).map((link) -> link.textContent)).toEqual labels
 
@@ -32,7 +32,8 @@ describe 'ConfigTabs — Interaction', ->
     user = userEvent.setup()
     link = getTabLink 'Sensors'
     expect(link).toBeTruthy()
-    user.click(link).then ->
+    await user.click link
+    await waitFor ->
       el = document.querySelector '.layout-perception'
       expect(el).toBeInTheDocument()
 
@@ -41,7 +42,8 @@ describe 'ConfigTabs — Interaction', ->
     user = userEvent.setup()
     link = document.querySelector 'a.config-view-btn[href="/control"]'
     expect(link).toBeTruthy()
-    user.click(link).then ->
+    await user.click link
+    await waitFor ->
       el = document.querySelector '.layout-control'
       expect(el).toBeInTheDocument()
 
@@ -50,6 +52,7 @@ describe 'ConfigTabs — Interaction', ->
     user = userEvent.setup()
     link = getTabLink 'Airframe'
     expect(link).toBeTruthy()
-    user.click(link).then ->
+    await user.click link
+    await waitFor ->
       el = document.querySelector '.layout-wings'
       expect(el).toBeInTheDocument()

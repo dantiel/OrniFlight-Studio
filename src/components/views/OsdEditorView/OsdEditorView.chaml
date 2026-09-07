@@ -1,0 +1,96 @@
+- import { useState, useRef } from 'react'
+- import { OSD_ITEMS, OSD_PROFILE_COUNT, GRID_COLS, GRID_ROWS, visibleInProfile, posCell } from '../../../lib/osdCatalog.coffee'
+- import useOsdStore from '../../../stores/useOsdStore.coffee'
+- import makeOsdHandlers, { osdItemStyle } from './OsdEditorView.handlers.coffee'
+- osd = useOsdStore()
+- [selected, setSelected] = useState null
+- gridRef = useRef null
+- handlers = makeOsdHandlers osd, gridRef, setSelected
+- draft = osd.draft
+- profile = osd.profileIndex
+- modeLabel = if osd.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = osd.mode != 'device' or !osd.session
+- visibleItems = OSD_ITEMS.filter (item) -> visibleInProfile draft[item.index], profile
+- selectedItem = if selected? then OSD_ITEMS[selected] else null
+- selectedCell = if selected? then posCell draft[selected] else null
+- itemClass = (item) -> "osd-item#{' is-selected' if selected == item.index}"
+- paletteClass = (item) -> "osd-palette-item#{' is-visible' if visibleInProfile(draft[item.index], profile)}"
+- styleFor = (item) -> osdItemStyle draft, item.index
+- maxX = String(GRID_COLS - 1)
+- maxY = String(GRID_ROWS - 1)
+- setProfile = (e) -> osd.setProfileIndex Number(e.target.value)
+- setX = (e) -> osd.setItemPos selected, Number(e.target.value), selectedCell.y
+- setY = (e) -> osd.setItemPos selected, selectedCell.x, Number(e.target.value)
+- visFor = (p) -> visibleInProfile draft[selected], p
+- setVis = (p) -> (e) -> osd.setItemVisible selected, p, e.target.checked
+- readOsd = -> osd.loadFromDevice().catch (-> null)
+- saveOsd = -> osd.save().catch (-> null)
+- revertOsd = -> osd.revert()
+.osd-workspace
+  .osd-header
+    %h1.osd-title OSD
+    %span.osd-mode-badge{ className: "osd-mode-#{osd.mode}" }
+      = modeLabel
+    - if osd.dirty
+      %span.osd-dirty-badge UNSAVED
+    - if osd.lastError
+      .osd-error
+        = osd.lastError
+    .osd-profile-selector
+      %label{ key: 'profile-label', htmlFor: 'osd-profile' } Profile
+      %select#osd-profile{ key: 'profile-select', value: String(profile), onChange: setProfile }
+        - for p in [1..OSD_PROFILE_COUNT]
+          %option{ key: "profile-#{p}", value: String(p) }
+            = "Profile #{p}"
+  - if osd.mode == 'sim'
+    .osd-sim-banner SIMULATION — Änderungen werden nicht persistiert
+  .osd-toolbar
+    %button.osd-action.osd-action-read{ type: 'button', onClick: readOsd, disabled: readDisabled }
+      Read device
+    %button.osd-action.osd-action-save{ type: 'button', onClick: saveOsd }
+      Save
+    %button.osd-action.osd-action-revert{ type: 'button', onClick: revertOsd, disabled: !osd.dirty }
+      Revert
+  .osd-body
+    .osd-palette
+      %h2.osd-pane-title Elements
+      .osd-palette-list
+        - for item in OSD_ITEMS
+          %button.osd-palette-item{ key: item.key, type: 'button', title: item.label, className: paletteClass(item), onClick: handlers.addFor(item) }
+            %span.osd-palette-glyph
+              = item.glyph
+            %span.osd-palette-label
+              = item.label
+    .osd-stage
+      %div.osd-grid{ ref: gridRef }
+        - for item in visibleItems
+          %div.osd-item{ key: item.key, role: 'button', 'aria-label': item.label, style: styleFor(item), className: itemClass(item), onPointerDown: handlers.pointerDownFor(item), onPointerMove: handlers.dragAt, onPointerUp: handlers.endDragAt, onPointerCancel: handlers.cancelDrag }
+            %span.osd-item-glyph
+              = item.glyph
+            %span.osd-item-label
+              = item.label
+    .osd-props
+      %h2.osd-pane-title Properties
+      - if selected?
+        .osd-props-body
+          .osd-props-name
+            %span.osd-props-glyph
+              = selectedItem.glyph
+            %span.osd-props-label
+              = selectedItem.label
+          %label.osd-props-field
+            %span.osd-props-field-label X
+            %input{ type: 'number', min: '0', max: maxX, value: selectedCell.x, onChange: setX }
+          %label.osd-props-field
+            %span.osd-props-field-label Y
+            %input{ type: 'number', min: '0', max: maxY, value: selectedCell.y, onChange: setY }
+          .osd-props-visibility
+            %span.osd-props-visibility-label{ key: 'visibility-label' } Visibility
+            - for p in [1..OSD_PROFILE_COUNT]
+              %label.osd-props-check{ key: "vis-#{p}" }
+                %input{ type: 'checkbox', checked: visFor(p), onChange: setVis(p) }
+                %span
+                  = "Profile #{p}"
+      - else
+        .osd-props-empty
+          Select an element to edit its position and visibility.

@@ -1,4 +1,7 @@
 import ByteReader from './byteReader.coffee'
+import {
+  OSD_DEFAULTS, OSD_ITEM_COUNT, OSD_PROFILE_COUNT, sanitizePos
+} from '../lib/osdCatalog.coffee'
 
 SIGNATURE_LENGTH = 32
 
@@ -275,9 +278,57 @@ decodeOndas = (payload) ->
   result
 
 # ── Tuning fallbacks ────────────────────────────────────────
-# OrniFlight firmware standards for sections the flight controller
-# does not expose. Shared by session reads and the tuning store so
-# defaults can never drift between the two.
+# ── OSD configuration (MSP 84 / 85) ─────────────────────────────────
+# Wire layout of MSP_OSD_CONFIG (OrniFlight msp.c): u8 osdFlags,
+# u8 videoSystem, u8 units, u8 rssiAlarm, u16 capAlarm, u8 reserved,
+# u8 itemCount, u16 altAlarm, then itemCount × u16 item positions,
+# then an adaptive trailer: stats, timers, warnings, profileCount,
+# profileIndex (1-based), overlayRadioMode.
+# MSP_SET_OSD_CONFIG carries one element per request as
+# [u8 index, u16 position, u8 screen] with screen 1 = in-flight screen.
+
+decodeOsdConfig = (payload) ->
+  reader = new ByteReader payload
+  osdFlags = reader.u8()
+  videoSystem = reader.u8()
+  units = reader.u8()
+  rssiAlarm = reader.u8()
+  capAlarm = reader.u16()
+  reader.u8() # reserved (legacy timer alarm low byte)
+  itemCount = reader.u8()
+  altAlarm = reader.u16()
+  itemCount = Math.min itemCount, OSD_ITEM_COUNT
+  items = []
+  while items.length < itemCount and reader.remaining() >= 2
+    items.push sanitizePos reader.u16()
+  statCount = if reader.remaining() >= 1 then reader.u8() else 0
+  reader.take Math.min(statCount, reader.remaining())
+  timerCount = if reader.remaining() >= 1 then reader.u8() else 0
+  reader.take Math.min(timerCount * 2, reader.remaining())
+  warningsLow = if reader.remaining() >= 2 then reader.u16() else 0
+  warningCount = if reader.remaining() >= 1 then reader.u8() else 0
+  warningsFull = if reader.remaining() >= 4 then reader.u32() else warningsLow
+  profileCount = if reader.remaining() >= 1 then reader.u8() else OSD_PROFILE_COUNT
+  profileIndex = if reader.remaining() >= 1 then reader.u8() else 1
+  overlayRadioMode = if reader.remaining() >= 1 then reader.u8() else 0
+  for i in [items.length...OSD_ITEM_COUNT]
+    items.push OSD_DEFAULTS[i]
+  {
+    osdFlags, videoSystem, units, rssiAlarm, capAlarm, altAlarm
+    profileCount, profileIndex, overlayRadioMode, items
+  }
+
+encodeOsdItem = (index, position) ->
+  payload = new Uint8Array 4
+  payload[0] = index
+  payload[1] = position & 0xFF
+  payload[2] = (position >> 8) & 0xFF
+  payload[3] = 1 # screen 1 = in-flight OSD screen
+  payload
+
+# ⚙️ Tuning fallbacks — OrniFlight firmware standards for sections the
+# flight controller does not expose. Shared by session reads and the
+# tuning store so defaults can never drift between the two.
 TUNING_FALLBACKS = Object.freeze
   pid: Object.freeze
     roll: Object.freeze { P: 4.0, I: 0.03, D: 23.0 }
@@ -302,5 +353,6 @@ export {
   encodeRcTuning, decodeRcTuning
   encodeFilterConfig, decodeFilterConfig
   encodeOndas, decodeOndas, ONDAS_DEFAULTS, ONDAS_KEYS
+  decodeOsdConfig, encodeOsdItem
   TUNING_FALLBACKS
 }

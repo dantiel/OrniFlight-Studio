@@ -17,7 +17,11 @@ export const COFFEE_RE = /\.coffee$/;
 const fixRuntime = (code) => code
   .replace(
     'import { jsx, jsxs, Fragment } from "react/jsx-runtime";',
-    "import { createElement, Fragment } from 'react';\nvar jsx = createElement;\nvar jsxs = function(type, props) { return createElement(type, props, ...(props.children || [])); };"
+    // Keys travel as the third jsx/jsxs argument — createElement only
+    // reads them from config.key, so fold the key into props (one line
+    // per var: the prologue splitter below only treats `var jsx`/`var
+    // jsxs` lines as module-level).
+    "import { createElement, Fragment } from 'react';\nvar jsx = function(type, props, key) { if (key !== undefined) props = Object.assign({}, props, { key: key }); return createElement(type, props); };\nvar jsxs = function(type, props, key) { if (key !== undefined) props = Object.assign({}, props, { key: key }); return createElement(type, props, ...(props.children || [])); };"
   )
   .replace(/jsx\(([^,]+), null\)/g, 'jsx($1, {})');
 

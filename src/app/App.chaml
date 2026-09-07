@@ -15,6 +15,7 @@ import WelcomeView from '../components/views/WelcomeView/WelcomeView.coffee'
 import WingsView from '../components/views/WingsView/WingsView.chaml'
 import FlightView from '../components/views/FlightView/FlightView.chaml'
 import PidTuningView from '../components/views/PidTuningView/PidTuningView.coffee'
+import OsdEditorView from '../components/views/OsdEditorView/OsdEditorView.coffee'
 import CliTerminalView from '../components/views/CliTerminalView/CliTerminalView.coffee'
 import PerceptionView from '../components/views/PerceptionView/PerceptionView.chaml'
 import VoiceView from '../components/views/VoiceView/VoiceView.chaml'
@@ -32,6 +33,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - `const powerEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'power'}))`
 - `const sensorsEl = h(AnimatedPage, null, h(PerceptionView, null))`
 - `const safetyEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'safety'}))`
+- `const osdEl = h(AnimatedPage, null, h(OsdEditorView, null))`
 - `const dataEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'data'}))`
 - `const flashEl = h(AnimatedPage, null, h(FlashingView, null))`
 - `const cliEl = h(AnimatedPage, null, h(CliTerminalView, null))`
@@ -52,6 +54,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/power', element: powerEl }
         %Route{ path: '/sensors', element: sensorsEl }
         %Route{ path: '/safety', element: safetyEl }
+        %Route{ path: '/osd', element: osdEl }
         %Route{ path: '/data', element: dataEl }
         %Route{ path: '/flash', element: flashEl }
         %Route{ path: '/cli', element: cliEl }

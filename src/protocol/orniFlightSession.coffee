@@ -9,6 +9,7 @@ import {
   decodeRcTuning, encodeRcTuning
   decodeFilterConfig, encodeFilterConfig
   decodeOndas, encodeOndas, ONDAS_DEFAULTS, TUNING_FALLBACKS
+  decodeOsdConfig, encodeOsdItem
 } from './mspDecoders.coffee'
 
 POLL_INTERVAL_MS = 100
@@ -157,6 +158,27 @@ class OrniFlightSession
         throw new Error "Tuning read-back failed: #{section}"
     readBack
 
+  readOsdConfig: ->
+    payload = await @client.requestOptional MSP_CODES.OSD_CONFIG
+    if payload then decodeOsdConfig(payload) else null
+
+  # The firmware's MSP_SET_OSD_CONFIG accepts exactly one element per
+  # request, so the layout is written item-wise before the EEPROM flush.
+  writeOsdConfig: (config) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    items = config?.items or config
+    unless Array.isArray(items) and items.length
+      throw new Error 'OSD configuration items missing'
+    for index in [0...items.length]
+      await @client.request(
+        MSP_CODES.SET_OSD_CONFIG, encodeOsdItem(index, items[index])
+      )
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readOsdConfig()
+    unless readBack? and osdItemsMatch items, readBack.items
+      throw new Error 'OSD configuration read-back failed'
+    readBack
+
   _poll: ->
     return unless @running
     try
@@ -217,6 +239,14 @@ tuningSectionMatches = (section, expected = {}, actual = {}) ->
     true
   else
     JSON.stringify(actual) == JSON.stringify(expected)
+
+# Item-wise u16 comparison for OSD read-back verification — the wire
+# document is the array itself, so equality is per-slot.
+osdItemsMatch = (expected = [], actual = []) ->
+  return false unless actual.length >= expected.length
+  for index in [0...expected.length]
+    return false unless actual[index] == expected[index]
+  true
 
 export default OrniFlightSession
 export { OrniFlightSession, FirmwareCompatibilityError, POLL_INTERVAL_MS }

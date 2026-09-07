@@ -8,6 +8,7 @@ import { MockMspTransport, scriptedResponder } from './mockMspTransport.coffee'
 import {
   encodeServoConfiguration, ONDAS_DEFAULTS
 } from '../protocol/mspDecoders.coffee'
+import { itemPos } from '../lib/osdCatalog.coffee'
 
 asciiBytes = (text) ->
   Array.from(text).map (character) -> character.charCodeAt 0
@@ -483,3 +484,97 @@ describe 'orniFlightSession', ->
     await expect(session.writeServoConfiguration 0, {
       min: 1100, max: 1900, middle: 1520
     }).rejects.toThrow 'read-back failed'
+
+osdConfigPayload = (positions) ->
+  bytes = []
+  push8 = (value) -> bytes.push value & 0xFF
+  push16 = (value) -> bytes.push value & 0xFF, (value >> 8) & 0xFF
+  push32 = (value) ->
+    push16 value & 0xFFFF
+    push16 value >>> 16 & 0xFFFF
+  push8 0x01
+  push8 0
+  push8 0
+  push8 20
+  push16 2200
+  push8 0
+  push8 positions.length
+  push16 100
+  for position in positions
+    push16 position
+  push8 0
+  push8 2
+  push16 1000
+  push16 2000
+  push16 0
+  push8 8
+  push32 0xFFFFFFFF
+  push8 3
+  push8 1
+  push8 2
+  new Uint8Array bytes
+
+describe 'OrniFlightSession OSD layout', ->
+  it 'reads the OSD configuration payload', ->
+    positions = (itemPos(10, 7) for _ in [0...52])
+    positions[2] = itemPos 13, 6
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      if command == MSP_CODES.OSD_CONFIG
+        return { command, direction: '>', payload: osdConfigPayload positions }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    config = await session.readOsdConfig()
+    expect(config.items).toHaveLength 52
+    expect(config.items[2]).toBe itemPos 13, 6
+    expect(config.profileIndex).toBe 1
+    expect(config.overlayRadioMode).toBe 2
+
+  it 'writes the layout item-wise and verifies the read-back', ->
+    stored = (itemPos(10, 7) for _ in [0...52])
+    stored[21] = itemPos(9, 10) | 0x3800
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      if command == MSP_CODES.SET_OSD_CONFIG
+        index = bytes[8]
+        position = bytes[9] | bytes[10] << 8
+        stored[index] = position if 0 <= index < stored.length
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.EEPROM_WRITE
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.OSD_CONFIG
+        return { command, direction: '>', payload: osdConfigPayload stored }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    layout = (itemPos(10, 7) for _ in [0...52])
+    layout[5] = itemPos 3, 9
+    result = await session.writeOsdConfig { items: layout }
+    expect(result.items[5]).toBe itemPos 3, 9
+    writes = transport.writes.filter (bytes) ->
+      (bytes[4] | bytes[5] << 8) == MSP_CODES.SET_OSD_CONFIG
+    expect(writes).toHaveLength 52
+    expect(writes[5][8]).toBe 5
+    expect(writes[5][9] | writes[5][10] << 8).toBe itemPos 3, 9
+
+  it 'refuses to write while armed', ->
+    positions = (itemPos(10, 7) for _ in [0...52])
+    fallback = scriptedResponder handshakeScript
+    transport = new MockMspTransport { autoRespond: true, responder: fallback }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    session.lastStatus.armed = true
+    await expect(session.writeOsdConfig {
+      items: positions
+    }).rejects.toThrow 'Cannot write configuration while armed'

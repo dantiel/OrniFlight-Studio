@@ -1,0 +1,229 @@
+.osd-workspace
+  display: flex
+  flex-direction: column
+  gap: 1rem
+  padding: 1.25rem
+  min-height: 100%
+
+.osd-header
+  display: flex
+  align-items: center
+  gap: 0.75rem
+
+.osd-title
+  margin: 0
+  font-size: 1.5rem
+
+.osd-mode-badge
+  font-size: 0.7rem
+  letter-spacing: 0.08em
+  padding: 0.2rem 0.55rem
+  border-radius: 999px
+  border: 1px solid var(--osd-badge-border, #3a3a3a)
+  color: var(--osd-badge-text, #9a9a9a)
+
+.osd-mode-device
+  border-color: var(--osd-device-border, #2f6f4f)
+  color: var(--osd-device-text, #4dbf80)
+
+.osd-dirty-badge
+  font-size: 0.7rem
+  letter-spacing: 0.08em
+  padding: 0.2rem 0.55rem
+  border-radius: 999px
+  background: var(--osd-dirty-bg, #6b3b00)
+  color: #ffd08a
+
+.osd-error
+  font-size: 0.8rem
+  color: var(--osd-error-text, #ff8080)
+
+.osd-profile-selector
+  margin-left: auto
+  display: flex
+  align-items: center
+  gap: 0.5rem
+  font-size: 0.85rem
+
+  select
+    background: var(--osd-input-bg, #151515)
+    color: inherit
+    border: 1px solid var(--osd-input-border, #3a3a3a)
+    border-radius: 0.375rem
+    padding: 0.25rem 0.5rem
+
+.osd-sim-banner
+  font-size: 0.8rem
+  padding: 0.5rem 0.75rem
+  border-radius: 0.375rem
+  background: var(--osd-sim-bg, #12243a)
+  color: var(--osd-sim-text, #7fb8e8)
+
+.osd-toolbar
+  display: flex
+  gap: 0.5rem
+
+.osd-action
+  padding: 0.45rem 1rem
+  border-radius: 0.375rem
+  border: 1px solid var(--osd-action-border, #3a3a3a)
+  background: var(--osd-action-bg, #1c1c1c)
+  color: inherit
+  cursor: pointer
+
+  &:disabled
+    opacity: 0.4
+    cursor: not-allowed
+
+  &-save
+    border-color: var(--osd-save-border, #2f6f4f)
+    color: var(--osd-save-text, #4dbf80)
+
+.osd-body
+  display: grid
+  grid-template-columns: 15rem minmax(20rem, 1fr) 15rem
+  gap: 1rem
+  align-items: start
+
+.osd-pane-title
+  margin: 0 0 0.5rem
+  font-size: 0.85rem
+  letter-spacing: 0.06em
+  text-transform: uppercase
+  color: var(--osd-pane-title, #8a8a8a)
+
+.osd-palette-list
+  max-height: 62vh
+  overflow-y: auto
+  display: flex
+  flex-direction: column
+  gap: 0.2rem
+  padding-right: 0.25rem
+
+.osd-palette-item
+  display: flex
+  align-items: center
+  gap: 0.5rem
+  text-align: left
+  padding: 0.3rem 0.55rem
+  border: 1px solid var(--osd-palette-border, #2c2c2c)
+  border-radius: 0.375rem
+  background: var(--osd-palette-bg, #181818)
+  color: inherit
+  cursor: pointer
+
+  &:hover
+    border-color: var(--osd-palette-border-hover, #4a4a4a)
+
+  &.is-visible
+    border-color: var(--osd-palette-visible, #3a6d9f)
+    background: var(--osd-palette-visible-bg, #14202c)
+
+.osd-palette-glyph
+  width: 1.25rem
+  text-align: center
+
+.osd-palette-label
+  font-size: 0.8rem
+
+.osd-stage
+  min-width: 0
+
+.osd-grid
+  position: relative
+  aspect-ratio: 30 / 16
+  border: 1px solid var(--osd-grid-border, #333)
+  border-radius: 0.5rem
+  overflow: hidden
+  background-color: #000
+  background-image: repeating-linear-gradient(
+    to right, #ffffff0f 0 1px, transparent 1px calc(100% / 30)
+  ), repeating-linear-gradient(
+    to bottom, #ffffff0f 0 1px, transparent 1px calc(100% / 16)
+  )
+  touch-action: none
+
+.osd-item
+  position: absolute
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 0.1rem
+  border-radius: 0.25rem
+  color: var(--osd-item-text, #cfe6ff)
+  background: var(--osd-item-bg, rgba(60, 110, 160, 0.35))
+  border: 1px solid transparent
+  cursor: grab
+  user-select: none
+  touch-action: none
+  overflow: hidden
+
+  &:hover
+    border-color: var(--osd-item-border-hover, #5a9adf)
+
+  &.is-selected
+    border-color: var(--osd-item-border-selected, #ffb74d)
+    background: var(--osd-item-bg-selected, rgba(140, 90, 30, 0.45))
+
+.osd-item-glyph
+  font-size: 0.9rem
+  line-height: 1
+
+.osd-item-label
+  font-size: 0.55rem
+  white-space: nowrap
+
+.osd-props-body
+  display: flex
+  flex-direction: column
+  gap: 0.6rem
+  padding: 0.6rem
+  border: 1px solid var(--osd-props-border, #2c2c2c)
+  border-radius: 0.5rem
+  background: var(--osd-props-bg, #181818)
+
+.osd-props-name
+  display: flex
+  align-items: center
+  gap: 0.5rem
+  font-size: 0.9rem
+
+.osd-props-field
+  display: flex
+  align-items: center
+  gap: 0.5rem
+  font-size: 0.8rem
+
+  input
+    width: 4rem
+    padding: 0.25rem 0.4rem
+    border-radius: 0.375rem
+    border: 1px solid var(--osd-input-border, #3a3a3a)
+    background: var(--osd-input-bg, #151515)
+    color: inherit
+
+.osd-props-field-label
+  width: 1rem
+  color: var(--osd-pane-title, #8a8a8a)
+
+.osd-props-visibility
+  display: flex
+  align-items: center
+  gap: 0.75rem
+  font-size: 0.8rem
+
+.osd-props-visibility-label
+  color: var(--osd-pane-title, #8a8a8a)
+
+.osd-props-check
+  display: flex
+  align-items: center
+  gap: 0.3rem
+
+.osd-props-empty
+  font-size: 0.8rem
+  color: var(--osd-pane-title, #8a8a8a)
+  padding: 0.6rem
+  border: 1px dashed var(--osd-props-border, #2c2c2c)
+  border-radius: 0.5rem
