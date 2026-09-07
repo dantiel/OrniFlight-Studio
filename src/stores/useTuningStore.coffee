@@ -8,6 +8,9 @@
 # and ONDAS params mirror into the engine singleton so the live
 # simulation follows the draft immediately; rates, filters and the flap
 # axis stay document-only because the sim does not model them.
+# A device save requires a prior successful read of that session —
+# `loadedSession` pins the document to its source device so values from
+# a previous craft can never be written to a newly connected one.
 ###
 import { create } from 'zustand'
 import { engine } from '../simulation/engine.coffee'
@@ -105,6 +108,7 @@ useTuningStore = create (set, get) ->
   setField: (path, value) ->
     parts = String(path or '').split '.'
     return unless validPath parts
+    section = parts[0]
     next = clone get().draft
     node = next
     leaf = parts.pop()
@@ -116,7 +120,9 @@ useTuningStore = create (set, get) ->
     return unless isObjectLike node
     node[leaf] = value
     draft = normalizeDraft next
-    applyToEngine draft
+    # Only the two modeled sections mirror into the engine; rate and
+    # filter edits stay document-only and skip 19 redundant writes.
+    applyToEngine draft if section in ['pid', 'ondas']
     set { draft, dirty: true }
 
   save: ->
@@ -124,6 +130,8 @@ useTuningStore = create (set, get) ->
     try
       if mode == 'device'
         throw new Error 'No device session attached' unless session?
+        unless get().loadedSession == session
+          throw new Error 'Read device tuning before saving'
         saved = normalizeDraft await session.writeTuning draft
       else
         saved = normalizeDraft draft
@@ -167,6 +175,7 @@ useTuningStore = create (set, get) ->
     set {
       mode: 'device'
       session
+      loadedSession: session
       draft: clone draft
       saved: clone draft
       dirty: false
@@ -180,6 +189,7 @@ useTuningStore = create (set, get) ->
     set {
       mode: 'sim'
       session: null
+      loadedSession: null
       draft: clone defaults
       saved: clone defaults
       dirty: false
@@ -189,6 +199,7 @@ useTuningStore = create (set, get) ->
 
   mode: 'sim'
   session: null
+  loadedSession: null
   draft: defaults
   saved: clone defaults
   dirty: false

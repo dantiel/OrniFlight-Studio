@@ -50,6 +50,14 @@ describe 'useTuningStore', ->
     expect(engine.setOndasParam).toHaveBeenCalledTimes 10
     expect(engine.setOndasParam).toHaveBeenCalledWith 'anchor_gain', 50
 
+  it 'does not mirror rate or filter edits into the engine', ->
+    state().setField 'rate.rcRate', 120
+    state().setField 'filter.gyroNotchQ', 8
+    expect(engine.setPidGain).not.toHaveBeenCalled()
+    expect(engine.setOndasParam).not.toHaveBeenCalled()
+    expect(state().draft.rate.rcRate).toBe 120
+    expect(state().draft.filter.gyroNotchQ).toBe 8
+
   it 'guards pid fields against non-finite values', ->
     state().setField 'pid.pitch.I', NaN
     expect(state().draft.pid.pitch.I).toBe 0.04
@@ -108,9 +116,13 @@ describe 'useTuningStore', ->
     expect(state().dirty).toBe false
 
   it 'writes through the session on save in device mode', ->
-    session = { writeTuning: vi.fn((tuning) -> Promise.resolve tuning) }
+    session = {
+      readTuning: vi.fn(-> Promise.resolve TUNING_DEFAULTS)
+      writeTuning: vi.fn((tuning) -> Promise.resolve tuning)
+    }
     state().attachSession session
     expect(state().mode).toBe 'device'
+    await state().loadFromDevice()
     state().setField 'pid.roll.P', 5.5
     await state().save()
     expect(session.writeTuning).toHaveBeenCalledTimes 1
@@ -124,9 +136,11 @@ describe 'useTuningStore', ->
 
   it 'records the failure message when a device save throws', ->
     session = {
+      readTuning: vi.fn(-> Promise.resolve TUNING_DEFAULTS)
       writeTuning: vi.fn(-> Promise.reject new Error('read-back failed: pid'))
     }
     state().attachSession session
+    await state().loadFromDevice()
     error = await state().save().catch (error) -> error
     expect(error.message).toContain 'read-back failed'
     expect(state().lastError).toContain 'read-back failed'
@@ -156,6 +170,7 @@ describe 'useTuningStore', ->
     expect(state().mode).toBe 'device'
     expect(state().dirty).toBe false
     expect(state().saved.rate.rcRate).toBe 90
+    expect(state().loadedSession).toBe session
     expect(engine.setPidGain).toHaveBeenCalledWith 'roll_P', 5
 
   it 'clamps pid gains to the wire-representable range', ->
@@ -167,13 +182,27 @@ describe 'useTuningStore', ->
     expect(state().draft.pid.yaw.I).toBe 65.535
 
   it 'writes clamped pid gains through the device session', ->
-    session = { writeTuning: vi.fn((tuning) -> Promise.resolve tuning) }
+    session = {
+      readTuning: vi.fn(-> Promise.resolve TUNING_DEFAULTS)
+      writeTuning: vi.fn((tuning) -> Promise.resolve tuning)
+    }
     state().attachSession session
+    await state().loadFromDevice()
     state().setField 'pid.roll.P', 200
     await state().save()
     expect(session.writeTuning).toHaveBeenCalledTimes 1
     expect(state().saved.pid.roll.P).toBe 65.535
     expect(state().dirty).toBe false
+
+  it 'refuses to save on a device before reading its tuning', ->
+    session = { writeTuning: vi.fn((tuning) -> Promise.resolve tuning) }
+    state().attachSession session
+    state().setField 'pid.roll.P', 5
+    error = await state().save().catch (error) -> error
+    expect(error.message).toContain 'Read device tuning before saving'
+    expect(session.writeTuning).not.toHaveBeenCalled()
+    expect(state().dirty).toBe true
+    expect(state().lastError).toContain 'Read device tuning before saving'
 
   it 'records the failure message when a device read throws', ->
     session = {
