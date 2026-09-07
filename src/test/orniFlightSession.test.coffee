@@ -5,7 +5,9 @@ import OrniFlightSession, {
   FirmwareCompatibilityError
 } from '../protocol/orniFlightSession.coffee'
 import { MockMspTransport, scriptedResponder } from './mockMspTransport.coffee'
-import { encodeServoConfiguration } from '../protocol/mspDecoders.coffee'
+import {
+  encodeServoConfiguration, ONDAS_DEFAULTS
+} from '../protocol/mspDecoders.coffee'
 
 asciiBytes = (text) ->
   Array.from(text).map (character) -> character.charCodeAt 0
@@ -72,6 +74,56 @@ pollScript = {
     3, u16(1500)..., 126, u16(0)..., i16(250)..., 0x01, u16(1175)...
   ]
 }
+
+tuningDoc = {
+  pid: {
+    roll: { P: 4.0, I: 0.03, D: 23.0 }
+    pitch: { P: 6.0, I: 0.04, D: 28.0 }
+    yaw: { P: 3.0, I: 0.05, D: 0.0 }
+    flap: { P: 0.0, I: 0.0, D: 0.0 }
+  }
+  rate: { rcRate: 100, superRate: 70, expo: 35 }
+  ondas: ONDAS_DEFAULTS
+  filter: { gyroDlpfHz: 250, gyroNotchHz: 400, gyroNotchQ: 6, dTermDlpfHz: 50 }
+}
+
+tuningPayloads = {
+  [MSP_CODES.PID]: [
+    u16(4000)..., u16(30)..., u16(23000)...
+    u16(6000)..., u16(40)..., u16(28000)...
+    u16(3000)..., u16(50)..., u16(0)...
+    u16(0)..., u16(0)..., u16(0)...
+  ]
+  [MSP_CODES.RC_TUNING]: [100, 70, 35]
+  [MSP_CODES.FILTER_CONFIG]: [u16(250)..., u16(400)..., 6, u16(50)...]
+  [MSP_CODES.ONDAS]: [30, 40, 20, 10, 30, 25, 20, 15, 50, 10]
+}
+
+# Echoes written tuning sections on read-back so writeTuning's
+# verification loop sees the stored values. Writes arrive under the
+# SET_* codes while the verification reads use the GET codes, so the
+# payloads are stored under their read codes.
+tuningStoreResponder = (script) ->
+  stored = {}
+  fallback = scriptedResponder script
+  writeToRead = {
+    [MSP_CODES.SET_PID]: MSP_CODES.PID
+    [MSP_CODES.SET_RC_TUNING]: MSP_CODES.RC_TUNING
+    [MSP_CODES.SET_FILTER_CONFIG]: MSP_CODES.FILTER_CONFIG
+    [MSP_CODES.SET_ONDAS]: MSP_CODES.ONDAS
+  }
+  (bytes) ->
+    command = bytes[4] | bytes[5] << 8
+    length = bytes[6] | bytes[7] << 8
+    payload = Array.from bytes.subarray 8, 8 + length
+    if writeToRead[command]?
+      stored[writeToRead[command]] = payload
+      return { command, direction: '>', payload: [] }
+    if command == MSP_CODES.EEPROM_WRITE
+      return { command, direction: '>', payload: [] }
+    if command in Object.values writeToRead
+      return { command, direction: '>', payload: stored[command] or [] }
+    fallback bytes
 
 openSession = (script, callbacks = {}) ->
   transport = new MockMspTransport {
@@ -294,6 +346,93 @@ describe 'orniFlightSession', ->
       MSP_CODES.EEPROM_WRITE
       MSP_CODES.SERVO_CONFIGURATIONS
     ]
+
+  it 'reads tuning parameters from the firmware', ->
+    script = { handshakeScript..., tuningPayloads... }
+    { session } = await openSession script
+    await session.handshake()
+    tuning = await session.readTuning()
+    expect(tuning.pid.roll).toEqual { P: 4.0, I: 0.03, D: 23.0 }
+    expect(tuning.pid.pitch).toEqual { P: 6.0, I: 0.04, D: 28.0 }
+    expect(tuning.pid.flap).toEqual { P: 0.0, I: 0.0, D: 0.0 }
+    expect(tuning.rate).toEqual { rcRate: 100, superRate: 70, expo: 35 }
+    expect(tuning.ondas).toEqual ONDAS_DEFAULTS
+    expect(tuning.filter).toEqual {
+      gyroDlpfHz: 250, gyroNotchHz: 400, gyroNotchQ: 6, dTermDlpfHz: 50
+    }
+
+  it 'falls back to tuning defaults for unsupported sections', ->
+    script = {
+      handshakeScript...
+      [MSP_CODES.PID]: 'unsupported'
+      [MSP_CODES.RC_TUNING]: 'unsupported'
+      [MSP_CODES.FILTER_CONFIG]: 'unsupported'
+      [MSP_CODES.ONDAS]: 'unsupported'
+    }
+    { session } = await openSession script
+    await session.handshake()
+    tuning = await session.readTuning()
+    expect(tuning.pid.roll).toEqual { P: 4.0, I: 0.03, D: 23.0 }
+    expect(tuning.rate).toEqual { rcRate: 100, superRate: 0, expo: 0 }
+    expect(tuning.ondas).toEqual ONDAS_DEFAULTS
+    expect(tuning.filter).toEqual {
+      gyroDlpfHz: 0, gyroNotchHz: 0, gyroNotchQ: 0, dTermDlpfHz: 0
+    }
+
+  it 'writes tuning with a single eeprom write and read-back', ->
+    transport = new MockMspTransport {
+      autoRespond: true
+      responder: tuningStoreResponder handshakeScript
+    }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    result = await session.writeTuning tuningDoc
+    expect(result.pid.roll).toEqual tuningDoc.pid.roll
+    expect(result.rate).toEqual tuningDoc.rate
+    # The transport log also contains the handshake requests — filter
+    # to the tuning conversation before asserting the exact order.
+    tuningCodes = [
+      MSP_CODES.SET_PID, MSP_CODES.SET_RC_TUNING
+      MSP_CODES.SET_FILTER_CONFIG, MSP_CODES.SET_ONDAS
+      MSP_CODES.EEPROM_WRITE
+      MSP_CODES.PID, MSP_CODES.RC_TUNING
+      MSP_CODES.FILTER_CONFIG, MSP_CODES.ONDAS
+    ]
+    commands = transport.writes
+      .map((bytes) -> bytes[4] | bytes[5] << 8)
+      .filter((c) -> c in tuningCodes)
+    expect(commands.filter((c) -> c == MSP_CODES.EEPROM_WRITE).length).toBe 1
+    expect(commands).toEqual tuningCodes
+
+  it 'refuses to write tuning parameters while armed', ->
+    armedStatus = [
+      statusPayload[0...6]...
+      u32(1)...
+      statusPayload[10...]...
+    ]
+    script = { handshakeScript..., [MSP_CODES.STATUS_EX]: armedStatus }
+    { session } = await openSession script
+    await session.handshake()
+    error = await session.writeTuning(tuningDoc).catch (error) -> error
+    expect(error.message).toContain 'armed'
+
+  it 'throws when a tuning section read-back diverges', ->
+    base = tuningStoreResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      if command == MSP_CODES.ONDAS
+        return { command, direction: '>', payload: (0 for _ in [0...10]) }
+      base bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    await expect(session.writeTuning tuningDoc).rejects.toThrow(
+      'Tuning read-back failed: ondas'
+    )
 
   it 'refuses to write servo configuration while armed', ->
     armedStatus = [

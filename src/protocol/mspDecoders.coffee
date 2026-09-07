@@ -168,6 +168,129 @@ encodeName = (name) ->
   value = String(name or '').slice 0, 24
   Uint8Array.from Array.from(value).map((character) -> character.charCodeAt(0) & 0xff)
 
+finiteOr = (fallback, value) ->
+  return fallback unless value?
+  number = Number(value)
+  if Number.isFinite(number) then number else fallback
+
+clampU16 = (value) ->
+  Math.max 0, Math.min 65535, Math.round finiteOr 0, value
+
+clampU8 = (value) ->
+  Math.max 0, Math.min 255, Math.round finiteOr 0, value
+
+# ── PID tuning (MSP 112 / 202) ──────────────────────────────
+# Wire layout: 24 bytes — four axes in fixed order roll → pitch →
+# yaw → flap, each P u16×1000, I u16×1000, D u16×1000 (little-endian).
+# The ×1000 scaling keeps gain steps of 0.001 lossless on the wire.
+PID_AXES = Object.freeze ['roll', 'pitch', 'yaw', 'flap']
+PID_TERMS = Object.freeze ['P', 'I', 'D']
+PID_TUNING_BYTES = 24
+PID_SCALE = 1000
+
+encodePidTuning = (pid = {}) ->
+  out = new Uint8Array PID_TUNING_BYTES
+  view = new DataView out.buffer
+  offset = 0
+  for axis in PID_AXES
+    gains = pid[axis] or {}
+    for term in PID_TERMS
+      view.setUint16 offset, clampU16(gains[term] * PID_SCALE), true
+      offset += 2
+  out
+
+decodePidTuning = (payload) ->
+  reader = new ByteReader payload
+  result = {}
+  for axis in PID_AXES
+    gains = {}
+    for term in PID_TERMS
+      gains[term] = if reader.remaining() >= 2
+        reader.u16() / PID_SCALE
+      else
+        0
+    result[axis] = gains
+  result
+
+# ── RC tuning (MSP 111 / 204) ───────────────────────────────
+# Wire layout: 3 bytes — rcRate u8, superRate u8, expo u8.
+encodeRcTuning = (rate = {}) ->
+  Uint8Array.from [
+    clampU8 rate.rcRate
+    clampU8 rate.superRate
+    clampU8 rate.expo
+  ]
+
+decodeRcTuning = (payload) ->
+  reader = new ByteReader payload
+  rcRate: if reader.remaining() then reader.u8() else 0
+  superRate: if reader.remaining() then reader.u8() else 0
+  expo: if reader.remaining() then reader.u8() else 0
+
+# ── Filter configuration (MSP 92 / 193) ─────────────────────
+# Wire layout: 7 bytes — gyroDlpfHz u16, gyroNotchHz u16,
+# gyroNotchQ u8, dTermDlpfHz u16 (little-endian).
+encodeFilterConfig = (filter = {}) ->
+  out = new Uint8Array 7
+  view = new DataView out.buffer
+  view.setUint16 0, clampU16(filter.gyroDlpfHz), true
+  view.setUint16 2, clampU16(filter.gyroNotchHz), true
+  view.setUint8 4, clampU8(filter.gyroNotchQ)
+  view.setUint16 5, clampU16(filter.dTermDlpfHz), true
+  out
+
+decodeFilterConfig = (payload) ->
+  reader = new ByteReader payload
+  gyroDlpfHz: if reader.remaining() >= 2 then reader.u16() else 0
+  gyroNotchHz: if reader.remaining() >= 2 then reader.u16() else 0
+  gyroNotchQ: if reader.remaining() then reader.u8() else 0
+  dTermDlpfHz: if reader.remaining() >= 2 then reader.u16() else 0
+
+# ── ONDAS profile (MSP 114 / 206) ───────────────────────────
+# Wire layout: 10 bytes — one u8 per key in ONDAS_KEYS order.
+ONDAS_DEFAULTS = Object.freeze
+  cadence_gain: 30
+  ferocity_d_gain: 40
+  ferocity_p_gain: 20
+  balance_gain: 10
+  ferocity_roll_gain: 30
+  ferocity_yaw_gain: 25
+  warp_gain: 20
+  warp_yaw_gain: 15
+  anchor_gain: 50
+  resonance_gain: 10
+ONDAS_KEYS = Object.keys ONDAS_DEFAULTS
+
+encodeOndas = (ondas = {}) ->
+  out = new Uint8Array ONDAS_KEYS.length
+  for key, i in ONDAS_KEYS
+    out[i] = clampU8 ondas[key] ? ONDAS_DEFAULTS[key]
+  out
+
+decodeOndas = (payload) ->
+  reader = new ByteReader payload
+  result = {}
+  for key in ONDAS_KEYS
+    result[key] = if reader.remaining() then reader.u8() else 0
+  result
+
+# ── Tuning fallbacks ────────────────────────────────────────
+# OrniFlight firmware standards for sections the flight controller
+# does not expose. Shared by session reads and the tuning store so
+# defaults can never drift between the two.
+TUNING_FALLBACKS = Object.freeze
+  pid: Object.freeze
+    roll: Object.freeze { P: 4.0, I: 0.03, D: 23.0 }
+    pitch: Object.freeze { P: 6.0, I: 0.04, D: 28.0 }
+    yaw: Object.freeze { P: 3.0, I: 0.05, D: 0.0 }
+    flap: Object.freeze { P: 0.0, I: 0.0, D: 0.0 }
+  rate: Object.freeze { rcRate: 100, superRate: 0, expo: 0 }
+  filter: Object.freeze
+    gyroDlpfHz: 0
+    gyroNotchHz: 0
+    gyroNotchQ: 0
+    dTermDlpfHz: 0
+
 export {
   decodeApiVersion, decodeVariant, decodeVersion, decodeBuildInfo
   decodeBoardInfo, decodeUid, decodeName, decodeStatus, decodeRawImu
@@ -175,4 +298,9 @@ export {
   decodeAnalog, decodeBatteryState, encodeName
   decodeServoConfigurations, encodeServoConfiguration
   SERVO_CONFIG_BYTES, MAX_SERVO_CONFIGS, DEFAULT_SERVO_SWEEP
+  encodePidTuning, decodePidTuning, PID_AXES, PID_TERMS
+  encodeRcTuning, decodeRcTuning
+  encodeFilterConfig, decodeFilterConfig
+  encodeOndas, decodeOndas, ONDAS_DEFAULTS, ONDAS_KEYS
+  TUNING_FALLBACKS
 }

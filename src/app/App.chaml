@@ -14,6 +14,7 @@ import ConfigurationHub from '../components/views/ConfigurationHub/Configuration
 import WelcomeView from '../components/views/WelcomeView/WelcomeView.coffee'
 import WingsView from '../components/views/WingsView/WingsView.chaml'
 import FlightView from '../components/views/FlightView/FlightView.chaml'
+import PidTuningView from '../components/views/PidTuningView/PidTuningView.coffee'
 import PerceptionView from '../components/views/PerceptionView/PerceptionView.chaml'
 import VoiceView from '../components/views/VoiceView/VoiceView.chaml'
 import MemoryView from '../components/views/MemoryView/MemoryView.chaml'
@@ -24,7 +25,8 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - location = useLocation()
 - `const deviceEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'device'}))`
 - `const airframeEl = h(AnimatedPage, null, h(WingsView, null))`
-- `const controlEl = h(AnimatedPage, null, h(FlightView, null))`
+- `const controlEl = h(AnimatedPage, null, h(PidTuningView, null))`
+- `const deckEl = h(AnimatedPage, null, h(FlightView, null))`
 - `const receiverEl = h(AnimatedPage, null, h(VoiceView, null))`
 - `const powerEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'power'}))`
 - `const sensorsEl = h(AnimatedPage, null, h(PerceptionView, null))`
@@ -53,14 +55,14 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/simulator', element: airframeEl }
         %Route{ path: '/servos', element: airframeEl }
         %Route{ path: '/pid', element: controlEl }
-        %Route{ path: '/mixer', element: controlEl }
+        %Route{ path: '/mixer', element: deckEl }
         %Route{ path: '/gyro', element: sensorsEl }
         %Route{ path: '/wings', element: airframeEl }
-        %Route{ path: '/flight', element: controlEl }
+        %Route{ path: '/flight', element: deckEl }
         %Route{ path: '/perception', element: sensorsEl }
         %Route{ path: '/voice', element: receiverEl }
-        %Route{ path: '/memory', element: controlEl }
-        %Route{ path: '/profiles', element: controlEl }
+        %Route{ path: '/memory', element: deckEl }
+        %Route{ path: '/profiles', element: deckEl }
         %Route{ path: '/firmware', element: flashEl }
   %CommandPalette
   %DebugPanel

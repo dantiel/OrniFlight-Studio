@@ -1,0 +1,80 @@
+// PidTuningView — polymorphic PID/Rate/ONDAS/Filter tuning workspace.
+// Co-located .sass is injected automatically for .chaml components.
+.layout-control
+  display: flex
+  flex-direction: column
+  gap: 8px
+  padding: 12px
+
+  .tuning-header
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 24px
+
+  .tuning-title
+    font-size: 14px
+    font-weight: 600
+    letter-spacing: 0.08em
+    margin-right: 4px
+
+  .tuning-mode-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    border: 1px solid var(--of-border-1)
+    color: var(--of-text-muted)
+
+    &.tuning-mode-sim
+      border-color: var(--of-accent-dim)
+      color: var(--of-accent)
+
+  .tuning-dirty-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    background: var(--of-accent-dim)
+    color: var(--of-text-primary)
+
+  .tuning-sim-banner
+    font-size: 11px
+    letter-spacing: 0.08em
+    padding: 6px 10px
+    border-radius: 8px
+    border: 1px dashed var(--of-border-1)
+    color: var(--of-text-muted)
+
+  .tuning-error
+    font-size: 11px
+    padding: 6px 10px
+    border-radius: 8px
+    border: 1px solid var(--of-danger, #b3543c)
+    color: var(--of-danger, #b3543c)
+
+  .tuning-actions
+    display: flex
+    gap: 8px
+
+  .tuning-action
+    flex: 1
+    padding: 7px 10px
+    border-radius: 8px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-glass-bg)
+    color: var(--of-text-secondary)
+    cursor: pointer
+    font-family: inherit
+    font-size: 12px
+    letter-spacing: 0.06em
+
+    &:hover:not(:disabled)
+      border-color: var(--of-accent)
+      color: var(--of-accent)
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed

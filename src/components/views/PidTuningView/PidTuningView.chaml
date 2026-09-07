@@ -1,0 +1,45 @@
+- import { fmt2, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
+- import { ONDAS_KEYS, PID_AXES, PID_TERMS } from '../../../protocol/mspDecoders.coffee'
+- import useTuningStore from '../../../stores/useTuningStore.coffee'
+- import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
+- import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
+- tuning = useTuningStore()
+- draft = tuning.draft
+- modeLabel = if tuning.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = tuning.mode != 'device' or !tuning.session
+- termBounds = { P: { min: '0', max: '200', step: '0.1' }, I: { min: '0', max: '2', step: '0.001' }, D: { min: '0', max: '200', step: '0.1' } }
+.layout-control
+  .tuning-header
+    %h1.tuning-title Flight Control
+    %span.tuning-mode-badge{ className: "tuning-mode-#{tuning.mode}" }
+      = modeLabel
+    - if tuning.dirty
+      %span.tuning-dirty-badge UNSAVED
+  - if tuning.mode == 'sim'
+    .tuning-sim-banner SIMULATION — Werte werden nicht persistiert
+  - if tuning.lastError
+    .tuning-error
+      = tuning.lastError
+  %StudioAccordion{ title: 'PID Bank', defaultOpen: true }
+    - for axis in PID_AXES
+      - for term in PID_TERMS
+        %ParamRow{ key: "pid-#{axis}-#{term}", label: "#{axis} #{term}", value: draft.pid[axis][term], min: termBounds[term].min, max: termBounds[term].max, step: termBounds[term].step, display: fmt2(draft.pid[axis][term]), onInput: floatFromEvent((value) -> tuning.setField "pid.#{axis}.#{term}", value) }
+  %StudioAccordion{ title: 'Rates' }
+    %ParamRow{ key: 'rate-rcRate', label: 'RC rate', value: draft.rate.rcRate, min: '0', max: '250', step: '1', display: String(draft.rate.rcRate), onInput: intFromEvent((value) -> tuning.setField 'rate.rcRate', value) }
+    %ParamRow{ key: 'rate-superRate', label: 'Super rate', value: draft.rate.superRate, min: '0', max: '100', step: '1', display: String(draft.rate.superRate), onInput: intFromEvent((value) -> tuning.setField 'rate.superRate', value) }
+    %ParamRow{ key: 'rate-expo', label: 'Expo', value: draft.rate.expo, min: '0', max: '100', step: '1', display: String(draft.rate.expo), onInput: intFromEvent((value) -> tuning.setField 'rate.expo', value) }
+  %StudioAccordion{ title: 'ONDAS' }
+    - for key in ONDAS_KEYS
+      %ParamRow{ key: "ondas-#{key}", label: key.split('_').join(' '), value: draft.ondas[key], min: '0', max: '100', step: '1', display: String(draft.ondas[key]), onInput: intFromEvent((value) -> tuning.setField "ondas.#{key}", value) }
+  %StudioAccordion{ title: 'Filters' }
+    %ParamRow{ key: 'filter-gyroDlpf', label: 'Gyro DLPF', value: draft.filter.gyroDlpfHz, min: '0', max: '1000', step: '1', display: "#{draft.filter.gyroDlpfHz} Hz", onInput: intFromEvent((value) -> tuning.setField 'filter.gyroDlpfHz', value) }
+    %ParamRow{ key: 'filter-gyroNotch', label: 'Gyro notch', value: draft.filter.gyroNotchHz, min: '0', max: '1000', step: '1', display: "#{draft.filter.gyroNotchHz} Hz", onInput: intFromEvent((value) -> tuning.setField 'filter.gyroNotchHz', value) }
+    %ParamRow{ key: 'filter-notchQ', label: 'Notch Q', value: draft.filter.gyroNotchQ, min: '0', max: '16', step: '1', display: String(draft.filter.gyroNotchQ), onInput: intFromEvent((value) -> tuning.setField 'filter.gyroNotchQ', value) }
+    %ParamRow{ key: 'filter-dTermDlpf', label: 'D-term DLPF', value: draft.filter.dTermDlpfHz, min: '0', max: '1000', step: '1', display: "#{draft.filter.dTermDlpfHz} Hz", onInput: intFromEvent((value) -> tuning.setField 'filter.dTermDlpfHz', value) }
+  .tuning-actions
+    %button.tuning-action.tuning-action-read{ type: 'button', onClick: (-> tuning.loadFromDevice().catch (-> null)), disabled: readDisabled }
+      Read device
+    %button.tuning-action.tuning-action-save{ type: 'button', onClick: (-> tuning.save().catch (-> null)) }
+      Save
+    %button.tuning-action.tuning-action-revert{ type: 'button', onClick: (-> tuning.revert()), disabled: !tuning.dirty }
+      Revert

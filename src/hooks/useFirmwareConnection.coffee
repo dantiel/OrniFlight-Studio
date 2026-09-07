@@ -1,6 +1,7 @@
 import useConnection, { getActor } from './useConnection.coffee'
 import useDeviceStore from '../stores/useDeviceStore.coffee'
 import useConfigurationStore from '../stores/useConfigurationStore.coffee'
+import useTuningStore from '../stores/useTuningStore.coffee'
 import useTelemetryStore from '../stores/useTelemetryStore.coffee'
 import { pushTelemetry } from '../streams/telemetryStream.coffee'
 import WebSerialRuntimeTransport, {
@@ -26,6 +27,8 @@ cleanup = ->
   _client = null
   useConfigurationStore.getState().attachSession null
   useConfigurationStore.getState().setMode 'sim'
+  useTuningStore.getState().attachSession null
+  useTuningStore.getState().setMode 'sim'
   session?.stop()
   try
     if session then await session.close() else await client?.close()
@@ -66,6 +69,8 @@ connectFirmware = ->
     session.start()
     useConfigurationStore.getState().attachSession session
     useConfigurationStore.getState().setMode 'device'
+    useTuningStore.getState().attachSession session
+    useTuningStore.getState().setMode 'device'
     true
   catch error
     # A cancelled browser picker is a normal return to offline mode.

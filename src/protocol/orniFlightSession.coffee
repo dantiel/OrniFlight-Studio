@@ -5,6 +5,10 @@ import {
   decodeAttitude, decodeChannels, decodeRxMap, decodeServos
   decodeAnalog, decodeBatteryState, encodeName
   decodeServoConfigurations, encodeServoConfiguration, MAX_SERVO_CONFIGS
+  decodePidTuning, encodePidTuning, PID_AXES, PID_TERMS
+  decodeRcTuning, encodeRcTuning
+  decodeFilterConfig, encodeFilterConfig
+  decodeOndas, encodeOndas, ONDAS_DEFAULTS, TUNING_FALLBACKS
 } from './mspDecoders.coffee'
 
 POLL_INTERVAL_MS = 100
@@ -116,6 +120,43 @@ class OrniFlightSession
       )
     { index, config: written }
 
+  readTuning: ->
+    pidPayload = await @client.requestOptional MSP_CODES.PID
+    ratePayload = await @client.requestOptional MSP_CODES.RC_TUNING
+    filterPayload = await @client.requestOptional MSP_CODES.FILTER_CONFIG
+    ondasPayload = await @client.requestOptional MSP_CODES.ONDAS
+    {
+      pid: if pidPayload
+        decodePidTuning pidPayload
+      else
+        { TUNING_FALLBACKS.pid... }
+      rate: if ratePayload
+        decodeRcTuning ratePayload
+      else
+        { TUNING_FALLBACKS.rate... }
+      ondas: if ondasPayload
+        decodeOndas ondasPayload
+      else
+        { ONDAS_DEFAULTS... }
+      filter: if filterPayload
+        decodeFilterConfig filterPayload
+      else
+        { TUNING_FALLBACKS.filter... }
+    }
+
+  writeTuning: (tuning) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_PID, encodePidTuning tuning.pid
+    await @client.request MSP_CODES.SET_RC_TUNING, encodeRcTuning tuning.rate
+    await @client.request MSP_CODES.SET_FILTER_CONFIG, encodeFilterConfig tuning.filter
+    await @client.request MSP_CODES.SET_ONDAS, encodeOndas tuning.ondas
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readTuning()
+    for section in ['pid', 'rate', 'ondas', 'filter']
+      unless tuningSectionMatches section, tuning[section], readBack[section]
+        throw new Error "Tuning read-back failed: #{section}"
+    readBack
+
   _poll: ->
     return unless @running
     try
@@ -162,6 +203,20 @@ class OrniFlightSession
     catch error
       @stop()
       @onFailure error
+
+# Section-wise comparison for tuning read-back verification. PID gains
+# compare at wire precision (×1000); the remaining sections are integer
+# documents compared structurally.
+tuningSectionMatches = (section, expected = {}, actual = {}) ->
+  if section == 'pid'
+    for axis in PID_AXES
+      for term in PID_TERMS
+        a = Math.round (actual[axis]?[term] ? 0) * 1000
+        e = Math.round (expected[axis]?[term] ? 0) * 1000
+        return false unless a == e
+    true
+  else
+    JSON.stringify(actual) == JSON.stringify(expected)
 
 export default OrniFlightSession
 export { OrniFlightSession, FirmwareCompatibilityError, POLL_INTERVAL_MS }

@@ -42,7 +42,7 @@ describe 'ConfigTabs — Interaction', ->
     link = document.querySelector 'a.config-view-btn[href="/control"]'
     expect(link).toBeTruthy()
     user.click(link).then ->
-      el = document.querySelector '.layout-flight'
+      el = document.querySelector '.layout-control'
       expect(el).toBeInTheDocument()
 
   it 'navigates to Airframe from Sensors', ->

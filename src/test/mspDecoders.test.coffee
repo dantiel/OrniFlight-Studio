@@ -5,6 +5,10 @@ import {
   decodeAttitude, decodeChannels, decodeRxMap, decodeServos
   decodeAnalog, decodeBatteryState, encodeName
   decodeServoConfigurations, encodeServoConfiguration
+  encodePidTuning, decodePidTuning
+  encodeRcTuning, decodeRcTuning
+  encodeFilterConfig, decodeFilterConfig
+  encodeOndas, decodeOndas, ONDAS_DEFAULTS, ONDAS_KEYS
 } from '../protocol/mspDecoders.coffee'
 
 asciiBytes = (text) ->
@@ -183,3 +187,79 @@ describe 'mspDecoders', ->
     expect(decodeServoConfigurations [1, 2, 3]).toEqual []
     partial = Array.from(encodeServoConfiguration(0, {}))[1...13]
     expect(decodeServoConfigurations partial).toEqual []
+
+  it 'round-trips PID tuning through the scaled u16 wire format', ->
+    source = {
+      roll: { P: 4.0, I: 0.03, D: 23.0 }
+      pitch: { P: 6.0, I: 0.04, D: 28.0 }
+      yaw: { P: 3.0, I: 0.05, D: 0.0 }
+      flap: { P: 0.0, I: 0.0, D: 0.0 }
+    }
+    bytes = Array.from encodePidTuning(source)
+    expect(bytes).toHaveLength 24
+    expect(decodePidTuning(bytes)).toEqual source
+
+  it 'scales PID gains with three decimal places of precision', ->
+    source = {
+      roll: { P: 4.25, I: 0.033, D: 23.5 }
+      pitch: { P: 0, I: 0, D: 0 }
+      yaw: { P: 0, I: 0, D: 0 }
+      flap: { P: 0, I: 0, D: 0 }
+    }
+    decoded = decodePidTuning Array.from(encodePidTuning(source))
+    expect(decoded.roll).toEqual { P: 4.25, I: 0.033, D: 23.5 }
+
+  it 'decodes truncated PID payloads with zero fill', ->
+    decoded = decodePidTuning [0x10, 0x27]
+    expect(decoded.roll.P).toBeCloseTo 10
+    expect(decoded.roll.I).toBe 0
+    expect(decoded.roll.D).toBe 0
+    expect(decoded.flap.D).toBe 0
+
+  it 'round-trips RC tuning rates', ->
+    source = { rcRate: 100, superRate: 70, expo: 35 }
+    bytes = Array.from encodeRcTuning(source)
+    expect(bytes).toHaveLength 3
+    expect(decodeRcTuning(bytes)).toEqual source
+
+  it 'clamps RC tuning encode to the u8 range', ->
+    bytes = Array.from encodeRcTuning { rcRate: 500, superRate: -5, expo: 100 }
+    expect(decodeRcTuning(bytes)).toEqual { rcRate: 255, superRate: 0, expo: 100 }
+
+  it 'decodes truncated RC tuning payloads with zero fill', ->
+    expect(decodeRcTuning [90]).toEqual { rcRate: 90, superRate: 0, expo: 0 }
+    expect(decodeRcTuning []).toEqual { rcRate: 0, superRate: 0, expo: 0 }
+
+  it 'round-trips filter configuration', ->
+    source = {
+      gyroDlpfHz: 250, gyroNotchHz: 400, gyroNotchQ: 6, dTermDlpfHz: 50
+    }
+    bytes = Array.from encodeFilterConfig(source)
+    expect(bytes).toHaveLength 7
+    expect(decodeFilterConfig(bytes)).toEqual source
+
+  it 'decodes truncated filter payloads with zero fill', ->
+    expect(decodeFilterConfig u16(250)).toEqual {
+      gyroDlpfHz: 250, gyroNotchHz: 0, gyroNotchQ: 0, dTermDlpfHz: 0
+    }
+
+  it 'round-trips ONDAS params in fixed key order', ->
+    source = {
+      cadence_gain: 30, ferocity_d_gain: 40, ferocity_p_gain: 20
+      balance_gain: 10, ferocity_roll_gain: 30, ferocity_yaw_gain: 25
+      warp_gain: 20, warp_yaw_gain: 15, anchor_gain: 50, resonance_gain: 10
+    }
+    bytes = Array.from encodeOndas(source)
+    expect(bytes).toHaveLength 10
+    expect(decodeOndas(bytes)).toEqual source
+
+  it 'fills missing ONDAS bytes with zeros on truncation', ->
+    partial = decodeOndas [90, 80]
+    expect(partial.cadence_gain).toBe 90
+    expect(partial.ferocity_d_gain).toBe 80
+    expect(partial.resonance_gain).toBe 0
+
+  it 'freezes ONDAS defaults with ten keys', ->
+    expect(Object.isFrozen ONDAS_DEFAULTS).toBe true
+    expect(ONDAS_KEYS).toHaveLength 10
+    expect(ONDAS_DEFAULTS.anchor_gain).toBe 50
