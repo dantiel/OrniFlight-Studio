@@ -76,9 +76,13 @@ The **Configuration View** — the polymorphic airframe-configuration surface
 (draft/saved/dirty/mode, live 3D preview, MSP servo sync) — is documented in
 [docs/CONFIGURATION-VIEW.md](docs/CONFIGURATION-VIEW.md).
 
-The **PID Tuning View** — the polymorphic flight-control tuning surface
-(draft/saved/dirty/mode, live engine mirror, MSP PID/RATE/FILTER/ONDAS sync) —
+The **PID Tuning View** ??? the polymorphic flight-control tuning surface
+(draft/saved/dirty/mode, live engine mirror, MSP PID/RATE/FILTER/ONDAS sync) ???
 is documented in [docs/PID-TUNING-VIEW.md](docs/PID-TUNING-VIEW.md).
+
+The **OSD Editor** ??? the polymorphic visual drag-and-drop OSD layout editor
+(draft/saved/dirty/mode, raw u16[52] wire document, MSP 84/85 sync with
+read-back) ??? is documented in [docs/OSD-EDITOR.md](docs/OSD-EDITOR.md).
 
 ```
 orniflight-studio/
