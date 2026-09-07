@@ -4,6 +4,7 @@
 - geometry = cfg.draft.geometry
 - mass = cfg.draft.mass
 - modeLabel = if cfg.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = cfg.mode != 'device' or !cfg.session
 .config-sections
   .config-sections-header
     %span.config-mode-badge{ className: "config-mode-#{cfg.mode}" }
@@ -26,6 +27,8 @@
       %ParamRow{ key: "mount-x-#{i}", label: "Pair #{i + 1} X", value: mount.x, min: '-200', max: '200', step: '5', display: "#{fmt0(mount.x)} mm", onInput: floatFromEvent((value) -> cfg.setField "servoMounts.#{i}.x", value) }
       %ParamRow{ key: "mount-z-#{i}", label: "Pair #{i + 1} Z", value: mount.z, min: '-200', max: '200', step: '5', display: "#{fmt0(mount.z)} mm", onInput: floatFromEvent((value) -> cfg.setField "servoMounts.#{i}.z", value) }
   .config-sections-actions
+    %button.config-action.config-action-read{ type: 'button', onClick: (-> cfg.loadFromDevice()), disabled: readDisabled }
+      Read device
     %button.config-action.config-action-save{ type: 'button', onClick: (-> cfg.save()) }
       Save
     %button.config-action.config-action-revert{ type: 'button', onClick: (-> cfg.revert()), disabled: !cfg.dirty }

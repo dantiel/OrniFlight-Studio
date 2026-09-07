@@ -125,3 +125,71 @@ describe 'useConfigurationStore', ->
     }
     draft = await state().loadFromDevice session
     expect(draft.servos).toHaveLength 4
+
+  it 'detaching the session preserves the draft', ->
+    state().setMode 'device'
+    state().attachSession {
+      readServoConfigurations: -> Promise.resolve []
+      writeServoConfiguration: -> Promise.resolve null
+    }
+    state().setField 'geometry.wingSpan', 1400
+    state().attachSession null
+    expect(state().session).toBeNull()
+    expect(state().mode).toBe 'device'
+    expect(state().draft.geometry.wingSpan).toBe 1400
+    expect(state().dirty).toBe true
+
+  # ── Purificatio: edge cases / impurities ─────────────────────
+
+  it 'clamps a non-finite pair count to the lower bound', ->
+    state().setField 'pairCount', NaN
+    expect(state().draft.pairCount).toBe 1
+    expect(state().draft.servoMounts).toHaveLength 1
+    state().setField 'pairCount', Infinity
+    expect(state().draft.pairCount).toBe 1
+
+  it 'guards mass fields against non-finite values', ->
+    state().setField 'mass.totalMass', NaN
+    expect(state().draft.mass.totalMass).toBe 520
+    expect(engine.mass.totalMass).toBe 520
+    state().setField 'mass.cgX', Infinity
+    expect(state().draft.mass.cgX).toBe 0
+
+  it 'preserves a finite zero in mass and CG fields', ->
+    state().setField 'mass.totalMass', 0
+    state().setField 'mass.cgX', 0
+    expect(state().draft.mass.totalMass).toBe 0
+    expect(state().draft.mass.cgX).toBe 0
+
+  it 'ignores empty and malformed field paths', ->
+    state().setField '', 'stray'
+    state().setField 'geometry.', 'stray'
+    expect(state().draft['']).toBeUndefined()
+    expect(state().draft.geometry['']).toBeUndefined()
+    expect(state().dirty).toBe false
+
+  it 'guards servo mount fields against non-finite values', ->
+    state().setField 'servoMounts.0.x', Infinity
+    state().setField 'servoMounts.0.z', NaN
+    state().setField 'servoMounts.0.angle', Infinity
+    expect(state().draft.servoMounts[0].x).toBe 0
+    expect(state().draft.servoMounts[0].z).toBe 0
+    expect(state().draft.servoMounts[0].angle).toBe 0
+    expect(engine.servoMounts[0].x).toBe 0
+
+  it 'rejects prototype-pollution paths', ->
+    state().reset()
+    state().setField '__proto__.polluted', 'YES'
+    state().setField 'constructor.prototype.polluted', 'YES'
+    state().setField 'servos.__proto__.pollutedArr', 'YES'
+    state().setField 'geometry.__proto__.sub', 'YES'
+    expect(Object.prototype.polluted).toBeUndefined()
+    expect(Array.prototype.pollutedArr).toBeUndefined()
+    expect(state().dirty).toBe false
+
+  it 'ignores descents through primitive leaves', ->
+    state().setField 'mass.totalMass.sub', 5
+    state().setField 'pairCount.deep', 9
+    expect(state().dirty).toBe false
+    expect(state().draft.mass.totalMass).toBe 520
+    expect(state().draft.pairCount).toBe 2

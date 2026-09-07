@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, within } from '@testing-library/react'
+import { waitFor } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -66,3 +67,26 @@ describe 'ConfigSections', ->
       useConfigurationStore.getState().draft.geometry.wingSpan
     ).toBe 1200
     expect(sections().queryByText 'DIRTY').not.toBeInTheDocument()
+
+  it 'disables Read device while in sim mode', ->
+    renderApp()
+    expect(sections().getByText 'Read device').toBeDisabled()
+
+  it 'reads servo configurations from the device on demand', ->
+    store = useConfigurationStore.getState()
+    store.setMode 'device'
+    configs = [{
+      index: 0, min: 1050, max: 1950, middle: 1510, rate: 80
+      angleAtMin: 30, angleAtMax: 50, forwardFromChannel: 0
+      reversedSources: 0
+    }]
+    store.attachSession {
+      readServoConfigurations: -> Promise.resolve configs
+      writeServoConfiguration: -> Promise.resolve null
+    }
+    renderApp()
+    expect(sections().getByText 'Read device').toBeEnabled()
+    fireEvent.click sections().getByText 'Read device'
+    await waitFor ->
+      expect(useConfigurationStore.getState().draft.servos).toEqual configs
+    expect(sections().getByText 'DEVICE').toBeInTheDocument()

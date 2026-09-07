@@ -1,5 +1,6 @@
 import useConnection, { getActor } from './useConnection.coffee'
 import useDeviceStore from '../stores/useDeviceStore.coffee'
+import useConfigurationStore from '../stores/useConfigurationStore.coffee'
 import useTelemetryStore from '../stores/useTelemetryStore.coffee'
 import { pushTelemetry } from '../streams/telemetryStream.coffee'
 import WebSerialRuntimeTransport, {
@@ -23,6 +24,8 @@ cleanup = ->
   client = _client
   _session = null
   _client = null
+  useConfigurationStore.getState().attachSession null
+  useConfigurationStore.getState().setMode 'sim'
   session?.stop()
   try
     if session then await session.close() else await client?.close()
@@ -61,6 +64,8 @@ connectFirmware = ->
     store.setDevice identity
     actor.send { type: 'FIRMWARE_READY', version: identity.api.version }
     session.start()
+    useConfigurationStore.getState().attachSession session
+    useConfigurationStore.getState().setMode 'device'
     true
   catch error
     # A cancelled browser picker is a normal return to offline mode.
@@ -89,6 +94,14 @@ setConnectedCraftName = (name) ->
   useDeviceStore.getState().setDevice identity
   identity
 
+readConnectedServoConfigurations = ->
+  throw new Error 'No flight controller is connected' unless _session
+  await _session.readServoConfigurations()
+
+writeConnectedServoConfiguration = (index, config = {}) ->
+  throw new Error 'No flight controller is connected' unless _session
+  await _session.writeServoConfiguration index, config
+
 useFirmwareConnection = ->
   connection = useConnection()
   source = useDeviceStore (state) -> state.source
@@ -100,10 +113,13 @@ useFirmwareConnection = ->
     connect: connectFirmware
     disconnect: disconnectFirmware
     setCraftName: setConnectedCraftName
+    readServoConfigurations: readConnectedServoConfigurations
+    writeServoConfiguration: writeConnectedServoConfiguration
   }
 
 export default useFirmwareConnection
 export {
   connectFirmware, disconnectFirmware, setConnectedCraftName
+  readConnectedServoConfigurations, writeConnectedServoConfiguration
   publishTelemetry
 }

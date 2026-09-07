@@ -72,6 +72,10 @@ The **MSP protocol layer** (MSPv2 codec, client, decoders, session, and the
 polymorphic transport boundary) is documented in
 [docs/MSP-PROTOCOL.md](docs/MSP-PROTOCOL.md).
 
+The **Configuration View** — the polymorphic airframe-configuration surface
+(draft/saved/dirty/mode, live 3D preview, MSP servo sync) — is documented in
+[docs/CONFIGURATION-VIEW.md](docs/CONFIGURATION-VIEW.md).
+
 ```
 orniflight-studio/
 ├── src/

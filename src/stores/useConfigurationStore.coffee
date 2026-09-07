@@ -19,10 +19,36 @@ DEFAULT_SERVO_SWEEP = 45
 
 clone = (value) -> JSON.parse JSON.stringify value
 
+DEFAULT_TOTAL_MASS = 520
+
+finiteOr = (fallback, value) ->
+  return fallback unless value?
+  number = Number(value)
+  if Number.isFinite(number) then number else fallback
+
+# Prototype-pollution guard: never traverse or write magic segments.
+# `node['__proto__']` resolves to Object.prototype (truthy), so a naive
+# descent turns `setField '__proto__.polluted', v` into a global write.
+FORBIDDEN_SEGMENTS = new Set ['__proto__', 'constructor', 'prototype']
+
+isObjectLike = (value) -> value? and typeof value == 'object'
+
+validPath = (parts) ->
+  parts.length and parts.every (part) ->
+    part isnt '' and not FORBIDDEN_SEGMENTS.has(part)
+
 clampInt = (lo, hi, value) ->
-  Math.max lo, Math.min hi, Math.round Number(value)
+  Math.max lo, Math.min hi, Math.round finiteOr lo, value
 
 normalizeGeometry = (geometry = {}) -> deriveGeometry geometry
+
+normalizeMass = (mass = {}) ->
+  {
+    mass...
+    totalMass: finiteOr DEFAULT_TOTAL_MASS, mass.totalMass
+    cgX: finiteOr 0, mass.cgX
+    cgZ: finiteOr 0, mass.cgZ
+  }
 
 defaultServos = ->
   engine.servos.map (servo) -> {
@@ -44,9 +70,9 @@ normalizeMounts = (pairCount, mounts = []) ->
     source ?= { index: i, x: 0, z: 0, angle: 0 }
     normalized.push {
       index: i
-      x: Number(source.x) or 0
-      z: Number(source.z) or 0
-      angle: Number(source.angle) or 0
+      x: finiteOr 0, source.x
+      z: finiteOr 0, source.z
+      angle: finiteOr 0, source.angle
     }
   normalized
 
@@ -56,13 +82,14 @@ normalizeDraft = (draft = {}) ->
     draft...
     pairCount
     geometry: normalizeGeometry draft.geometry
+    mass: normalizeMass draft.mass
     servoMounts: normalizeMounts pairCount, draft.servoMounts
   }
 
 buildDefaults = ->
   normalizeDraft {
     geometry: {}
-    mass: { totalMass: 520, cgX: 0, cgZ: 0 }
+    mass: { totalMass: DEFAULT_TOTAL_MASS, cgX: 0, cgZ: 0 }
     pairCount: 2
     servos: defaultServos()
     servoMounts: []
@@ -83,15 +110,18 @@ useConfigurationStore = create (set, get) ->
 
   setField: (path, value) ->
     parts = String(path or '').split '.'
-    return unless parts.length
+    return unless validPath parts
     next = clone get().draft
     node = next
     leaf = parts.pop()
     for part in parts
       if Array.isArray(node) and /^\d+$/.test part
         node = node[Number part] ?= {}
-      else
+      else if isObjectLike(node)
         node = node[part] ?= {}
+      else
+        return
+    return unless isObjectLike node
     node[leaf] = value
     draft = normalizeDraft next
     applyToEngine draft
