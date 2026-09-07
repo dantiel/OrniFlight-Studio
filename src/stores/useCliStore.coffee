@@ -35,6 +35,19 @@ useCliStore = create (set) ->
       else
         merged
       lines: cap
+  # One set per device chunk: byte accounting, line appends, the
+  # optional clear wipe and the pending tail settle in a single
+  # store update — deterministic single re-render per chunk.
+  applyChunk: (payload) ->
+    set (state) ->
+      appended = state.lines.concat payload.entries ? []
+      capped = if appended.length > MAX_LINES
+        appended.slice -MAX_LINES
+      else
+        appended
+      lines: if payload.cleared then [] else capped
+      pending: payload.pending ? ''
+      rxBytes: state.rxBytes + (payload.rx ? 0)
   clearLines: -> set { lines: [], pending: '' }
   addRx: (count) -> set (state) -> rxBytes: state.rxBytes + count
   addTx: (count) -> set (state) -> txBytes: state.txBytes + count

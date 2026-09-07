@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { assembleChunk, emptyState } from '../hooks/cliAssembler.coffee'
+import {
+  assembleChunk, emptyState, MAX_LINE
+} from '../hooks/cliAssembler.coffee'
 
 describe 'cliAssembler', ->
   it 'accumulates partial chunks into the pending line', ->
@@ -64,4 +66,24 @@ describe 'cliAssembler', ->
       assembleChunk emptyState(), 'foo\u001b[2Jbar\r\n'
     expect(cleared).toBe true
     expect(flushes).toEqual ['bar']
+    expect(state.line).toBe ''
+
+  it 'auto-flushes an overlong line at MAX_LINE instead of growing', ->
+    { flushes, state } = assembleChunk emptyState(),
+      ('x'.repeat MAX_LINE) + ('y'.repeat 10) + '\r\n'
+    expect(flushes).toEqual ['x'.repeat(MAX_LINE), 'y'.repeat 10]
+    expect(state.line).toBe ''
+
+  it 'bounds a newline-free flood via MAX_LINE auto-wrap', ->
+    flood = 'z'.repeat MAX_LINE * 2 + 7
+    { flushes, state } = assembleChunk emptyState(), flood
+    expect(flushes.length).toBe 2
+    expect(flushes[0].length).toBe MAX_LINE
+    expect(flushes[1].length).toBe MAX_LINE
+    expect(state.line.length).toBe 7
+
+  it 'renders OSC and BEL bytes as inert text, never as control', ->
+    { flushes, state } = assembleChunk emptyState(),
+      'a\u001b]0;evil\u0007b\r\n'
+    expect(flushes).toEqual ['a]0;evil\u0007b']
     expect(state.line).toBe ''

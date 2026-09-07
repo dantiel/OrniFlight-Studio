@@ -59,18 +59,19 @@ useCliSession = (deps = {}) ->
 
   processBytes = useCallback (bytes) ->
     return unless bytes?.length
-    useCliStore.getState().addRx bytes.length
     decoder = decoderRef.current ?= new TextDecoder 'utf-8'
     text = decoder.decode bytes, { stream: true }
     { state, flushes, cleared } = assembleChunk assemblerRef.current, text
     assemblerRef.current = state
-    # Wire order: lines finalize before the clear sequence wipes them.
-    for line in flushes
-      useCliStore.getState().appendLines [
-        { text: line, kind: classifyLine line }
-      ]
-    useCliStore.getState().clearLines() if cleared
-    useCliStore.getState().setPending state.line
+    # Wire order: lines finalize before the clear sequence wipes
+    # them; one store set per chunk keeps the re-render count at
+    # exactly one, regardless of lines flushed.
+    useCliStore.getState().applyChunk {
+      rx: bytes.length
+      entries: flushes.map (line) -> { text: line, kind: classifyLine line }
+      cleared
+      pending: state.line
+    }
   , []
 
   runSimCommand = (command) ->
@@ -103,6 +104,9 @@ useCliSession = (deps = {}) ->
     store = useCliStore.getState()
     return false if store.mode == 'device'
     assemblerRef.current = emptyState()
+    # A fresh session must not inherit a partial UTF-8 sequence from
+    # a previous one — the decoder buffers stream-mode leftovers.
+    decoderRef.current = null
     unless useDeviceStore.getState().source == 'device'
       store.appendLines [{
         text: '###ERROR: no flight controller connected'

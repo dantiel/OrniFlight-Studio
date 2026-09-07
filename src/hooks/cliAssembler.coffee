@@ -7,6 +7,12 @@
 # No `this`, no side effects — `state` flows in, `state` flows out.
 # ═══════════════════════════════════════════════════════════════
 
+# Hard ceiling for the partially echoed line. A hostile or broken
+# device flooding bytes without a line end cannot grow the pending
+# buffer past this — the overlong line finalizes as-is and the byte
+# starts a fresh one (terminal auto-wrap semantics).
+MAX_LINE = 4096
+
 # Discipline state: the partially echoed line, the escape sequence
 # being accumulated (ESC, then ESC[ + parameter bytes), and the CR
 # flag that suppresses the LF half of a CRLF pair.
@@ -41,9 +47,15 @@ assembleByte = (state, ch) ->
         flush: if state.line then state.line else null
         cleared: false
     else
-      nextState: { line: state.line + ch, esc: null, cr: false }
-      flush: null
-      cleared: false
+      next = state.line + ch
+      if next.length > MAX_LINE
+        nextState: { line: ch, esc: null, cr: false }
+        flush: state.line
+        cleared: false
+      else
+        nextState: { line: next, esc: null, cr: false }
+        flush: null
+        cleared: false
 
 inEscape = (state, ch) ->
   esc = state.esc
@@ -82,4 +94,4 @@ assembleChunk = (state, chunk) ->
     result.cleared = result.cleared or step.cleared
   result
 
-export { assembleChunk, assembleByte, emptyState }
+export { assembleChunk, assembleByte, emptyState, MAX_LINE }

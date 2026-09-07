@@ -72,3 +72,17 @@ describe 'CliTerminalView', ->
     expect(
       screen.getByRole 'button', { name: 'Open device CLI' }
     ).toBeDisabled()
+
+  it 'renders hostile device output as inert text — no XSS', ->
+    useCliStore.getState().appendLines [
+      { text: '<img src=x onerror="window.__pwned=1">', kind: 'out' }
+      { text: '</div><script>window.__pwned=2</script>', kind: 'out' }
+    ]
+    useCliStore.getState().setPending '<svg onload="window.__pwned=3">'
+    render h(CliTerminalView, null)
+    log = screen.getByRole 'log'
+    expect(log.querySelector('img')).toBeNull()
+    expect(log.querySelector('script')).toBeNull()
+    expect(log.querySelector('svg')).toBeNull()
+    expect(log).toHaveTextContent 'window.__pwned=1'
+    expect(window.__pwned).toBeUndefined()

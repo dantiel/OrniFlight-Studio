@@ -5,6 +5,7 @@ import useDeviceStore from '../stores/useDeviceStore.coffee'
 import useCliSession, {
   SIM_VERSION
 } from '../hooks/useCliSession.coffee'
+import { MAX_LINE } from '../hooks/cliAssembler.coffee'
 import { MspClient } from '../protocol/mspClient.coffee'
 import { MockMspTransport } from './mockMspTransport.coffee'
 
@@ -193,6 +194,18 @@ describe 'useCliSession — device mode', ->
     error = result.current.lines.find (l) -> l.kind == 'error'
     expect(error.text).toContain 'CLI write failed'
 
+  it 'bounds a newline-free flood through the device listener', ->
+    deps = makeDeviceDeps()
+    { result } = makeSimHook deps
+    await act -> result.current.enter()
+    act ->
+      deps._captured() new TextEncoder().encode 'q'.repeat 9000
+    outs = result.current.lines.filter (l) -> l.kind == 'out'
+    expect(outs.length).toBe 2
+    expect(outs[0].text.length).toBe MAX_LINE
+    expect(result.current.pending.length).toBe 808
+    expect(result.current.rxBytes).toBe 9000
+
 describe 'useCliStore — scrollback boundary', ->
   beforeEach -> useCliStore.getState().reset()
 
@@ -203,6 +216,28 @@ describe 'useCliStore — scrollback boundary', ->
     expect(lines.length).toBe MAX_LINES
     expect(lines[0].text).toBe 'line 6'
     expect(lines[MAX_LINES - 1].text).toBe 'line 505'
+
+  it 'applies a device chunk in one set: rx, lines, clear, pending', ->
+    useCliStore.getState().applyChunk {
+      rx: 4
+      entries: [{ text: 'a', kind: 'out' }]
+      cleared: false
+      pending: 'b'
+    }
+    state = useCliStore.getState()
+    expect(state.rxBytes).toBe 4
+    expect(state.lines.map((l) -> l.text)).toContain 'a'
+    expect(state.pending).toBe 'b'
+    useCliStore.getState().applyChunk {
+      rx: 1
+      entries: [{ text: 'c', kind: 'out' }]
+      cleared: true
+      pending: 'd'
+    }
+    state = useCliStore.getState()
+    expect(state.lines).toEqual []
+    expect(state.pending).toBe 'd'
+    expect(state.rxBytes).toBe 5
 
 describe 'MspClient — CLI byte routing', ->
   it 'routes raw bytes to the detached listener and back to MSP', ->
