@@ -76,3 +76,20 @@ describe 'OSD codec (wire)', ->
     expect(posCell decoded.items[2]).toEqual { x: 13, y: 6 }
     expect(decoded.profileIndex).toBe 1
     expect(decoded.profileCount).toBe 3
+
+  it 'degrades to defaults on an empty payload instead of throwing', ->
+    decoded = decodeOsdConfig []
+    expect(decoded.items).toHaveLength OSD_ITEM_COUNT
+    expect(decoded.items[21]).toBe OSD_DEFAULTS[21]
+    expect(decoded.profileIndex).toBe 1
+    expect(decoded.profileCount).toBe 3
+
+  it 'degrades to defaults on a header shorter than 10 bytes', ->
+    decoded = decodeOsdConfig [0x01, 0x02, 0x03]
+    expect(decoded.items).toHaveLength OSD_ITEM_COUNT
+    expect(decoded.osdFlags).toBe 0
+    expect(posCell decoded.items[3]).toEqual posCell OSD_DEFAULTS[3]
+
+  it 'masks an out-of-range item index into a single byte', ->
+    expect(encodeOsdItem(300, itemPos(1, 1))[0]).toBe 300 & 0xFF
+    expect(encodeOsdItem(-1, itemPos(1, 1))[0]).toBe 255

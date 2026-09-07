@@ -11,6 +11,7 @@ import {
   decodeOndas, encodeOndas, ONDAS_DEFAULTS, TUNING_FALLBACKS
   decodeOsdConfig, encodeOsdItem
 } from './mspDecoders.coffee'
+import { OSD_ITEM_COUNT } from '../lib/osdCatalog.coffee'
 
 POLL_INTERVAL_MS = 100
 STATUS_EVERY_ROUNDS = 5
@@ -169,10 +170,14 @@ class OrniFlightSession
     items = config?.items or config
     unless Array.isArray(items) and items.length
       throw new Error 'OSD configuration items missing'
-    for index in [0...items.length]
+    # Never write beyond the firmware enum — a caller may hand us an
+    # oversized array, but the wire only knows OSD_ITEM_COUNT slots.
+    count = Math.min items.length, OSD_ITEM_COUNT
+    for index in [0...count]
       await @client.request(
         MSP_CODES.SET_OSD_CONFIG, encodeOsdItem(index, items[index])
       )
+    items = items[0...count]
     await @client.request MSP_CODES.EEPROM_WRITE
     readBack = await @readOsdConfig()
     unless readBack? and osdItemsMatch items, readBack.items

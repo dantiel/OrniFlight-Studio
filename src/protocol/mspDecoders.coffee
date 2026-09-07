@@ -287,8 +287,20 @@ decodeOndas = (payload) ->
 # MSP_SET_OSD_CONFIG carries one element per request as
 # [u8 index, u16 position, u8 screen] with screen 1 = in-flight screen.
 
+# Full document of firmware defaults for a truncated/empty frame — the
+# codec degrades instead of throwing so a short MSP payload can never
+# crash the editor's read path.
+osdConfigDefaults = ->
+  {
+    osdFlags: 0, videoSystem: 0, units: 0, rssiAlarm: 0
+    capAlarm: 0, altAlarm: 0
+    profileCount: OSD_PROFILE_COUNT, profileIndex: 1, overlayRadioMode: 0
+    items: (OSD_DEFAULTS[i] for i in [0...OSD_ITEM_COUNT])
+  }
+
 decodeOsdConfig = (payload) ->
   reader = new ByteReader payload
+  return osdConfigDefaults() unless reader.remaining() >= 10
   osdFlags = reader.u8()
   videoSystem = reader.u8()
   units = reader.u8()
@@ -320,7 +332,7 @@ decodeOsdConfig = (payload) ->
 
 encodeOsdItem = (index, position) ->
   payload = new Uint8Array 4
-  payload[0] = index
+  payload[0] = index & 0xFF
   payload[1] = position & 0xFF
   payload[2] = (position >> 8) & 0xFF
   payload[3] = 1 # screen 1 = in-flight OSD screen

@@ -578,3 +578,44 @@ describe 'OrniFlightSession OSD layout', ->
     await expect(session.writeOsdConfig {
       items: positions
     }).rejects.toThrow 'Cannot write configuration while armed'
+
+  it 'clamps an oversized layout to 52 slots on write', ->
+    stored = (itemPos(10, 7) for _ in [0...52])
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      if command == MSP_CODES.SET_OSD_CONFIG
+        index = bytes[8]
+        position = bytes[9] | bytes[10] << 8
+        stored[index] = position if 0 <= index < stored.length
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.EEPROM_WRITE
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.OSD_CONFIG
+        return { command, direction: '>', payload: osdConfigPayload stored }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    oversized = (itemPos(1, 1) for _ in [0...80])
+    result = await session.writeOsdConfig { items: oversized }
+    expect(result.items).toHaveLength 52
+    writes = transport.writes.filter (bytes) ->
+      (bytes[4] | bytes[5] << 8) == MSP_CODES.SET_OSD_CONFIG
+    expect(writes).toHaveLength 52
+
+  it 'rejects an empty layout on write', ->
+    fallback = scriptedResponder handshakeScript
+    transport = new MockMspTransport { autoRespond: true, responder: fallback }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    await expect(session.writeOsdConfig { items: [] }).rejects.toThrow(
+      'OSD configuration items missing'
+    )
+    await expect(session.writeOsdConfig null).rejects.toThrow(
+      'OSD configuration items missing'
+    )

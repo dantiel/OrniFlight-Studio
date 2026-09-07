@@ -155,3 +155,33 @@ describe 'useOsdStore', ->
     expect(state().profileIndex).toBe 2
     state().setProfileIndex 9
     expect(state().profileIndex).toBe 2
+
+  it 'is a no-op for drag actions without an active drag', ->
+    state().dragTo 10, 10
+    state().dropAt 10, 10
+    state().cancelDrag()
+    expect(state().dragState).toBe null
+    expect(state().dirty).toBe false
+
+  it 'clamps non-finite cell coordinates to the origin', ->
+    state().setItemPos 5, NaN, NaN
+    expect(posCell state().draft[5]).toEqual { x: 0, y: 0 }
+    state().placeItem 7, null
+    expect(posCell state().draft[7]).toEqual { x: 0, y: 0 }
+
+  it 'normalizes a null device read into the firmware defaults', ->
+    session = {
+      readOsdConfig: vi.fn -> Promise.resolve null
+      writeOsdConfig: vi.fn -> Promise.resolve { items: [] }
+    }
+    state().attachSession session
+    await state().loadFromDevice()
+    expect(state().draft).toEqual OSD_DEFAULTS
+    expect(state().dirty).toBe false
+    expect(state().profileIndex).toBe 1
+
+  it 'ignores non-integer and fractional item indices', ->
+    state().setItemPos 5.5, 1, 1
+    state().setItemPos -1, 1, 1
+    state().toggleItemVisibility '0', 1
+    expect(state().dirty).toBe false
