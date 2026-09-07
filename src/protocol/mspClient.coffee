@@ -26,12 +26,13 @@ class MspClient
     @opened = false
     @frameListeners = new Set()
     @errorListeners = new Set()
+    @rawListener = null
 
   open: ->
     return @opening if @opening
     @opening = do =>
       return if @opened
-      @transport.onData (bytes) => @_receive bytes
+      @transport.onData (bytes) => @_route bytes
       @transport.onDisconnect (error) => @_disconnected error
       await @transport.open()
       @opened = true
@@ -42,9 +43,37 @@ class MspClient
 
   close: ->
     @opened = false
+    @rawListener = null
     @_rejectPending new MspDisconnectedError()
     @parser.reset()
     await @transport.close()
+
+  # ═══ CLI takeover ═══════════════════════════════════════════
+  # detach() hands the byte stream to a raw listener (the CLI text
+  # channel); attach() restores MSP frame routing. The transport
+  # data slot stays bound once — this client is the single routing
+  # authority. Pending MSP requests are cancelled silently: the
+  # session is stopped at this point and must never see a failure.
+  detach: (rawListener) ->
+    throw new Error 'A raw data listener is required' unless rawListener?
+    @rawListener = rawListener
+    @_cancelPending()
+    @parser.reset()
+    null
+
+  attach: ->
+    @rawListener = null
+    null
+
+  isDetached: -> @rawListener?
+
+  _cancelPending: ->
+    return unless @pending
+    clearTimeout @pending.timer
+    @pending = null
+
+  _route: (bytes) ->
+    if @rawListener then @rawListener bytes else @_receive bytes
 
   onFrame: (listener) ->
     @frameListeners.add listener
@@ -117,6 +146,7 @@ class MspClient
   _disconnected: (error) ->
     wasOpen = @opened
     @opened = false
+    @rawListener = null
     @_rejectPending error or new MspDisconnectedError()
     @_dispatch @errorListeners, error if wasOpen
 

@@ -19,3 +19,5 @@ import { NavLink } from 'react-router-dom'
     %span.tab-label Data
   %NavLink{ to: '/flash', end: true, className: 'config-view-btn', data-glyph: '↯' }
     %span.tab-label Flash Firmware
+  %NavLink{ to: '/cli', end: true, className: 'config-view-btn', data-glyph: '❯' }
+    %span.tab-label CLI

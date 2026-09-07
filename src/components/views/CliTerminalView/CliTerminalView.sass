@@ -1,0 +1,158 @@
+// ═══════════════════════════════════════════════════════════════
+// CliTerminalView — the text console. Monospace scrollback,
+// token-driven, prompt-styled pending line.
+// ═══════════════════════════════════════════════════════════════
+
+.cli-view
+  flex: 1
+  min-height: 0
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-4)
+  padding: var(--of-space-6)
+  overflow: hidden
+
+.cli-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: var(--of-space-5)
+  flex-wrap: wrap
+
+.cli-title-block
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-1)
+
+.cli-title
+  margin: 0
+  font-family: var(--of-font-heading)
+  font-size: var(--of-text-xl)
+  letter-spacing: 0.08em
+  color: var(--of-text-primary)
+
+.cli-subtitle
+  margin: 0
+  font-size: var(--of-text-sm)
+  color: var(--of-text-muted)
+
+.cli-actions
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+
+.cli-badge
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-xs)
+  letter-spacing: 0.12em
+  padding: var(--of-space-2) var(--of-space-4)
+  border-radius: var(--of-radius-sm)
+  border: 1px solid var(--of-border-2)
+  color: var(--of-text-soft)
+  background: var(--of-surface-2)
+
+.cli-badge-live
+  color: var(--of-accent-green)
+  border-color: rgba(var(--of-accent-green-rgb), 0.35)
+  box-shadow: 0 0 8px var(--of-connected-glow)
+
+.cli-btn
+  font-family: var(--of-font-body)
+  font-size: var(--of-text-sm)
+  padding: var(--of-space-2) var(--of-space-4)
+  border-radius: var(--of-radius-sm)
+  border: 1px solid var(--of-border-2)
+  color: var(--of-text-secondary)
+  background: var(--of-surface-2)
+  cursor: pointer
+  transition-property: border-color, color
+  transition-duration: var(--of-dur-fast)
+  transition-timing-function: var(--of-ease-out)
+
+  &:hover:not(:disabled)
+    border-color: var(--of-glass-edge-hover)
+    color: var(--of-text-primary)
+
+  &:disabled
+    opacity: 0.45
+    cursor: not-allowed
+
+.cli-btn-exit
+  color: var(--of-accent-amber)
+
+.cli-screen
+  flex: 1
+  min-height: 0
+  overflow-y: auto
+  padding: var(--of-space-4) var(--of-space-5)
+  border: 1px solid var(--of-border-1)
+  border-radius: var(--of-radius-lg)
+  background: var(--of-surface-1)
+  box-shadow: var(--of-shadow-panel)
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-base)
+  line-height: 1.55
+  cursor: text
+
+.cli-line
+  white-space: pre-wrap
+  word-break: break-word
+  color: var(--of-text-secondary)
+
+.cli-in
+  color: var(--of-accent-blue)
+
+.cli-out
+  color: var(--of-text-secondary)
+
+.cli-prompt
+  color: var(--of-accent)
+
+.cli-error
+  color: var(--of-accent-red)
+
+.cli-info
+  color: var(--of-text-muted)
+  font-style: italic
+
+.cli-muted
+  color: var(--of-text-muted)
+
+.cli-pending
+  color: var(--of-text-primary)
+
+.cli-input-row
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  padding: var(--of-space-2) var(--of-space-5)
+  border: 1px solid var(--of-border-2)
+  border-radius: var(--of-radius-lg)
+  background: var(--of-surface-1)
+  font-family: var(--of-font-mono)
+
+  &:focus-within
+    border-color: var(--of-glass-edge-hover)
+
+.cli-input-row .cli-prompt
+  color: var(--of-accent-green)
+  user-select: none
+
+.cli-input
+  flex: 1
+  border: none
+  outline: none
+  background: transparent
+  color: var(--of-text-primary)
+  font-family: inherit
+  font-size: var(--of-text-base)
+  padding: var(--of-space-2) 0
+
+  &::placeholder
+    color: var(--of-text-muted)
+
+.cli-counters
+  font-size: var(--of-text-xs)
+  color: var(--of-text-muted)
+  white-space: nowrap
+  user-select: none

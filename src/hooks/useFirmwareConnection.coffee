@@ -13,6 +13,10 @@ import OrniFlightSession from '../protocol/orniFlightSession.coffee'
 _session = null
 _client = null
 _closing = false
+_cliErrorUnsubscribe = null
+CLI_ENTER_GUARD_MS = 300
+
+delay = (ms) -> new Promise (resolve) -> setTimeout resolve, ms
 
 publishTelemetry = (frame) ->
   pushTelemetry frame
@@ -25,6 +29,8 @@ cleanup = ->
   client = _client
   _session = null
   _client = null
+  _cliErrorUnsubscribe?()
+  _cliErrorUnsubscribe = null
   useConfigurationStore.getState().attachSession null
   useConfigurationStore.getState().setMode 'sim'
   useTuningStore.getState().attachSession null
@@ -93,6 +99,42 @@ disconnectFirmware = ->
     _closing = false
   true
 
+# ═══ CLI takeover bridge ══════════════════════════════════════
+# enterCli stops the MSP session, detaches the MspClient's byte
+# routing to the CLI listener, waits out the firmware's 100ms
+# idle guard, then sends the raw '#' that enters CLI mode.
+# Disconnects while the CLI owns the stream route through
+# failConnection — the session is stopped and cannot see them.
+enterCli = (onData) ->
+  unless _session and _client
+    throw new Error 'No flight controller is connected'
+  _session.stop()
+  _client.detach onData
+  _cliErrorUnsubscribe = _client.onError (error) -> failConnection error
+  await delay CLI_ENTER_GUARD_MS
+  await _client.transport.write new Uint8Array [0x23]
+  true
+
+# Restores MSP routing and telemetry. Returns false when the
+# connection is already gone (the firmware reboots on CLI exit,
+# so the common return path is a transport disconnect instead).
+leaveCli = ->
+  _cliErrorUnsubscribe?()
+  _cliErrorUnsubscribe = null
+  client = _client
+  session = _session
+  return false unless client
+  client.attach()
+  session?.start()
+  true
+
+writeCliBytes = (bytes) ->
+  unless _client?.isDetached?()
+    throw new Error 'CLI channel is not open'
+  await _client.transport.write bytes
+
+isCliOwned = -> Boolean _client?.isDetached?()
+
 setConnectedCraftName = (name) ->
   throw new Error 'No flight controller is connected' unless _session
   identity = await _session.setCraftName name
@@ -126,5 +168,6 @@ export default useFirmwareConnection
 export {
   connectFirmware, disconnectFirmware, setConnectedCraftName
   readConnectedServoConfigurations, writeConnectedServoConfiguration
+  enterCli, leaveCli, writeCliBytes, isCliOwned
   publishTelemetry
 }

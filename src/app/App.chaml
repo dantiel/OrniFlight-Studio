@@ -15,6 +15,7 @@ import WelcomeView from '../components/views/WelcomeView/WelcomeView.coffee'
 import WingsView from '../components/views/WingsView/WingsView.chaml'
 import FlightView from '../components/views/FlightView/FlightView.chaml'
 import PidTuningView from '../components/views/PidTuningView/PidTuningView.coffee'
+import CliTerminalView from '../components/views/CliTerminalView/CliTerminalView.coffee'
 import PerceptionView from '../components/views/PerceptionView/PerceptionView.chaml'
 import VoiceView from '../components/views/VoiceView/VoiceView.chaml'
 import MemoryView from '../components/views/MemoryView/MemoryView.chaml'
@@ -33,6 +34,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - `const safetyEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'safety'}))`
 - `const dataEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'data'}))`
 - `const flashEl = h(AnimatedPage, null, h(FlashingView, null))`
+- `const cliEl = h(AnimatedPage, null, h(CliTerminalView, null))`
 - `const welcomeEl = h(AnimatedPage, null, h(WelcomeView, null))`
 .studio-shell{ role: 'application', aria-label: 'OrniFlight Studio' }
   %a.skip-link{ href: '#main-content' }
@@ -52,6 +54,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/safety', element: safetyEl }
         %Route{ path: '/data', element: dataEl }
         %Route{ path: '/flash', element: flashEl }
+        %Route{ path: '/cli', element: cliEl }
         %Route{ path: '/simulator', element: airframeEl }
         %Route{ path: '/servos', element: airframeEl }
         %Route{ path: '/pid', element: controlEl }

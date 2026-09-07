@@ -15,6 +15,7 @@ ROUTES = [
   ['Safety', '/safety', '◇']
   ['Data', '/data', '▦']
   ['Flash Firmware', '/flash', '↯']
+  ['CLI Terminal', '/cli', '❯']
 ]
 
 CommandPalette = ->

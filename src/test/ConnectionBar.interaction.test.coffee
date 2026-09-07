@@ -28,10 +28,10 @@ describe 'ConnectionBar — Interaction', ->
     expect(screen.getByText 'Orni').toBeInTheDocument()
     expect(screen.getByText 'Studio').toBeInTheDocument()
 
-  it 'renders nine domain workspace links', ->
+  it 'renders ten domain workspace links', ->
     renderApp()
     links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 9
+    expect(links.length).toBe 10
     texts = Array.from(links).map (l) -> l.textContent
     expect(texts).toContain 'Device'
     expect(texts).toContain 'Airframe'
@@ -42,3 +42,4 @@ describe 'ConnectionBar — Interaction', ->
     expect(texts).toContain 'Safety'
     expect(texts).toContain 'Data'
     expect(texts).toContain 'Flash Firmware'
+    expect(texts).toContain 'CLI'
