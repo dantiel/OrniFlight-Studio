@@ -1,13 +1,14 @@
 - import { fmt2, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
 - import { ONDAS_KEYS, PID_AXES, PID_TERMS } from '../../../protocol/mspDecoders.coffee'
-- import useTuningStore from '../../../stores/useTuningStore.coffee'
+- import useTuningStore, { PID_GAIN_MAX } from '../../../stores/useTuningStore.coffee'
 - import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
 - import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
 - tuning = useTuningStore()
 - draft = tuning.draft
 - modeLabel = if tuning.mode == 'sim' then 'SIMULATION' else 'DEVICE'
 - readDisabled = tuning.mode != 'device' or !tuning.session
-- termBounds = { P: { min: '0', max: '200', step: '0.1' }, I: { min: '0', max: '2', step: '0.001' }, D: { min: '0', max: '200', step: '0.1' } }
+- pidMax = String(PID_GAIN_MAX)
+- termBounds = { P: { min: '0', max: pidMax, step: '0.1' }, I: { min: '0', max: '2', step: '0.001' }, D: { min: '0', max: pidMax, step: '0.1' } }
 .layout-control
   .tuning-header
     %h1.tuning-title Flight Control

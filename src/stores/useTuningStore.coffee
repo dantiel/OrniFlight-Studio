@@ -39,6 +39,11 @@ RATE_MAX = 100
 ONDAS_MAX = 100
 NOTCH_Q_MAX = 16
 HZ_MAX = 65535
+# PID gains ride a u16×1000 wire field (MSP 112/202), so the ceiling is
+# 65535 / 1000. Clamping here keeps sim and device documents identical
+# and prevents encode-side truncation from surfacing as a read-back
+# mismatch on save.
+PID_GAIN_MAX = 65.535
 
 TUNING_DEFAULTS = Object.freeze
   pid: TUNING_FALLBACKS.pid
@@ -46,15 +51,18 @@ TUNING_DEFAULTS = Object.freeze
   ondas: ONDAS_DEFAULTS
   filter: TUNING_FALLBACKS.filter
 
+clampGain = (value, fallback) ->
+  Math.max 0, Math.min PID_GAIN_MAX, finiteOr fallback, value
+
 normalizePid = (pid = {}) ->
   normalized = {}
   for axis in PID_AXES
     source = pid[axis] or {}
     fallback = TUNING_DEFAULTS.pid[axis]
     normalized[axis] =
-      P: finiteOr fallback.P, source.P
-      I: finiteOr fallback.I, source.I
-      D: finiteOr fallback.D, source.D
+      P: clampGain source.P, fallback.P
+      I: clampGain source.I, fallback.I
+      D: clampGain source.D, fallback.D
   normalized
 
 normalizeRate = (rate = {}) ->
@@ -149,7 +157,11 @@ useTuningStore = create (set, get) ->
 
   loadFromDevice: (session = get().session) ->
     throw new Error 'No device session attached' unless session?
-    read = await session.readTuning()
+    try
+      read = await session.readTuning()
+    catch error
+      set { lastError: error?.message or 'Tuning read failed' }
+      throw error
     draft = normalizeDraft read
     applyToEngine draft
     set {
@@ -183,4 +195,4 @@ useTuningStore = create (set, get) ->
   lastError: null
 
 export default useTuningStore
-export { TUNING_DEFAULTS }
+export { TUNING_DEFAULTS, PID_GAIN_MAX }

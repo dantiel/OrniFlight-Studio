@@ -157,3 +157,29 @@ describe 'useTuningStore', ->
     expect(state().dirty).toBe false
     expect(state().saved.rate.rcRate).toBe 90
     expect(engine.setPidGain).toHaveBeenCalledWith 'roll_P', 5
+
+  it 'clamps pid gains to the wire-representable range', ->
+    state().setField 'pid.roll.P', -5
+    expect(state().draft.pid.roll.P).toBe 0
+    state().setField 'pid.pitch.D', 200
+    expect(state().draft.pid.pitch.D).toBe 65.535
+    state().setField 'pid.yaw.I', 1000
+    expect(state().draft.pid.yaw.I).toBe 65.535
+
+  it 'writes clamped pid gains through the device session', ->
+    session = { writeTuning: vi.fn((tuning) -> Promise.resolve tuning) }
+    state().attachSession session
+    state().setField 'pid.roll.P', 200
+    await state().save()
+    expect(session.writeTuning).toHaveBeenCalledTimes 1
+    expect(state().saved.pid.roll.P).toBe 65.535
+    expect(state().dirty).toBe false
+
+  it 'records the failure message when a device read throws', ->
+    session = {
+      readTuning: vi.fn(-> Promise.reject new Error('MSP timeout'))
+    }
+    state().attachSession session
+    error = await state().loadFromDevice().catch (error) -> error
+    expect(error.message).toContain 'MSP timeout'
+    expect(state().lastError).toContain 'MSP timeout'

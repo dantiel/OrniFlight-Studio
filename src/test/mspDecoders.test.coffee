@@ -263,3 +263,20 @@ describe 'mspDecoders', ->
     expect(Object.isFrozen ONDAS_DEFAULTS).toBe true
     expect(ONDAS_KEYS).toHaveLength 10
     expect(ONDAS_DEFAULTS.anchor_gain).toBe 50
+
+  it 'clamps negative and oversized PID gains on encode', ->
+    source = {
+      roll: { P: -1, I: 0.03, D: 200 }
+      pitch: { P: 0, I: 0, D: 0 }
+      yaw: { P: 0, I: 0, D: 0 }
+      flap: { P: 0, I: 0, D: 0 }
+    }
+    decoded = decodePidTuning Array.from(encodePidTuning(source))
+    expect(decoded.roll.P).toBe 0
+    expect(decoded.roll.D).toBe 65.535
+    expect(decoded.roll.I).toBeCloseTo 0.03
+
+  it 'encodes a fully omitted PID document as zero-filled bytes', ->
+    bytes = Array.from encodePidTuning({})
+    expect(bytes).toHaveLength 24
+    expect(bytes.every (byte) -> byte == 0).toBe true
