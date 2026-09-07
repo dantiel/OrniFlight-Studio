@@ -11,45 +11,44 @@ describe 'ConfigTabs — Interaction', ->
   afterEach ->
     vi.restoreAllMocks()
 
-  renderApp = (route = '/wings') ->
+  renderApp = (route = '/device') ->
     render h(MemoryRouter, { initialEntries: [route] }, h(App, null))
 
   getTabLink = (text) ->
     document.querySelector "a.config-view-btn[href=\"/#{text.toLowerCase()}\"]"
 
-  it 'renders all six config tabs with text labels', ->
+  it 'renders all nine domain workspaces with full labels', ->
     renderApp()
     links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 6
-    expect(links[0].textContent).toBe 'Wings'
-    expect(links[1].textContent).toBe 'Flight'
-    expect(links[2].textContent).toBe 'Perception'
-    expect(links[3].textContent).toBe 'Voice'
-    expect(links[4].textContent).toBe 'Memory'
-    expect(links[5].textContent).toBe 'Flash'
+    expect(links.length).toBe 9
+    labels = [
+      'Device', 'Airframe', 'Flight Control', 'Receiver', 'Power',
+      'Sensors', 'Safety', 'Data', 'Flash Firmware'
+    ]
+    expect(Array.from(links).map((link) -> link.textContent)).toEqual labels
 
-  it 'navigates to /perception when Perception tab clicked', ->
+  it 'navigates to the Sensors workspace', ->
     renderApp()
     user = userEvent.setup()
-    link = getTabLink 'Perception'
+    link = getTabLink 'Sensors'
     expect(link).toBeTruthy()
     user.click(link).then ->
       el = document.querySelector '.layout-perception'
       expect(el).toBeInTheDocument()
 
-  it 'navigates to /flight when Flight tab clicked', ->
+  it 'navigates to Flight Control', ->
     renderApp()
     user = userEvent.setup()
-    link = getTabLink 'Flight'
+    link = document.querySelector 'a.config-view-btn[href="/control"]'
     expect(link).toBeTruthy()
     user.click(link).then ->
       el = document.querySelector '.layout-flight'
       expect(el).toBeInTheDocument()
 
-  it 'navigates to /wings from /perception via Wings tab', ->
-    renderApp('/perception')
+  it 'navigates to Airframe from Sensors', ->
+    renderApp('/sensors')
     user = userEvent.setup()
-    link = getTabLink 'Wings'
+    link = getTabLink 'Airframe'
     expect(link).toBeTruthy()
     user.click(link).then ->
       el = document.querySelector '.layout-wings'

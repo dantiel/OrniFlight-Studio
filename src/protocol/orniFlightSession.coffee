@@ -4,6 +4,7 @@ import {
   decodeBoardInfo, decodeUid, decodeName, decodeStatus, decodeRawImu
   decodeAttitude, decodeChannels, decodeRxMap, decodeServos
   decodeAnalog, decodeBatteryState, encodeName
+  decodeServoConfigurations, encodeServoConfiguration, MAX_SERVO_CONFIGS
 } from './mspDecoders.coffee'
 
 POLL_INTERVAL_MS = 100
@@ -89,6 +90,31 @@ class OrniFlightSession
       throw new Error "Craft name read-back failed: expected #{value}, received #{readBack}"
     @identity = { @identity..., name: readBack }
     @identity
+
+  readServoConfigurations: ->
+    payload = await @client.requestOptional MSP_CODES.SERVO_CONFIGURATIONS
+    if payload then decodeServoConfigurations(payload) else []
+
+  writeServoConfiguration: (index, config = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    unless Number.isInteger(index) and 0 <= index < MAX_SERVO_CONFIGS
+      throw new Error "Servo index out of range: #{index}"
+    payload = encodeServoConfiguration index, config
+    await @client.request MSP_CODES.SET_SERVO_CONFIGURATION, payload
+    await @client.request MSP_CODES.EEPROM_WRITE
+    stored = await @readServoConfigurations()
+    written = stored[index]
+    expected =
+      min: config.min ? 1000
+      max: config.max ? 2000
+      middle: config.middle ? 1500
+    matches = written? and written.min == expected.min and
+      written.max == expected.max and written.middle == expected.middle
+    unless matches
+      throw new Error(
+        "Servo configuration read-back failed at index #{index}"
+      )
+    { index, config: written }
 
   _poll: ->
     return unless @running

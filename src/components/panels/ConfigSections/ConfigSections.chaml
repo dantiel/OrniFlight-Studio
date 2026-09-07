@@ -1,0 +1,32 @@
+- import { fmt0, fmt2, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
+- import useConfigurationStore from '../../../stores/useConfigurationStore.coffee'
+- cfg = useConfigurationStore()
+- geometry = cfg.draft.geometry
+- mass = cfg.draft.mass
+- modeLabel = if cfg.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+.config-sections
+  .config-sections-header
+    %span.config-mode-badge{ className: "config-mode-#{cfg.mode}" }
+      = modeLabel
+    - if cfg.dirty
+      %span.config-dirty-badge DIRTY
+  %StudioAccordion{ title: 'Geometry', defaultOpen: true }
+    %ParamRow{ key: 'wingSpan', label: 'Wing span', value: geometry.wingSpan, min: '400', max: '2500', step: '10', display: "#{fmt0(geometry.wingSpan)} mm", onInput: floatFromEvent((value) -> cfg.setField 'geometry.wingSpan', value) }
+    %ParamRow{ key: 'chord', label: 'Chord', value: geometry.chord, min: '80', max: '400', step: '5', display: "#{fmt0(geometry.chord)} mm", onInput: floatFromEvent((value) -> cfg.setField 'geometry.chord', value) }
+    %ParamRow{ key: 'wingArea', label: 'Wing area', value: geometry.wingArea, display: "#{fmt0(geometry.wingArea)} mm²" }
+    %ParamRow{ key: 'aspectRatio', label: 'Aspect ratio', value: geometry.aspectRatio, display: fmt2(geometry.aspectRatio) }
+  %StudioAccordion{ title: 'Mass & CG' }
+    %ParamRow{ key: 'totalMass', label: 'Total mass', value: mass.totalMass, min: '100', max: '2000', step: '5', display: "#{fmt0(mass.totalMass)} g", onInput: floatFromEvent((value) -> cfg.setField 'mass.totalMass', value) }
+    %ParamRow{ key: 'cgX', label: 'CG X', value: mass.cgX, min: '-100', max: '100', step: '1', display: "#{fmt0(mass.cgX)} mm", onInput: floatFromEvent((value) -> cfg.setField 'mass.cgX', value) }
+    %ParamRow{ key: 'cgZ', label: 'CG Z', value: mass.cgZ, min: '-100', max: '100', step: '1', display: "#{fmt0(mass.cgZ)} mm", onInput: floatFromEvent((value) -> cfg.setField 'mass.cgZ', value) }
+  %StudioAccordion{ title: 'Servo Pairs' }
+    %ParamRow{ key: 'pairCount', label: 'Pair count', value: cfg.draft.pairCount, min: '1', max: '4', step: '1', display: String(cfg.draft.pairCount), onInput: intFromEvent((value) -> cfg.setField 'pairCount', value) }
+    - for mount, i in cfg.draft.servoMounts
+      %ParamRow{ key: "mount-angle-#{i}", label: "Pair #{i + 1} angle", value: mount.angle, min: '-45', max: '45', step: '1', display: "#{fmt0(mount.angle)}°", onInput: floatFromEvent((value) -> cfg.setField "servoMounts.#{i}.angle", value) }
+      %ParamRow{ key: "mount-x-#{i}", label: "Pair #{i + 1} X", value: mount.x, min: '-200', max: '200', step: '5', display: "#{fmt0(mount.x)} mm", onInput: floatFromEvent((value) -> cfg.setField "servoMounts.#{i}.x", value) }
+      %ParamRow{ key: "mount-z-#{i}", label: "Pair #{i + 1} Z", value: mount.z, min: '-200', max: '200', step: '5', display: "#{fmt0(mount.z)} mm", onInput: floatFromEvent((value) -> cfg.setField "servoMounts.#{i}.z", value) }
+  .config-sections-actions
+    %button.config-action.config-action-save{ type: 'button', onClick: (-> cfg.save()) }
+      Save
+    %button.config-action.config-action-revert{ type: 'button', onClick: (-> cfg.revert()), disabled: !cfg.dirty }
+      Revert

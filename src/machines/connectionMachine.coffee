@@ -40,16 +40,24 @@ connectionMachine = createMachine
   states:
     # ── Idle, no connection ──
     disconnected:
-      entry: assign { attempts: 0, lastError: null }
+      entry: assign { attempts: 0 }
       on:
-        CONNECT: { target: 'scanning' }
+        CONNECT:
+          target: 'scanning'
+          actions: assign { lastError: null }
 
     # ── Scanning for devices (WebBluetooth / WiFi / Serial) ──
     scanning:
       entry: assign { attempts: ({context}) -> context.attempts + 1 }
       on:
-        CONNECTED:      { target: 'handshaking' }
+        CONNECTED:
+          target: 'handshaking'
+          actions: assign { portInfo: ({event}) -> event?.portInfo }
         DISCONNECT:     { target: 'disconnected' }
+        DISCONNECTED:   { target: 'disconnected' }
+        CONNECTION_FAILED:
+          target: 'disconnected'
+          actions: assign { lastError: ({event}) -> event?.error or 'connection_failed' }
         PROTOCOL_MISMATCH:
           target: 'disconnected'
           actions: assign { lastError: 'protocol_mismatch' }
@@ -66,6 +74,10 @@ connectionMachine = createMachine
           target: 'streaming'
           actions: assign { protocolVersion: ({event}) -> event?.version }
         DISCONNECTED:  { target: 'disconnected' }
+        DISCONNECT:    { target: 'disconnected' }
+        CONNECTION_FAILED:
+          target: 'disconnected'
+          actions: assign { lastError: ({event}) -> event?.error or 'connection_failed' }
         PROTOCOL_MISMATCH:
           target: 'disconnected'
           actions: assign { lastError: 'protocol_mismatch' }
@@ -80,7 +92,11 @@ connectionMachine = createMachine
       entry: assign { attempts: 0, lastError: null }
       on:
         DISCONNECTED:   { target: 'disconnected' }
+        DISCONNECT:     { target: 'disconnected' }
         DATA_TIMEOUT:   { target: 'stalled' }
+        CONNECTION_FAILED:
+          target: 'disconnected'
+          actions: assign { lastError: ({event}) -> event?.error or 'connection_failed' }
 
     # ── Data stopped arriving (link loss, bird out of range) ──
     stalled:
@@ -88,6 +104,10 @@ connectionMachine = createMachine
       on:
         RECONNECT:      { target: 'reconnecting' }
         DISCONNECTED:   { target: 'disconnected' }
+        DISCONNECT:     { target: 'disconnected' }
+        CONNECTION_FAILED:
+          target: 'disconnected'
+          actions: assign { lastError: ({event}) -> event?.error or 'connection_failed' }
 
       after:
         500:  # auto-attempt reconnect after 500ms
@@ -99,6 +119,10 @@ connectionMachine = createMachine
       on:
         FIRMWARE_READY: { target: 'streaming' }
         DISCONNECTED:   { target: 'disconnected' }
+        DISCONNECT:     { target: 'disconnected' }
+        CONNECTION_FAILED:
+          target: 'disconnected'
+          actions: assign { lastError: ({event}) -> event?.error or 'connection_failed' }
 
       after:
         3000:

@@ -1,0 +1,35 @@
+.animated-number-input
+  display: inline-flex
+  align-items: center
+  height: 22px
+  border: 1px solid var(--of-border-2)
+  border-radius: var(--of-radius-md)
+  background: var(--of-glass-card)
+  overflow: hidden
+
+  button
+    width: 20px
+    height: 100%
+    border: 0
+    background: transparent
+    color: var(--of-text-soft)
+    cursor: pointer
+
+    &:hover
+      color: var(--of-accent)
+      background: var(--of-glass-card-hover)
+
+  input
+    width: 54px
+    height: 100%
+    padding: 0 3px
+    border: 0
+    border-inline: 1px solid var(--of-border-1)
+    background: transparent
+    color: var(--of-accent)
+    text-align: center
+    font: 500 var(--of-text-sm)/1 var(--of-font-mono)
+    appearance: textfield
+
+    &::-webkit-inner-spin-button
+      display: none

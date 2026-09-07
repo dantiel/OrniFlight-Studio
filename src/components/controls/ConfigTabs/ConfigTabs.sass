@@ -4,11 +4,24 @@
 
 .config-view-selector
   display: flex
-  gap: 1px
+  align-items: center
+  gap: var(--of-space-2)
+  width: 100%
+  overflow-x: auto
+  scrollbar-width: none
   -webkit-app-region: no-drag
 
+  &::-webkit-scrollbar
+    display: none
+
   .config-view-btn
-    padding: 3px 10px
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: var(--of-space-3)
+    width: auto
+    min-width: max-content
+    padding: 4px 9px
     border: none
     border-radius: var(--of-radius-sm)
     background: transparent
@@ -18,13 +31,24 @@
     font-weight: 500
     letter-spacing: 0.04em
     cursor: pointer
-    transition: all var(--of-dur-fast) var(--of-ease-out)
+    text-decoration: none
+    transition: background var(--of-dur-fast), color var(--of-dur-fast)
+
+    &::before
+      content: attr(data-glyph)
+      flex: 0 0 13px
+      color: currentColor
+      text-align: center
+      font-family: var(--of-font-mono)
+
+    .tab-label
+      white-space: nowrap
 
     &:hover
       color: rgba(255,255,255,0.85)
       background: rgba(255,255,255,0.08)
 
-    &.active
+    &.active, &[aria-current='page']
       color: #fff
       background: rgba(255,255,255,0.12)
       box-shadow: 0 0 8px rgba(137,152,254,0.1)

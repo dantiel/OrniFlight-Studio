@@ -123,6 +123,47 @@ decodeBatteryState = (payload) ->
   voltage = if reader.remaining() >= 2 then reader.u16() / 100 else legacyVoltage
   { cellCount, capacityMah, consumedMah, amperage, state, voltage }
 
+# ── Servo configuration (MSP 120 / 212) ──────────────────────
+# Wire layout per servoParam_t: u16 min, u16 max, u16 middle,
+# i8 rate, u8 angleAtMin, u8 angleAtMax, u8 forwardFromChannel,
+# u32 reversedSources. MSP 120 streams records; 212 prefixes index.
+SERVO_CONFIG_BYTES = 14
+MAX_SERVO_CONFIGS = 8
+DEFAULT_SERVO_SWEEP = 45
+
+decodeServoConfigurations = (payload) ->
+  reader = new ByteReader payload
+  configs = []
+  while reader.remaining() >= SERVO_CONFIG_BYTES and
+      configs.length < MAX_SERVO_CONFIGS
+    configs.push {
+      index: configs.length
+      min: reader.u16()
+      max: reader.u16()
+      middle: reader.u16()
+      rate: reader.i8()
+      angleAtMin: reader.u8()
+      angleAtMax: reader.u8()
+      forwardFromChannel: reader.u8()
+      reversedSources: reader.u32()
+    }
+  configs
+
+encodeServoConfiguration = (index, config = {}) ->
+  index = Math.max 0, Math.min(MAX_SERVO_CONFIGS - 1, Number(index) or 0)
+  out = new Uint8Array SERVO_CONFIG_BYTES + 1
+  view = new DataView out.buffer
+  view.setUint8 0, index
+  view.setUint16 1, config.min ? 1000, true
+  view.setUint16 3, config.max ? 2000, true
+  view.setUint16 5, config.middle ? 1500, true
+  view.setInt8 7, config.rate ? 100, true
+  view.setUint8 8, config.angleAtMin ? DEFAULT_SERVO_SWEEP
+  view.setUint8 9, config.angleAtMax ? DEFAULT_SERVO_SWEEP
+  view.setUint8 10, config.forwardFromChannel ? index
+  view.setUint32 11, config.reversedSources ? 0, true
+  out
+
 encodeName = (name) ->
   value = String(name or '').slice 0, 24
   Uint8Array.from Array.from(value).map((character) -> character.charCodeAt(0) & 0xff)
@@ -132,4 +173,6 @@ export {
   decodeBoardInfo, decodeUid, decodeName, decodeStatus, decodeRawImu
   decodeAttitude, decodeChannels, decodeRxMap, decodeServos
   decodeAnalog, decodeBatteryState, encodeName
+  decodeServoConfigurations, encodeServoConfiguration
+  SERVO_CONFIG_BYTES, MAX_SERVO_CONFIGS, DEFAULT_SERVO_SWEEP
 }

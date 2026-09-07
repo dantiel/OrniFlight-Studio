@@ -4,18 +4,20 @@
 - import useAppStore from '../../../stores/useAppStore.coffee'
 - sim = useEngineStore()
 - tele = useTelemetryStore()
-- activeTab = useAppStore (s) -> s.activeTab
+- storedTab = useAppStore (s) -> s.activeTab
 - setActiveTab = useAppStore (s) -> s.setActiveTab
+- activeTab = props.tab || storedTab
 - waveCurves = useAppStore (s) -> s.waveCurves
 - setWaveCurves = useAppStore (s) -> s.setWaveCurves
 - gyroCurves = useAppStore (s) -> s.gyroCurves
 - setGyroCurves = useAppStore (s) -> s.setGyroCurves
 .view-layout.layout-flight
   %ViewArea{ area: 'vport' }
-    %AircraftViewport{ attitude: tele.attitude || [0, 0, 0], wingAngleL: tele.wingAngleL || 0, wingAngleR: tele.wingAngleR || 0, flapFrequency: tele.flapFrequency || 0, onBump: sim.bump }
+    %DeferredAircraftViewport{ attitude: tele.attitude || [0, 0, 0], wingAngleL: tele.wingAngleL || 0, wingAngleR: tele.wingAngleR || 0, flapFrequency: tele.flapFrequency || 0, onBump: sim.bump }
     %ViewportOverlay{ badges: ["Cadence #{fmt1(tele.flapFrequency)} Hz", "Stroke #{fmt1(tele.amplitude)}°"] }
   %ViewArea{ area: 'params' }
-    %TabBar{ activeTab: activeTab, onTabChange: setActiveTab }
+    - unless props.tab
+      %TabBar{ activeTab: activeTab, onTabChange: setActiveTab }
     - if activeTab == 'servos'
       %ServoInspector{ servo: sim.servos[sim.selectedServoIndex], index: sim.selectedServoIndex, onParamChange: sim.setServoParam, pidGains: sim.pidGains, onPidChange: sim.setPidGain, ondasParams: sim.ondasParams, onOndasChange: sim.setOndasParam, mode: 'servos' }
     - if activeTab == 'pid'
@@ -23,4 +25,4 @@
     - if activeTab == 'ondas'
       %ServoInspector{ servo: sim.servos[sim.selectedServoIndex], index: sim.selectedServoIndex, onParamChange: sim.setServoParam, pidGains: sim.pidGains, onPidChange: sim.setPidGain, ondasParams: sim.ondasParams, onOndasChange: sim.setOndasParam, mode: 'ondas' }
   %ViewArea{ area: 'tele' }
-    %TelemetryLab{ waveformHistory: tele.waveformHistory || [], gyro: tele.gyro || {roll: 0, pitch: 0, yaw: 0}, servoPositions: tele.servos || [0, 0, 0, 0], waveCurves: waveCurves, onWaveCurveChange: setWaveCurves, gyroCurves: gyroCurves, onGyroCurveChange: setGyroCurves }
+    %PlotWorkspace{ workspace: 'control', history: tele.waveformHistory || [] }

@@ -12,9 +12,10 @@
   %ViewArea{ area: 'side' }
     %Sidebar{ servos: sim.servos, selectedServoIndex: sim.selectedServoIndex, onSelectServo: sim.selectServo, sticks: sim.sticks, onStickChange: sim.setStick, onApplyPreset: sim.applyPreset }
   %ViewArea{ area: 'vport' }
-    %AircraftViewport{ attitude: tele.attitude || [0, 0, 0], wingAngleL: tele.wingAngleL || 0, wingAngleR: tele.wingAngleR || 0, flapFrequency: tele.flapFrequency || 0, onBump: sim.bump }
+    %DeferredAircraftViewport{ attitude: tele.attitude || [0, 0, 0], wingAngleL: tele.wingAngleL || 0, wingAngleR: tele.wingAngleR || 0, flapFrequency: tele.flapFrequency || 0, onBump: sim.bump }
     %ViewportOverlay{ badges: ["Cadence #{fmt1(tele.flapFrequency)} Hz", "Stroke #{fmt1(tele.amplitude)}°", "t #{fmt1(tele.t)}s"] }
   %ViewArea{ area: 'insp' }
+    %ConfigSections
     %ServoInspector{ servo: sim.servos[sim.selectedServoIndex], index: sim.selectedServoIndex, onParamChange: sim.setServoParam, pidGains: sim.pidGains, onPidChange: sim.setPidGain, ondasParams: sim.ondasParams, onOndasChange: sim.setOndasParam, mode: 'servos' }
   %ViewArea{ area: 'tele' }
-    %TelemetryLab{ waveformHistory: tele.waveformHistory || [], gyro: tele.gyro || {roll: 0, pitch: 0, yaw: 0}, servoPositions: tele.servos || [0, 0, 0, 0], waveCurves: waveCurves, onWaveCurveChange: setWaveCurves, gyroCurves: gyroCurves, onGyroCurveChange: setGyroCurves }
+    %PlotWorkspace{ workspace: 'airframe', history: tele.waveformHistory || [] }

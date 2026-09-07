@@ -1,8 +1,10 @@
 - import { fmt1 } from '../../../lib/essential.coffee'
-- import useConnection from '../../../hooks/useConnection.coffee'
+- import useFirmwareConnection from '../../../hooks/useFirmwareConnection.coffee'
 - import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 - import useAppStore from '../../../stores/useAppStore.coffee'
-- conn = useConnection()
+- import Tooltip from '../../overlays/Tooltip/Tooltip.coffee'
+- import StatusIsland from '../../display/StatusIsland/StatusIsland.coffee'
+- conn = useFirmwareConnection()
   teleBattery = useTelemetryStore (s) -> s.batteryVoltage
   teleFlap = useTelemetryStore (s) -> s.flapFrequency
   storeViewMode = useAppStore (s) -> s.viewMode
@@ -14,15 +16,45 @@
   onViewModeChange = props.onViewModeChange ? storeSetViewMode
   freq = fmt1(flapFrequency || 0) + ' Hz'
   volts = fmt1(batteryVoltage || 0) + 'V'
+  statusState = if props.connected? then (if connected then 'streaming' else 'disconnected') else conn.state
+  statusLabel = if props.connected? and connected then 'BREATHING' else conn.label
+  connectionBusy = conn.state in ['scanning', 'handshaking']
+  connectionAction = if conn.connected then 'DISCONNECT' else if conn.state == 'scanning' then 'SELECTING…' else if conn.state == 'handshaking' then 'SYNCING…' else 'CONNECT'
+  deviceLabel = conn.identity?.board?.targetName || conn.identity?.board?.identifier
+  connectTooltip = if conn.supported then 'Connect an OrniFlight controller over WebSerial' else 'WebSerial is not available in this browser'
+  connectSymbol = if conn.connected then '×' else '↗'
 .connection-bar{ role: 'banner', aria-label: 'Studio toolbar' }
-  %BrandMark
-  %Separator
-  %ConnectionStatus{ connected: connected }
-  %Separator
-  %MetricBadge{ label: 'Flap', value: freq }
-  %MetricBadge{ label: 'Battery', value: volts }
-  %Separator
-  %VersionBadge
-  %ConfigTabs.toolbar-right{ activeTab: props.activeTab, onTabChange: props.onTabChange }
-    %ThemeToggle.toolbar-theme
-    %ViewModeToggle.toolbar-theme{ mode: viewMode || 'split', onModeChange: onViewModeChange || (->) }
+  .toolbar-primary
+    %BrandMark
+    %Separator
+    %Tooltip{ label: connectTooltip }
+      %button{ type: 'button', disabled: connectionBusy || (!conn.supported && !conn.connected), className: "toolbar-connect#{if conn.connected then ' connected' else ''}", onClick: -> if conn.connected then conn.disconnect() else conn.connect() }
+        %span.connect-symbol= connectSymbol
+        %span= connectionAction
+    %Tooltip{ label: 'Live connection state' }
+      %StatusIsland{ state: statusState, label: statusLabel, attempts: conn.attempts, frequency: flapFrequency, voltage: batteryVoltage, error: conn.lastError, deviceLabel: deviceLabel }
+    %Separator
+    %Tooltip{ label: 'Current wingbeat frequency' }
+      %MetricBadge{ label: 'Flap', value: freq, numericValue: flapFrequency, suffix: ' Hz' }
+    %Tooltip{ label: 'Flight battery voltage' }
+      %MetricBadge{ label: 'Battery', value: volts, numericValue: batteryVoltage || 0, suffix: 'V' }
+    %Separator
+    %Tooltip{ label: 'Studio version' }
+      %VersionBadge
+    .toolbar-spacer
+    %Tooltip{ label: 'Open command palette · Ctrl/⌘ K' }
+      %button.toolbar-launcher{ type: 'button', onClick: -> window.dispatchEvent(new Event('orniflight:commands')) }
+        %span.launcher-mark ⌘
+        %span COMMANDS
+        %kbd K
+    - if import.meta.env.DEV
+      %Tooltip{ label: 'Toggle live state inspector · Ctrl/⌘ Shift D' }
+        %button.toolbar-launcher.debug{ type: 'button', onClick: -> window.dispatchEvent(new Event('orniflight:debug')) }
+          %span.launcher-mark ◫
+          %span STATE
+    %Tooltip{ label: 'Switch light and dark theme' }
+      %ThemeToggle.toolbar-theme
+    %Tooltip{ label: 'Change workspace layout' }
+      %ViewModeToggle.toolbar-theme{ mode: viewMode || 'split', onModeChange: onViewModeChange || (->) }
+  .toolbar-nav-row
+    %ConfigTabs{ activeTab: props.activeTab, onTabChange: props.onTabChange }

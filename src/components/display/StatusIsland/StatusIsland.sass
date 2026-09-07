@@ -1,0 +1,49 @@
+.status-island
+  display: inline-flex
+  align-items: center
+  gap: var(--of-space-3)
+  min-width: 92px
+  height: 25px
+  padding: 0 var(--of-space-4)
+  border: 1px solid var(--of-border-2)
+  border-radius: 999px
+  background: rgba(10,10,12,.42)
+  box-shadow: inset 0 1px rgba(255,255,255,.05), var(--of-shadow-panel)
+  overflow: hidden
+
+.status-island-dot
+  width: 6px
+  height: 6px
+  flex: 0 0 auto
+  border-radius: 50%
+  background: var(--of-text-muted)
+
+.status-island-label
+  color: var(--of-text-primary)
+  font: 600 9px/1 var(--of-font-heading)
+  letter-spacing: .07em
+
+.status-island-detail
+  color: var(--of-text-soft)
+  font: 500 9px/1 var(--of-font-mono)
+  white-space: nowrap
+
+.state-streaming .status-island-dot
+  background: var(--of-accent-green)
+  box-shadow: 0 0 8px var(--of-connected-glow)
+
+.state-scanning .status-island-dot, .state-handshaking .status-island-dot, .state-reconnecting .status-island-dot
+  background: var(--of-accent-amber)
+  animation: island-pulse 1s ease-in-out infinite
+
+.state-stalled .status-island-dot
+  background: var(--of-accent-red)
+
+@keyframes island-pulse
+  50%
+    opacity: .35
+    transform: scale(.7)
+
+@media (max-width: 950px)
+  .status-island-detail
+    display: none

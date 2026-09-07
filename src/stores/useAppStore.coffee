@@ -25,6 +25,7 @@ useAppStore = create(
         viewMode:     'split'
         waveCurves:   ['wingL', 'wingR']
         gyroCurves:   ['gyroRoll']
+        plotProfiles: {}
         activeProfile: 1
 
         # ── Connection state (mirror of XState machine) ──
@@ -39,6 +40,12 @@ useAppStore = create(
         setViewMode:        (viewMode)     -> set { viewMode }
         setWaveCurves:      (waveCurves)   -> set { waveCurves }
         setGyroCurves:      (gyroCurves)   -> set { gyroCurves }
+        setPlotProfile: (key, plots) -> set (state) ->
+          plotProfiles: { state.plotProfiles..., "#{key}": plots }
+        resetPlotProfile: (key) -> set (state) ->
+          next = { state.plotProfiles... }
+          delete next[key]
+          { plotProfiles: next }
         setActiveProfile:   (activeProfile)-> set { activeProfile }
         setConnectionState: (connectionState, connected = false) ->
           set { connectionState, connected }
@@ -52,6 +59,7 @@ useAppStore = create(
         viewMode:     state.viewMode
         waveCurves:   state.waveCurves
         gyroCurves:   state.gyroCurves
+        plotProfiles: state.plotProfiles
         activeProfile: state.activeProfile
     ),
     name: '📦 AppStore'               # Redux DevTools label

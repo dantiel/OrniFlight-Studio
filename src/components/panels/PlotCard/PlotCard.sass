@@ -1,0 +1,147 @@
+.telemetry-plot-card
+  position: relative
+  display: flex
+  flex-direction: column
+  min-width: 260px
+  min-height: 0
+  padding: 7px
+  border: 1px solid var(--of-border-1)
+  border-radius: var(--of-radius-md)
+  background: rgba(var(--of-surface-2-rgb), .22)
+
+.plot-card-header
+  display: flex
+  align-items: center
+  justify-content: space-between
+  min-height: 22px
+  gap: var(--of-space-3)
+
+  h3
+    overflow: hidden
+    margin: 0
+    color: var(--of-text-secondary)
+    font: 600 9px/1 var(--of-font-heading)
+    letter-spacing: .08em
+    text-overflow: ellipsis
+    text-transform: uppercase
+    white-space: nowrap
+
+.plot-menu-trigger
+  width: 26px
+  height: 20px
+  border: 1px solid transparent
+  border-radius: var(--of-radius-sm)
+  background: transparent
+  color: var(--of-text-muted)
+  cursor: pointer
+  font: 700 10px/1 var(--of-font-mono)
+
+  &:hover, &[aria-expanded='true']
+    border-color: var(--of-border-accent)
+    background: rgba(var(--of-accent-rgb), .1)
+    color: var(--of-text-primary)
+
+.plot-context-menu
+  position: absolute
+  z-index: 60
+  top: 31px
+  right: 7px
+  width: min(280px, calc(100% - 14px))
+  max-height: min(440px, calc(100vh - 150px))
+  overflow-y: auto
+  padding: var(--of-space-5)
+  border: 1px solid var(--of-border-2)
+  border-radius: var(--of-radius-md)
+  background: rgba(24, 24, 30, .98)
+  box-shadow: var(--of-shadow-elevated)
+  color: var(--of-text-primary)
+
+.plot-title-editor
+  display: grid
+  gap: 5px
+  margin-bottom: var(--of-space-5)
+  color: var(--of-text-muted)
+  font: 600 9px/1 var(--of-font-heading)
+  letter-spacing: .06em
+  text-transform: uppercase
+
+  input
+    width: 100%
+    box-sizing: border-box
+    padding: 6px 7px
+    border: 1px solid var(--of-border-2)
+    border-radius: var(--of-radius-sm)
+    background: var(--of-surface-2)
+    color: var(--of-text-primary)
+    font: 11px/1.2 var(--of-font-body)
+    text-transform: none
+
+.plot-menu-group
+  margin: 0 0 var(--of-space-4)
+  padding: 0
+  border: 0
+
+  legend
+    margin-bottom: 4px
+    color: var(--of-accent-alt)
+    font: 600 9px/1 var(--of-font-heading)
+    letter-spacing: .06em
+    text-transform: uppercase
+
+.plot-curve-option
+  display: grid
+  grid-template-columns: 14px 8px 1fr auto
+  align-items: center
+  gap: 6px
+  min-height: 25px
+  color: var(--of-text-secondary)
+  cursor: pointer
+  font: 11px/1.2 var(--of-font-body)
+
+  input
+    accent-color: var(--of-accent)
+
+.curve-swatch
+  width: 7px
+  height: 7px
+  border-radius: 50%
+
+.curve-unit
+  color: var(--of-text-muted)
+  font: 9px/1 var(--of-font-mono)
+
+.plot-capability-note
+  margin: var(--of-space-4) 0
+  color: var(--of-text-muted)
+  font: 10px/1.35 var(--of-font-body)
+
+.plot-menu-actions
+  display: flex
+  gap: var(--of-space-3)
+  padding-top: var(--of-space-4)
+  border-top: 1px solid var(--of-border-1)
+
+  button
+    flex: 1
+    padding: 5px 7px
+    border: 1px solid var(--of-border-2)
+    border-radius: var(--of-radius-sm)
+    background: var(--of-surface-2)
+    color: var(--of-text-secondary)
+    cursor: pointer
+    font: 10px/1 var(--of-font-body)
+
+    &:hover:not(:disabled)
+      border-color: var(--of-border-accent)
+      color: var(--of-text-primary)
+
+    &.danger:hover:not(:disabled)
+      border-color: rgba(248, 81, 73, .45)
+      color: var(--of-accent-red)
+
+    &:disabled
+      opacity: .35
+      cursor: not-allowed
+
+[data-theme='light'] .plot-context-menu
+  background: rgba(255, 255, 255, .98)

@@ -5,6 +5,7 @@ import OrniFlightSession, {
   FirmwareCompatibilityError
 } from '../protocol/orniFlightSession.coffee'
 import { MockMspTransport, scriptedResponder } from './mockMspTransport.coffee'
+import { encodeServoConfiguration } from '../protocol/mspDecoders.coffee'
 
 asciiBytes = (text) ->
   Array.from(text).map (character) -> character.charCodeAt 0
@@ -255,3 +256,91 @@ describe 'orniFlightSession', ->
     session = new OrniFlightSession client
     await session.handshake()
     await expect(session.setCraftName 'SKYFISH-2').rejects.toThrow 'read-back failed'
+
+  it 'writes a servo configuration with eeprom and read-back', ->
+    servoPayloads = { 0: null, 1: null }
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      length = bytes[6] | bytes[7] << 8
+      payload = Array.from bytes.subarray 8, 8 + length
+      if command == MSP_CODES.SET_SERVO_CONFIGURATION
+        servoPayloads[payload[0]] = payload[1...]
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.EEPROM_WRITE
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.SERVO_CONFIGURATIONS
+        stored = [
+          (servoPayloads[0] ? Array.from(encodeServoConfiguration(0, {}))[1...])...
+          (servoPayloads[1] ? Array.from(encodeServoConfiguration(1, {}))[1...])...
+        ]
+        return { command, direction: '>', payload: stored }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    result = await session.writeServoConfiguration 0, {
+      min: 1100, max: 1900, middle: 1520, rate: 90
+    }
+    expect(result.index).toBe 0
+    expect(result.config).toMatchObject {
+      min: 1100, max: 1900, middle: 1520, rate: 90
+    }
+    commands = transport.writes.map((bytes) -> bytes[4] | bytes[5] << 8)
+    expect(commands.slice(-3)).toEqual [
+      MSP_CODES.SET_SERVO_CONFIGURATION
+      MSP_CODES.EEPROM_WRITE
+      MSP_CODES.SERVO_CONFIGURATIONS
+    ]
+
+  it 'refuses to write servo configuration while armed', ->
+    armedStatus = [
+      statusPayload[0...6]...
+      u32(1)...
+      statusPayload[10...]...
+    ]
+    script = { handshakeScript..., [MSP_CODES.STATUS_EX]: armedStatus }
+    { session } = await openSession script
+    await session.handshake()
+    error = await session.writeServoConfiguration(0, {}).catch (error) -> error
+    expect(error.message).toContain 'armed'
+
+  it 'rejects out-of-range servo indices', ->
+    { session } = await openSession handshakeScript
+    await session.handshake()
+    await expect(session.writeServoConfiguration 8, {}).rejects.toThrow(
+      'Servo index out of range'
+    )
+
+  it 'reports an empty servo table when unsupported by firmware', ->
+    script = {
+      handshakeScript...
+      [MSP_CODES.SERVO_CONFIGURATIONS]: 'unsupported'
+    }
+    { session } = await openSession script
+    await session.handshake()
+    configs = await session.readServoConfigurations()
+    expect(configs).toEqual []
+
+  it 'throws when the servo configuration read-back diverges', ->
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      if command == MSP_CODES.SET_SERVO_CONFIGURATION
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.EEPROM_WRITE
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.SERVO_CONFIGURATIONS
+        stale = Array.from(encodeServoConfiguration(0, {})).slice(1)
+        return { command, direction: '>', payload: stale }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    await expect(session.writeServoConfiguration 0, {
+      min: 1100, max: 1900, middle: 1520
+    }).rejects.toThrow 'read-back failed'

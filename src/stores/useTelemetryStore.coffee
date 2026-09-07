@@ -32,6 +32,10 @@ useTelemetryStore = create(
       flapFrequency:   0
       rssi:            0
       linkQuality:     0
+      rcChannels:      []
+      acceleration:    { x: 0, y: 0, z: 0 }
+      magnetometer:    { x: 0, y: 0, z: 0 }
+      source:           'offline'
       connected:       false
 
       # ———— Ring buffer ————
@@ -48,10 +52,27 @@ useTelemetryStore = create(
           servos = [], waveformHistory = []
           batteryVoltage = 0, flapFrequency = 0
           rssi = 0, linkQuality = 0
+          rcChannels = []
+          accelX = 0, accelY = 0, accelZ = 0
+          magnetometer = [0, 0, 0]
+          source = 'offline'
         } = frame
 
         { ringIndex, ringBuffer } = get()
         ringBuffer[ringIndex] = frame
+        sample = {
+          t, wingL: wingAngleL, wingR: wingAngleR
+          gyroRoll, gyroPitch, gyroYaw
+          servo1: servos[0], servo2: servos[1], servo3: servos[2], servo4: servos[3]
+          rcRoll: frame.rcRoll, rcPitch: frame.rcPitch
+          rcYaw: frame.rcYaw, rcThrottle: frame.rcThrottle
+          batteryVoltage, rssi, linkQuality
+          accelX, accelY, accelZ
+        }
+        history = if waveformHistory?.length
+          waveformHistory
+        else
+          [get().waveformHistory..., sample].slice -RING_SIZE
         set {
           t
           gyro: { roll: gyroRoll, pitch: gyroPitch, yaw: gyroYaw }
@@ -60,17 +81,22 @@ useTelemetryStore = create(
           wingAngleR
           amplitude
           servos
-          waveformHistory
+          waveformHistory: history
           batteryVoltage
           flapFrequency
           rssi
           linkQuality
+          rcChannels
+          acceleration: { x: accelX, y: accelY, z: accelZ }
+          magnetometer: { x: magnetometer[0] or 0, y: magnetometer[1] or 0, z: magnetometer[2] or 0 }
+          source
           ringIndex: (ringIndex + 1) % RING_SIZE
           ringBuffer
         }
 
       getRing: -> get().ringBuffer
       getGyro: -> get().gyro
+      setConnected: (connected) -> set { connected }
     ,
     name: '📡 TelemetryStore'
   )

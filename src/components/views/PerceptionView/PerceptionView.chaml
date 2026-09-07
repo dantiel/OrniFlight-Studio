@@ -1,4 +1,4 @@
-- import { fmt0, fmt1, fmt2 } from '../../../lib/essential.coffee'
+- import { fmt1 } from '../../../lib/essential.coffee'
 - import { useDeferredValue } from 'react'
 - import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 - import useAppStore from '../../../stores/useAppStore.coffee'
@@ -8,49 +8,23 @@
 - gyroCurves = useAppStore (s) -> s.gyroCurves
 - setGyroCurves = useAppStore (s) -> s.setGyroCurves
 - gyro = tele.gyro || DEFAULT_GYRO
-- t = tele.t || 0
 - gc0 = (gyroCurves || ['gyroRoll'])[0] || 'gyroRoll'
 - deferredGyro = useDeferredValue(gyro)
 - deferredHistory = useDeferredValue(tele.waveformHistory || [])
 - deferredServos = useDeferredValue(tele.servos || DEFAULT_SERVOS)
 .view-layout.layout-perception
   %ViewArea{ area: 'gyro' }
-    %Section{ heading: 'Gyroscope', subheading: "Roll · Pitch · Yaw — the bird's inner ear." }
+    %Section{ heading: 'Gyroscope', subheading: 'Live angular velocity on all three axes.' }
       %GyroBars{ gyro: deferredGyro }
     %Section{ heading: 'Angular Rates' }
       %ParamRow{ label: 'Rate Roll', display: fmt1(gyro.roll) + ' °/s' }
       %ParamRow{ label: 'Rate Pitch', display: fmt1(gyro.pitch) + ' °/s' }
       %ParamRow{ label: 'Rate Yaw', display: fmt1(gyro.yaw) + ' °/s' }
-  %ViewArea{ area: 'accel' }
-    %Section{ heading: 'Accelerometer', subheading: 'Linear acceleration in body frame.' }
-      %ParamRow{ label: 'Accel X', display: fmt2(Math.sin(t) * 0.15 - 0.12) + 'g' }
-      %ParamRow{ label: 'Accel Y', display: fmt2(Math.cos(t) * 0.08) + 'g' }
-      %ParamRow{ label: 'Accel Z', display: fmt2(1.02 + Math.sin(t * 2) * 0.3) + 'g' }
-    %Section{ heading: 'Magnetometer', subheading: 'Heading reference.' }
-      %ParamRow{ label: 'Heading', display: fmt0(Math.atan2(Math.sin(t) * 0.3, Math.cos(t) * 0.3) * 180 / Math.PI + 180) + '°' }
-      %ParamRow{ label: 'Field Strength', display: '48 µT' }
   %ViewArea{ area: 'sensors' }
-    %Section{ heading: 'IMU Configuration', subheading: 'Sampling rates and filter settings.' }
-      %ParamRow{ label: 'Accel Range', display: '±16g' }
-      %ParamRow{ label: 'Accel ODR', display: '1.6 kHz' }
+    %Section{ heading: 'Gyro Configuration', subheading: 'Sampling range, rate, and filtering.' }
       %ParamRow{ label: 'Gyro Range', display: '±2000°/s' }
       %ParamRow{ label: 'Gyro LPF', display: '256 Hz / 8 kHz' }
-      %ParamRow{ label: 'Mag ODR', display: '100 Hz' }
       %ParamRow{ label: 'Bus', display: 'I²C · 400 kHz' }
-      %ParamRow{ label: 'Fusion Rate', display: '500 Hz (Madgwick)' }
+      %ParamRow{ label: 'Sample Rate', display: '500 Hz' }
   %ViewArea{ area: 'waves' }
-    %LabPanel{ style: {padding: 'var(--of-space-4)', display: 'flex', flexDirection: 'column'} }
-      .lab-heading
-        %span
-          Gyro Traces
-        %select.curve-select{ value: gc0, onChange: (e) -> setGyroCurves && setGyroCurves([e.target.value]) }
-          %option{ value: 'gyroRoll' }
-            Roll
-          %option{ value: 'gyroPitch' }
-            Pitch
-          %option{ value: 'gyroYaw' }
-            Yaw
-      %WaveformPlot{ history: deferredHistory, curves: gyroCurves }
-    %LabPanel{ style: {padding: 'var(--of-space-4)', display: 'flex', flexDirection: 'column'} }
-      .lab-heading Servo Voice
-      %Readout{ items: deferredServos.map((val, i) -> ({label: "CH" + (i + 1), value: String(val)})) }
+    %PlotWorkspace{ workspace: 'sensors', history: deferredHistory }

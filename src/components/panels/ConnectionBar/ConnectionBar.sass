@@ -5,20 +5,68 @@
 // ═══════════════════════════════════════════
 
 .connection-bar
-  display: flex
-  contain: layout style paint
-  align-items: center
+  display: grid
+  grid-template-rows: 39px 31px
+  contain: layout style
   height: var(--of-toolbar-height)
-  padding: 0 var(--of-space-5)
   background: rgba(var(--of-header-rgb), var(--of-header-opacity))
   backdrop-filter: blur(20px) saturate(1.6)
   -webkit-backdrop-filter: blur(20px) saturate(1.6)
   border-bottom: 1px solid rgba(255,255,255,0.06)
-  gap: var(--of-space-5)
   flex-shrink: 0
   user-select: none
   z-index: 10
   position: relative
+
+.toolbar-primary
+  display: flex
+  align-items: center
+  gap: var(--of-space-5)
+  padding: 0 var(--of-space-5)
+  min-width: 0
+
+.toolbar-spacer
+  flex: 1
+
+.toolbar-connect
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  height: 26px
+  padding: 0 9px
+  border: 1px solid rgba(var(--of-accent-rgb), .38)
+  border-radius: 999px
+  background: rgba(var(--of-accent-rgb), .1)
+  color: var(--of-accent-alt)
+  font: 650 9px/1 var(--of-font-heading)
+  letter-spacing: .06em
+  cursor: pointer
+  transition: border-color var(--of-dur-fast), background var(--of-dur-fast), color var(--of-dur-fast)
+
+  &:hover:not(:disabled)
+    border-color: rgba(var(--of-accent-rgb), .72)
+    background: rgba(var(--of-accent-rgb), .22)
+    color: var(--of-text-primary)
+
+  &:disabled
+    opacity: .48
+    cursor: default
+
+  &.connected
+    border-color: rgba(63,185,80,.42)
+    background: rgba(63,185,80,.1)
+    color: var(--of-accent-green)
+
+.connect-symbol
+  font-size: 12px
+
+.toolbar-nav-row
+  display: flex
+  align-items: center
+  min-width: 0
+  padding: 2px var(--of-space-5) 4px
+  border-top: 1px solid rgba(255,255,255,.045)
+  background: rgba(6,6,12,.12)
 
   .toolbar-status
     display: flex
@@ -36,3 +84,38 @@
     align-items: center
     font-size: var(--of-text-xs)
     color: rgba(255,255,255,0.7)
+
+.toolbar-launcher
+  display: inline-flex
+  align-items: center
+  gap: 5px
+  height: 25px
+  padding: 0 7px
+  border: 1px solid rgba(255,255,255,.1)
+  border-radius: var(--of-radius-md)
+  background: rgba(8,8,12,.25)
+  color: rgba(255,255,255,.72)
+  font: 600 9px/1 var(--of-font-heading)
+  letter-spacing: .04em
+  cursor: pointer
+  transition: background var(--of-dur-fast), color var(--of-dur-fast), border-color var(--of-dur-fast)
+
+  &:hover
+    color: #fff
+    border-color: rgba(var(--of-accent-rgb), .45)
+    background: rgba(var(--of-accent-rgb), .15)
+
+  .launcher-mark
+    color: var(--of-accent-alt)
+    font-size: 11px
+
+  kbd
+    padding: 1px 3px
+    border: 1px solid rgba(255,255,255,.12)
+    border-radius: 3px
+    color: rgba(255,255,255,.5)
+    font: 8px/1 var(--of-font-mono)
+
+@media (max-width: 1100px)
+  .toolbar-launcher span:not(.launcher-mark), .toolbar-launcher kbd
+    display: none

@@ -4,6 +4,7 @@ import {
   decodeBoardInfo, decodeUid, decodeName, decodeStatus, decodeRawImu
   decodeAttitude, decodeChannels, decodeRxMap, decodeServos
   decodeAnalog, decodeBatteryState, encodeName
+  decodeServoConfigurations, encodeServoConfiguration
 } from '../protocol/mspDecoders.coffee'
 
 asciiBytes = (text) ->
@@ -148,3 +149,37 @@ describe 'mspDecoders', ->
     expect(Array.from bytes).toEqual asciiBytes('ORNICOPTER')
     expect(encodeName('A'.repeat 40).length).toBe 24
     expect(encodeName('')).toHaveLength 0
+
+  it 'round-trips servo configurations through the wire format', ->
+    source = {
+      min: 1100, max: 1900, middle: 1520, rate: 90
+      angleAtMin: 30, angleAtMax: 50
+      forwardFromChannel: 3, reversedSources: 5
+    }
+    bytes = Array.from encodeServoConfiguration(2, source)
+    expect(bytes).toHaveLength 15
+    expect(bytes[0]).toBe 2
+    configs = decodeServoConfigurations bytes[1...]
+    expect(configs).toHaveLength 1
+    expect(configs[0]).toMatchObject { source..., index: 0 }
+
+  it 'encodes negative servo rates as signed bytes', ->
+    configs = decodeServoConfigurations(
+      Array.from(encodeServoConfiguration(0, { rate: -10 }))[1...]
+    )
+    expect(configs[0].rate).toBe -10
+
+  it 'fills servo configuration defaults for omitted fields', ->
+    configs = decodeServoConfigurations(
+      Array.from(encodeServoConfiguration(0, {}))[1...]
+    )
+    expect(configs[0]).toMatchObject {
+      min: 1000, max: 2000, middle: 1500, rate: 100
+      angleAtMin: 45, angleAtMax: 45
+      forwardFromChannel: 0, reversedSources: 0
+    }
+
+  it 'stops decoding servo configurations on truncated payloads', ->
+    expect(decodeServoConfigurations [1, 2, 3]).toEqual []
+    partial = Array.from(encodeServoConfiguration(0, {}))[1...13]
+    expect(decodeServoConfigurations partial).toEqual []

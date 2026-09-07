@@ -1,11 +1,17 @@
 import './App.sass'
 import h from './h.coffee'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { useSimulation } from '../simulation/useSimulation.coffee'
 import useBridge from '../integration/useBridge.coffee'
 import AnimatedPage from './AnimatedPage.coffee'
 import ConnectionBar from '../components/panels/ConnectionBar/ConnectionBar.chaml'
+import ProgressiveBlur from '../components/overlays/ProgressiveBlur/ProgressiveBlur.coffee'
+import CommandPalette from '../components/overlays/CommandPalette/CommandPalette.coffee'
+import DebugPanel from '../components/debug/DebugPanel/DebugPanel.coffee'
+import BreakpointIndicator from '../components/debug/BreakpointIndicator/BreakpointIndicator.coffee'
+import ConfigurationHub from '../components/views/ConfigurationHub/ConfigurationHub.coffee'
+import WelcomeView from '../components/views/WelcomeView/WelcomeView.coffee'
 import WingsView from '../components/views/WingsView/WingsView.chaml'
 import FlightView from '../components/views/FlightView/FlightView.chaml'
 import PerceptionView from '../components/views/PerceptionView/PerceptionView.chaml'
@@ -16,24 +22,46 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - useSimulation()
 - useBridge()
 - location = useLocation()
-- `const wingsEl = h(AnimatedPage, null, h(WingsView, null))`
-- `const flightEl = h(AnimatedPage, null, h(FlightView, null))`
-- `const perceptionEl = h(AnimatedPage, null, h(PerceptionView, null))`
-- `const voiceEl = h(AnimatedPage, null, h(VoiceView, null))`
-- `const memoryEl = h(AnimatedPage, null, h(MemoryView, null))`
+- `const deviceEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'device'}))`
+- `const airframeEl = h(AnimatedPage, null, h(WingsView, null))`
+- `const controlEl = h(AnimatedPage, null, h(FlightView, null))`
+- `const receiverEl = h(AnimatedPage, null, h(VoiceView, null))`
+- `const powerEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'power'}))`
+- `const sensorsEl = h(AnimatedPage, null, h(PerceptionView, null))`
+- `const safetyEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'safety'}))`
+- `const dataEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'data'}))`
 - `const flashEl = h(AnimatedPage, null, h(FlashingView, null))`
-- `const navEl = h(Navigate, {to: '/wings', replace: true})`
+- `const welcomeEl = h(AnimatedPage, null, h(WelcomeView, null))`
 .studio-shell{ role: 'application', aria-label: 'OrniFlight Studio' }
   %a.skip-link{ href: '#main-content' }
     Skip to content
   %ConnectionBar
   %div#main-content{ role: 'main' }
+    %ProgressiveBlur{ position: 'top' }
     %AnimatePresence{ mode: 'wait' }
       %Routes{ location: location, key: location.pathname }
-        %Route{ path: '/', element: navEl }
-        %Route{ path: '/wings', element: wingsEl }
-        %Route{ path: '/flight', element: flightEl }
-        %Route{ path: '/perception', element: perceptionEl }
-        %Route{ path: '/voice', element: voiceEl }
-        %Route{ path: '/memory', element: memoryEl }
+        %Route{ path: '/', element: welcomeEl }
+        %Route{ path: '/device', element: deviceEl }
+        %Route{ path: '/airframe', element: airframeEl }
+        %Route{ path: '/control', element: controlEl }
+        %Route{ path: '/receiver', element: receiverEl }
+        %Route{ path: '/power', element: powerEl }
+        %Route{ path: '/sensors', element: sensorsEl }
+        %Route{ path: '/safety', element: safetyEl }
+        %Route{ path: '/data', element: dataEl }
         %Route{ path: '/flash', element: flashEl }
+        %Route{ path: '/simulator', element: airframeEl }
+        %Route{ path: '/servos', element: airframeEl }
+        %Route{ path: '/pid', element: controlEl }
+        %Route{ path: '/mixer', element: controlEl }
+        %Route{ path: '/gyro', element: sensorsEl }
+        %Route{ path: '/wings', element: airframeEl }
+        %Route{ path: '/flight', element: controlEl }
+        %Route{ path: '/perception', element: sensorsEl }
+        %Route{ path: '/voice', element: receiverEl }
+        %Route{ path: '/memory', element: controlEl }
+        %Route{ path: '/profiles', element: controlEl }
+        %Route{ path: '/firmware', element: flashEl }
+  %CommandPalette
+  %DebugPanel
+  %BreakpointIndicator

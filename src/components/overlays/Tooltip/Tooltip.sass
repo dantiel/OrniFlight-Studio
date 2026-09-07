@@ -1,0 +1,28 @@
+.studio-tooltip
+  position: relative
+  display: inline-flex
+
+  &::after
+    content: attr(data-tip)
+    position: absolute
+    top: calc(100% + 8px)
+    left: 50%
+    z-index: 1000
+    transform: translate(-50%, -3px)
+    padding: 4px 7px
+    border: 1px solid var(--of-border-2)
+    border-radius: var(--of-radius-md)
+    background: #111116
+    box-shadow: var(--of-shadow-elevated)
+    color: var(--of-text-secondary)
+    font: 500 var(--of-text-xs)/1.2 var(--of-font-body)
+    white-space: nowrap
+    opacity: 0
+    visibility: hidden
+    pointer-events: none
+    transition: opacity var(--of-dur-fast), transform var(--of-dur-fast)
+
+  &:hover::after, &:focus-within::after
+    opacity: 1
+    visibility: visible
+    transform: translate(-50%, 0)

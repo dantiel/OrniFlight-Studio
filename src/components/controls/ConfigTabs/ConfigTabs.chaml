@@ -1,16 +1,21 @@
 import { NavLink } from 'react-router-dom'
 
-- import { upper } from '../../../lib/essential.coffee'
 .config-view-selector{ role: 'navigation', aria-label: 'View navigation' }
-  %NavLink{ to: '/wings', end: true, className: 'config-view-btn' }
-    = upper('wings')
-  %NavLink{ to: '/flight', end: true, className: 'config-view-btn' }
-    = upper('flight')
-  %NavLink{ to: '/perception', end: true, className: 'config-view-btn' }
-    = upper('perception')
-  %NavLink{ to: '/voice', end: true, className: 'config-view-btn' }
-    = upper('voice')
-  %NavLink{ to: '/memory', end: true, className: 'config-view-btn' }
-    = upper('memory')
-  %NavLink{ to: '/flash', end: true, className: 'config-view-btn' }
-    = upper('flash')
+  %NavLink{ to: '/device', end: true, className: 'config-view-btn', data-glyph: '◫' }
+    %span.tab-label Device
+  %NavLink{ to: '/airframe', end: true, className: 'config-view-btn', data-glyph: '⌁' }
+    %span.tab-label Airframe
+  %NavLink{ to: '/control', end: true, className: 'config-view-btn', data-glyph: '△' }
+    %span.tab-label Flight Control
+  %NavLink{ to: '/receiver', end: true, className: 'config-view-btn', data-glyph: '⇄' }
+    %span.tab-label Receiver
+  %NavLink{ to: '/power', end: true, className: 'config-view-btn', data-glyph: 'ϟ' }
+    %span.tab-label Power
+  %NavLink{ to: '/sensors', end: true, className: 'config-view-btn', data-glyph: '◎' }
+    %span.tab-label Sensors
+  %NavLink{ to: '/safety', end: true, className: 'config-view-btn', data-glyph: '◇' }
+    %span.tab-label Safety
+  %NavLink{ to: '/data', end: true, className: 'config-view-btn', data-glyph: '▦' }
+    %span.tab-label Data
+  %NavLink{ to: '/flash', end: true, className: 'config-view-btn', data-glyph: '↯' }
+    %span.tab-label Flash Firmware

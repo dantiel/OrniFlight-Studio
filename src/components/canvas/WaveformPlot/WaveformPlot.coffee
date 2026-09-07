@@ -1,123 +1,150 @@
 import './WaveformPlot.sass'
 import { useEffect, useRef, createElement } from 'react'
+import { curveFor } from '../../../telemetry/curveCatalog.coffee'
 
-# ═══════════════════════════════════════════════════════════════
-# Waveform Canvas
-# Receives history array: [{t, wingL, wingR, gyroRoll, gyroPitch, gyroYaw}]
-# curves prop: array of curve ids to render, e.g. ['wingL', 'wingR']
-# Supported: wingL, wingR, gyroRoll, gyroPitch, gyroYaw
-# ═══════════════════════════════════════════════════════════════
+clamp = (min, max, value) -> Math.max min, Math.min max, value
 
-CURVE_COLORS =
-  wingL:    '#f0883e'
-  wingR:    '#58a6ff'
-  gyroRoll: '#f85149'
-  gyroPitch: '#3fb950'
-  gyroYaw:  '#bc8cff'
-
-CURVE_LABELS =
-  wingL:    'Wing L'
-  wingR:    'Wing R'
-  gyroRoll: 'Gyro Roll'
-  gyroPitch: 'Gyro Pitch'
-  gyroYaw:  'Gyro Yaw'
-
-WaveformPlot = ({ history, curves }) ->
+WaveformPlot = ({ history = [], curves = [] }) ->
   canvasRef = useRef null
-  
+  latestRef = useRef { history, curves }
+  drawRef = useRef null
+
+  latestRef.current = { history, curves }
+
   useEffect ->
     canvas = canvasRef.current
     return unless canvas
-    
-    ctx = canvas.getContext '2d'
-    w = canvas.width = canvas.clientWidth * (window.devicePixelRatio or 1)
-    h = canvas.height = canvas.clientHeight * (window.devicePixelRatio or 1)
-    ctx.scale window.devicePixelRatio or 1, window.devicePixelRatio or 1
-    cw = canvas.clientWidth
-    ch = canvas.clientHeight
-    
-    # Clear
-    ctx.fillStyle = '#0d1117'
-    ctx.fillRect 0, 0, cw, ch
-    
-    # Grid
-    ctx.strokeStyle = '#1c2333'
-    ctx.lineWidth = 0.5
-    for i in [0..4]
-      y = (ch / 4) * i
+    frame = null
+
+    draw = ->
+      canvas = canvasRef.current
+      return unless canvas
+      rect = canvas.getBoundingClientRect()
+      width = Math.floor rect.width
+      height = Math.floor rect.height
+      return unless width > 1 and height > 1
+
+      dpr = Math.min window.devicePixelRatio or 1, 2
+      pixelWidth = Math.floor width * dpr
+      pixelHeight = Math.floor height * dpr
+      if canvas.width isnt pixelWidth or canvas.height isnt pixelHeight
+        canvas.width = pixelWidth
+        canvas.height = pixelHeight
+
+      ctx = canvas.getContext '2d'
+      return unless ctx
+      ctx.setTransform dpr, 0, 0, dpr, 0, 0
+      styles = getComputedStyle canvas
+      background = styles.getPropertyValue('--plot-background').trim() or '#151519'
+      grid = styles.getPropertyValue('--plot-grid').trim() or 'rgba(255,255,255,.06)'
+      zero = styles.getPropertyValue('--plot-zero').trim() or 'rgba(255,255,255,.14)'
+      text = styles.getPropertyValue('--plot-text').trim() or '#9c9ca4'
+
+      ctx.clearRect 0, 0, width, height
+      ctx.fillStyle = background
+      ctx.fillRect 0, 0, width, height
+
+      top = 28
+      bottom = height - 8
+      plotHeight = Math.max 1, bottom - top
+
+      ctx.strokeStyle = grid
+      ctx.lineWidth = 1
+      for i in [0..4]
+        y = top + (plotHeight / 4) * i
+        ctx.beginPath()
+        ctx.moveTo 0, Math.round(y) + .5
+        ctx.lineTo width, Math.round(y) + .5
+        ctx.stroke()
+      for i in [0..8]
+        x = (width / 8) * i
+        ctx.beginPath()
+        ctx.moveTo Math.round(x) + .5, top
+        ctx.lineTo Math.round(x) + .5, bottom
+        ctx.stroke()
+
+      ctx.strokeStyle = zero
       ctx.beginPath()
-      ctx.moveTo 0, y
-      ctx.lineTo cw, y
+      ctx.moveTo 0, top + plotHeight / 2
+      ctx.lineTo width, top + plotHeight / 2
       ctx.stroke()
-    for i in [0..8]
-      x = (cw / 8) * i
-      ctx.beginPath()
-      ctx.moveTo x, 0
-      ctx.lineTo x, ch
-      ctx.stroke()
-    
-    # Zero line
-    ctx.strokeStyle = '#30363d'
-    ctx.lineWidth = 1
-    ctx.beginPath()
-    ctx.moveTo 0, ch / 2
-    ctx.lineTo cw, ch / 2
-    ctx.stroke()
-    
-    return unless history and history.length > 1
-    activeCurves = curves or ['wingL', 'wingR']
-    
-    # Scale: show last 3 seconds
-    maxT = history[history.length - 1].t
-    minT = Math.max 0, maxT - 3.0
-    
-    timeToX = (t) -> ((t - minT) / Math.max(0.001, maxT - minT)) * cw
-    
-    # Determine if we're showing gyro (rate) or wing (angle) data
-    hasGyro = activeCurves.some (c) -> c.indexOf('gyro') == 0
-    hasWing = activeCurves.some (c) -> c.indexOf('wing') == 0
-    
-    # Amplitude scale
-    if hasGyro and not hasWing
-      # Gyro rates: ±720 °/s
-      ampScale = ch / 1440
-    else
-      # Wing angles: ±60°
-      ampScale = ch / 120
-    centerY = ch / 2
-    
-    valueToY = (v) -> centerY - v * ampScale
-    
-    # Draw each selected curve
-    legendY = 14
-    for curveId, idx in activeCurves
-      color = CURVE_COLORS[curveId] or '#ffffff'
-      ctx.strokeStyle = color
-      ctx.lineWidth = 1.5
-      ctx.beginPath()
-      first = true
-      for pt in history
-        continue if pt.t < minT
-        x = timeToX pt.t
-        val = pt[curveId] or 0
-        # Convert gyro values from rad/s to °/s
-        val = val * 180 / Math.PI if curveId.indexOf('gyro') == 0
-        y = valueToY val
-        if first
-          ctx.moveTo x, y
-          first = false
-        else
-          ctx.lineTo x, y
-      ctx.stroke()
-      
-      # Legend
-      ctx.font = '10px "SF Mono", "Fira Code", monospace'
-      ctx.fillStyle = color
-      ctx.fillText CURVE_LABELS[curveId] or curveId, 8, legendY
-      legendY += 14
+
+      current = latestRef.current
+      active = current.curves.map(curveFor).filter(Boolean)
+      samples = current.history or []
+
+      if samples.length < 2 or active.length is 0
+        ctx.fillStyle = text
+        ctx.font = '10px "JetBrains Mono", "SF Mono", monospace'
+        message = if active.length then 'WAITING FOR TELEMETRY' else 'CHOOSE A CURVE'
+        ctx.fillText message, 10, top + 18
+        return
+
+      maxT = samples[samples.length - 1].t or 0
+      minT = Math.max 0, maxT - 4
+      spanT = Math.max .001, maxT - minT
+      timeToX = (t) -> ((t - minT) / spanT) * width
+
+      legendX = 9
+      for curve in active
+        [domainMin, domainMax] = curve.domain
+        span = Math.max .001, domainMax - domainMin
+        valueToY = (value) ->
+          normalized = clamp 0, 1, (value - domainMin) / span
+          bottom - normalized * plotHeight
+
+        ctx.strokeStyle = curve.color
+        ctx.lineWidth = 1.5
+        ctx.lineJoin = 'round'
+        ctx.beginPath()
+        started = false
+        for sample in samples when (sample.t or 0) >= minT
+          value = sample[curve.id]
+          continue unless Number.isFinite value
+          x = timeToX sample.t or 0
+          y = valueToY value
+          if started then ctx.lineTo x, y else ctx.moveTo x, y
+          started = true
+        ctx.stroke() if started
+
+        latest = samples[samples.length - 1][curve.id]
+        label = curve.shortLabel
+        if Number.isFinite latest
+          precision = if Math.abs(latest) < 20 then 1 else 0
+          label += " #{latest.toFixed(precision)}#{curve.unit}"
+        ctx.font = '10px "JetBrains Mono", "SF Mono", monospace'
+        labelWidth = ctx.measureText(label).width
+        break if legendX + labelWidth > width - 8
+        ctx.fillStyle = curve.color
+        ctx.fillText label, legendX, 17
+        legendX += labelWidth + 14
+
+    scheduleDraw = ->
+      cancelAnimationFrame frame if frame?
+      frame = requestAnimationFrame draw
+
+    drawRef.current = scheduleDraw
+    observer = new ResizeObserver scheduleDraw
+    observer.observe canvas
+    scheduleDraw()
+
+    ->
+      cancelAnimationFrame frame if frame?
+      observer.disconnect()
+      drawRef.current = null
+  , []
+
+  useEffect ->
+    drawRef.current?()
     return
   , [history, curves]
-  
-  createElement 'canvas', { className: 'waveform-canvas', ref: canvasRef }
+
+  createElement 'div', { className: 'waveform-plot' },
+    createElement 'canvas', {
+      className: 'waveform-canvas'
+      ref: canvasRef
+      role: 'img'
+      'aria-label': 'Live telemetry plot'
+    }
 
 export default WaveformPlot

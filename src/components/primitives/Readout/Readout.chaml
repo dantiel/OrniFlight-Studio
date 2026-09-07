@@ -1,7 +1,11 @@
+- import AnimatedValue from '../../motion/AnimatedValue/AnimatedValue.coffee'
 .readout
   - for item, i in (props.items || [])
     .readout-item{ key: i }
       %span.readout-label
         = item.label
       %span.readout-value
-        = item.value
+        - if typeof item.value == 'number'
+          %AnimatedValue{ value: item.value, decimals: item.decimals || 1, suffix: item.suffix || '' }
+        - else
+          = item.value

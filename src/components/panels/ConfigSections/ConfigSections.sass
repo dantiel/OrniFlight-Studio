@@ -1,0 +1,58 @@
+// ConfigSections — airframe configuration document (draft/saved)
+.config-sections
+  display: flex
+  flex-direction: column
+  gap: 8px
+  padding: 12px
+
+  .config-sections-header
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 20px
+
+  .config-mode-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    border: 1px solid var(--of-border-1)
+    color: var(--of-text-muted)
+
+    &.config-mode-sim
+      border-color: var(--of-accent-dim)
+      color: var(--of-accent)
+
+  .config-dirty-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    background: var(--of-accent-dim)
+    color: var(--of-text-primary)
+
+  .config-sections-actions
+    display: flex
+    gap: 8px
+
+  .config-action
+    flex: 1
+    padding: 7px 10px
+    border-radius: 8px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-glass-bg)
+    color: var(--of-text-secondary)
+    cursor: pointer
+    font-family: inherit
+    font-size: 12px
+    letter-spacing: 0.06em
+
+    &:hover:not(:disabled)
+      border-color: var(--of-accent)
+      color: var(--of-accent)
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed

@@ -68,7 +68,7 @@ function prePlugin() {
     load(id) {
       // Raw .coffee
       if (id.endsWith('.coffee') && !id.endsWith('.coffee.jsx')) {
-        return compileCoffeeAt(toRealPath(id));
+        return compileCoffeeAt.call(this, toRealPath(id));
       }
       // Raw .chaml
       if (CHAML_RE.test(id) && !id.endsWith('.chaml.jsx')) {
@@ -80,7 +80,7 @@ function prePlugin() {
       }
       // .coffee.jsx virtual
       if (id.endsWith('.coffee.jsx')) {
-        return compileCoffeeAt(toRealPath(id.replace(/\.jsx$/, '')));
+        return compileCoffeeAt.call(this, toRealPath(id.replace(/\.jsx$/, '')));
       }
       return null;
     },

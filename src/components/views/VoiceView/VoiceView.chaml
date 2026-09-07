@@ -1,35 +1,32 @@
 - import useEngineStore from '../../../stores/useEngineStore.coffee'
 - import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
-- CHANS = ['Throttle', 'Aileron', 'Elevator', 'Rudder']
+- import useDeviceStore from '../../../stores/useDeviceStore.coffee'
+- CHANS = ['Roll', 'Pitch', 'Yaw', 'Throttle', 'Aux 1', 'Aux 2', 'Aux 3', 'Aux 4']
 - sim = useEngineStore()
 - tele = useTelemetryStore()
+- device = useDeviceStore()
+- visibleChannels = if tele.rcChannels?.length then tele.rcChannels.slice(0, 16) else [0, 0, 0, 0]
+- channelDisplays = visibleChannels.map((value) -> if value then "#{value} µs" else '—')
+- sourceDisplay = if device.source == 'device' then 'Live MSP data' else 'Offline profile'
+- mappingDisplay = if device.identity?.rxMap?.length then device.identity.rxMap.join(' · ') else 'Read on connect'
+- statusDisplay = if device.status?.armed then 'Armed · editing locked' else 'Disarmed'
+- linkDisplay = if tele.linkQuality then "#{Math.round(tele.linkQuality)}%" else 'Not reported by MSP'
+- updateDisplay = if tele.source == 'device' then 'Flight controller' else 'Waiting'
 .view-layout.layout-voice
   %ViewArea{ area: 'proto' }
-    %Section{ heading: 'Receiver Protocol', subheading: 'The language the bird understands.' }
-      %ParamRow{ label: 'Type', display: 'CRSF (TBS Crossfire)' }
-      %ParamRow{ label: 'Baud', display: '420k / 8N1' }
-      %ParamRow{ label: 'Telemetry', display: 'Enabled · 150 Hz' }
-      %ParamRow{ label: 'Sync', display: 'Frame-locked' }
-    %Section{ heading: 'Binding', subheading: 'Receiver pairing state.' }
-      %ParamRow{ label: 'Mode', display: 'Bind · 8ch' }
-      %ParamRow{ label: 'UID', display: '0x1A:2F:88' }
+    %Section{ heading: 'Receiver', subheading: 'Input transport and firmware mapping.' }
+      %ParamRow{ label: 'Source', display: sourceDisplay }
+      %ParamRow{ label: 'Channels', display: String(tele.rcChannels?.length || 0) }
+      %ParamRow{ label: 'Mapping', display: mappingDisplay }
+      %ParamRow{ label: 'Status', display: statusDisplay }
   %ViewArea{ area: 'chans' }
-    %Section{ heading: 'Channel Map', subheading: 'Stick → Surface assignment.' }
-      - for ch, i in CHANS
-        %ParamRow{ key: i, label: "CH#{i + 1}", display: "#{ch} → S#{i + 1}" }
-    %Section{ heading: 'Mixer', subheading: 'Channel weight and trim.' }
-      %ParamRow{ label: 'Weight', display: '100%' }
-      %ParamRow{ label: 'Expo', display: '20%' }
-      %ParamRow{ label: 'Trim', display: 'Center' }
+    %Section{ heading: 'Live Channels', subheading: 'Raw receiver pulse values from the controller.' }
+      - for value, i in visibleChannels
+        %ParamRow{ key: i, label: CHANS[i] || "CH#{i + 1}", display: channelDisplays[i] }
   %ViewArea{ area: 'link' }
     %Section{ heading: 'Link Quality', subheading: 'Signal health and diagnostics.' }
-      %ParamRow{ label: 'RSSI', display: '-38 dBm' }
-      %ParamRow{ label: 'LQ', display: '100%' }
-      %ParamRow{ label: 'SNR', display: '32 dB' }
-      %ParamRow{ label: 'Packet Rate', display: '150 Hz' }
-      %ParamRow{ label: 'Lost', display: '0 / 14.2k' }
-    %Section{ heading: 'Warnings', subheading: 'Trigger thresholds.' }
-      %ParamRow{ label: 'RSSI Low', display: '-85 dBm' }
-      %ParamRow{ label: 'RSSI Crit', display: '-95 dBm' }
+      %ParamRow{ label: 'RSSI', display: "#{Math.round(tele.rssi || 0)}%" }
+      %ParamRow{ label: 'Link quality', display: linkDisplay }
+      %ParamRow{ label: 'Update source', display: updateDisplay }
   %ViewArea{ area: 'bird' }
-    %AircraftViewport{ attitude: tele.attitude || [0, 0, 0], wingAngleL: tele.wingAngleL || 0, wingAngleR: tele.wingAngleR || 0, flapFrequency: tele.flapFrequency || 0, onBump: sim.bump }
+    %PlotWorkspace{ workspace: 'receiver', history: tele.waveformHistory || [] }

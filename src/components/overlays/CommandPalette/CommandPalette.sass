@@ -1,0 +1,83 @@
+.command-backdrop
+  position: fixed
+  inset: 0
+  z-index: 1000
+  display: flex
+  justify-content: center
+  align-items: flex-start
+  padding-top: min(18vh, 150px)
+  background: rgba(5,5,8,.42)
+  backdrop-filter: blur(4px)
+
+.command-palette
+  width: min(560px, calc(100vw - 24px))
+  border: 1px solid var(--of-border-accent)
+  border-radius: 10px
+  background: rgba(var(--of-body-rgb), .94)
+  box-shadow: 0 20px 70px rgba(0,0,0,.55), 0 0 30px var(--of-simulation-glow)
+  overflow: hidden
+
+.command-search
+  display: grid
+  grid-template-columns: auto 1fr auto
+  align-items: center
+  gap: var(--of-space-4)
+  padding: var(--of-space-5) var(--of-space-6)
+  border-bottom: 1px solid var(--of-border-1)
+  color: var(--of-accent)
+
+  input
+    border: 0
+    outline: 0
+    background: transparent
+    color: var(--of-text-primary)
+    font: 500 var(--of-text-md)/1.4 var(--of-font-body)
+
+  kbd
+    padding: 2px 5px
+    border: 1px solid var(--of-border-2)
+    border-radius: 3px
+    color: var(--of-text-muted)
+    font: 9px/1.2 var(--of-font-mono)
+
+.command-results
+  max-height: 330px
+  overflow-y: auto
+  padding: var(--of-space-3)
+
+  button
+    width: 100%
+    display: grid
+    grid-template-columns: 28px 1fr auto
+    align-items: center
+    gap: var(--of-space-4)
+    padding: var(--of-space-4) var(--of-space-5)
+    border: 0
+    border-radius: var(--of-radius-md)
+    background: transparent
+    color: var(--of-text-secondary)
+    text-align: left
+    cursor: pointer
+
+    &.active
+      background: rgba(var(--of-accent-rgb), .13)
+      color: var(--of-text-primary)
+
+    small
+      color: var(--of-text-muted)
+      font-family: var(--of-font-mono)
+
+.command-icon
+  color: var(--of-accent)
+  text-align: center
+
+.command-empty
+  padding: var(--of-space-8)
+  color: var(--of-text-muted)
+  text-align: center
+
+.command-palette footer
+  padding: var(--of-space-4) var(--of-space-6)
+  border-top: 1px solid var(--of-border-1)
+  color: var(--of-text-muted)
+  font: 9px/1 var(--of-font-mono)

@@ -1,7 +1,10 @@
+- import AnimatedNumberInput from '../../controls/AnimatedNumberInput/AnimatedNumberInput.coffee'
 .param-row
   %span.param-label
     = props.label
-  - if props.min != null
+  - if props.min?
     %input.param-slider{ type: 'range', min: "#{props.min}", max: "#{props.max}", step: "#{props.step || '1'}", value: "#{props.value}", onInput: props.onInput }/
+  - if props.min?
+    %AnimatedNumberInput{ label: props.label, value: props.value, min: props.min, max: props.max, step: props.step || 1, onChange: (value) -> props.onInput && props.onInput({target: {value: String(value)}}) }/
   %span.param-value
     = props.display || String(props.value || 0)

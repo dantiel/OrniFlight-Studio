@@ -62,6 +62,20 @@ scaleGains = (gains) ->
     scaled[k] = (gains[k] ? d) * 0.01
   scaled
 
+# Airframe geometry — wing area and aspect ratio derive from span
+# and chord. Local model state: OrniFlight exposes no MSP codes for
+# geometry, mass or CG, so the configuration document owns them.
+AIRFRAME_SPAN_DEFAULT  = 1200
+AIRFRAME_CHORD_DEFAULT = 180
+
+export deriveGeometry = (geometry = {}) ->
+  span = Number(geometry.wingSpan) or AIRFRAME_SPAN_DEFAULT
+  chord = Number(geometry.chord) or AIRFRAME_CHORD_DEFAULT
+  wingSpan: span
+  chord: chord
+  wingArea: span * chord
+  aspectRatio: if chord > 0 then span / chord else 0
+
 # ═══════════════════════════════════════════════════════════════
 # OrnithopterModel — the bird's physics, PID, and ONDAS soul
 # ═══════════════════════════════════════════════════════════════
@@ -141,6 +155,15 @@ export class OrnithopterModel
       capacity: 1500
       consumed: 0.0
 
+    @geometry = deriveGeometry()
+    @mass =
+      totalMass: 520
+      cgX: 0
+      cgZ: 0
+    @pairCount = 2
+    @servoMounts = for i in [0...@pairCount]
+      { index: i, x: 0, z: 0, angle: 0 }
+
     @connected        = false
     @disturbancePulse = 0.0
 
@@ -197,6 +220,23 @@ export class OrnithopterModel
   setServoParam: (index, param, value) ->
     return @ unless @servos[index]
     @servos[index][param] = value
+    @
+
+  setAirframe: (values = {}) ->
+    if values.geometry?
+      @geometry = deriveGeometry { @geometry..., values.geometry... }
+    @mass = { @mass..., values.mass... } if values.mass?
+    @pairCount = values.pairCount if values.pairCount?
+    if values.servoMounts?
+      @servoMounts = for i in [0...@pairCount]
+        source = values.servoMounts.find((m) -> m?.index == i)
+        source ?= { index: i, x: 0, z: 0, angle: 0 }
+        {
+          index: i
+          x: Number(source.x) or 0
+          z: Number(source.z) or 0
+          angle: Number(source.angle) or 0
+        }
     @
 
   # ── Simulation step ────────────────────────────────────────

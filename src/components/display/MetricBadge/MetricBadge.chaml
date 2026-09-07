@@ -1,5 +1,9 @@
+- import AnimatedValue from '../../motion/AnimatedValue/AnimatedValue.coffee'
 .battery-indicator
   %span.battery-label
     = props.label
   %span.battery-voltage
-    = props.value
+    - if props.numericValue != null
+      %AnimatedValue{ value: props.numericValue, decimals: 1, suffix: props.suffix || '' }
+    - else
+      = props.value

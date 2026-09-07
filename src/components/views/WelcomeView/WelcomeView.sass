@@ -1,0 +1,148 @@
+.welcome-view
+  flex: 1
+  min-height: 0
+  display: grid
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr)
+  gap: clamp(24px, 6vw, 88px)
+  align-items: center
+  padding: clamp(32px, 7vw, 96px)
+  overflow-y: auto
+  --welcome-glow: radial-gradient(circle at 22% 42%, rgba(var(--of-accent-rgb), .13), transparent 34%)
+  --welcome-sheen: linear-gradient(145deg, rgba(255,255,255,.018), transparent 45%)
+  background-image: var(--welcome-glow), var(--welcome-sheen)
+
+.welcome-hero
+  display: grid
+  grid-template-columns: auto minmax(0, 700px)
+  align-items: center
+  gap: clamp(22px, 4vw, 54px)
+
+.welcome-orbit
+  width: clamp(82px, 10vw, 132px)
+  aspect-ratio: 1
+  display: grid
+  place-items: center
+  border: 1px solid rgba(var(--of-accent-rgb), .28)
+  border-radius: 50%
+  box-shadow: inset 0 0 40px rgba(var(--of-accent-rgb), .1), 0 0 70px rgba(var(--of-accent-rgb), .08)
+  position: relative
+
+  &::before, &::after
+    content: ''
+    position: absolute
+    border: 1px solid rgba(var(--of-accent-rgb), .16)
+    border-radius: 50%
+
+  &::before
+    inset: 14px -14px
+    transform: rotate(35deg)
+
+  &::after
+    inset: -14px 14px
+    transform: rotate(-35deg)
+
+.welcome-orbit-core
+  color: var(--of-accent-alt)
+  font: 300 clamp(30px, 4vw, 52px)/1 var(--of-font-heading)
+
+.welcome-kicker
+  color: var(--of-accent-alt)
+  font: 650 10px/1 var(--of-font-mono)
+  letter-spacing: .18em
+
+.welcome-copy
+  h1
+    max-width: 760px
+    margin: 12px 0 18px
+    color: var(--of-text-primary)
+    font: 520 clamp(34px, 5vw, 68px)/.98 var(--of-font-heading)
+    letter-spacing: -.035em
+
+  > p
+    max-width: 650px
+    margin: 0
+    color: var(--of-text-soft)
+    font-size: clamp(13px, 1.4vw, 17px)
+    line-height: 1.6
+
+.welcome-actions
+  display: flex
+  flex-wrap: wrap
+  gap: 10px
+  margin-top: 28px
+
+.welcome-primary, .welcome-secondary
+  height: 39px
+  padding: 0 16px
+  border-radius: var(--of-radius-md)
+  font: 650 10px/1 var(--of-font-heading)
+  letter-spacing: .04em
+  cursor: pointer
+
+.welcome-primary
+  border: 1px solid rgba(var(--of-accent-rgb), .75)
+  background: var(--of-accent)
+  color: white
+
+  &:disabled
+    opacity: .45
+    cursor: default
+
+.welcome-secondary
+  border: 1px solid var(--of-border-2)
+  background: var(--of-glass-card)
+  color: var(--of-text-primary)
+
+.welcome-copy .welcome-notice, .welcome-copy .welcome-error
+  margin-top: 12px
+  font: 10px/1.5 var(--of-font-mono)
+
+.welcome-copy .welcome-error
+  color: var(--of-accent-red)
+
+.welcome-session
+  padding: clamp(22px, 3vw, 34px)
+  border: 1px solid var(--of-border-1)
+  border-radius: var(--of-radius-xl)
+  background: var(--of-glass-card)
+  box-shadow: var(--of-shadow-panel)
+
+.welcome-session-label
+  color: var(--of-text-muted)
+  font: 650 9px/1 var(--of-font-mono)
+  letter-spacing: .12em
+
+.welcome-device
+  display: grid
+  gap: 8px
+  margin: 18px 0 28px
+
+  strong
+    color: var(--of-text-primary)
+    font: 550 19px/1.2 var(--of-font-heading)
+
+  span
+    color: var(--of-text-soft)
+    font: 10px/1.4 var(--of-font-mono)
+
+.welcome-device-empty strong
+  font-size: 15px
+
+.welcome-steps
+  display: flex
+  justify-content: space-between
+  gap: 8px
+  padding-top: 18px
+  border-top: 1px solid var(--of-border-1)
+  color: var(--of-text-muted)
+  font: 9px/1 var(--of-font-mono)
+
+@media (max-width: 850px)
+  .welcome-view
+    grid-template-columns: 1fr
+
+  .welcome-hero
+    grid-template-columns: 1fr
+
+  .welcome-orbit
+    width: 76px

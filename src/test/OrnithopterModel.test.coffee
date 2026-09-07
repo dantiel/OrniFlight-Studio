@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { OrnithopterModel } from '../simulation/OrnithopterModel.coffee'
+import { OrnithopterModel, deriveGeometry } from '../simulation/OrnithopterModel.coffee'
 
 describe 'OrnithopterModel', ->
 
@@ -117,3 +117,45 @@ describe 'OrnithopterModel', ->
     # (≈ 3.1416 rad = 30 Hz effective) while telemetry still reported 6 Hz.
     model.step (1 / 60)
     expect(model.flapPhase).toBeCloseTo (6 * 2 * Math.PI / 60), 2
+
+  it 'initializes default airframe geometry', ->
+    expect(model.geometry.wingSpan).toBe 1200
+    expect(model.geometry.chord).toBe 180
+    expect(model.geometry.wingArea).toBe 216000
+    expect(model.geometry.aspectRatio).toBeCloseTo 6.667
+
+  it 'initializes default mass and CG', ->
+    expect(model.mass.totalMass).toBe 520
+    expect(model.mass.cgX).toBe 0
+    expect(model.mass.cgZ).toBe 0
+
+  it 'initializes two servo mount pairs', ->
+    expect(model.pairCount).toBe 2
+    expect(model.servoMounts).toHaveLength 2
+    expect(model.servoMounts[1].index).toBe 1
+
+  it 'setAirframe merges geometry and recomputes derived values', ->
+    model.setAirframe { geometry: { wingSpan: 1500 } }
+    expect(model.geometry.wingSpan).toBe 1500
+    expect(model.geometry.chord).toBe 180
+    expect(model.geometry.wingArea).toBe 270000
+    expect(model.geometry.aspectRatio).toBeCloseTo 8.333
+
+  it 'setAirframe merges mass and mounts without touching servos', ->
+    model.setAirframe {
+      mass: { totalMass: 600, cgX: 10 }
+      pairCount: 3
+      servoMounts: [{ index: 0, x: 5, z: 0, angle: 0 }]
+    }
+    expect(model.mass.totalMass).toBe 600
+    expect(model.mass.cgX).toBe 10
+    expect(model.pairCount).toBe 3
+    expect(model.servoMounts).toHaveLength 3
+    expect(model.servoMounts[0].x).toBe 5
+    expect(model.servos).toHaveLength 4
+
+  it 'derives geometry as a pure function', ->
+    geometry = deriveGeometry { wingSpan: 1500, chord: 200 }
+    expect(geometry.wingArea).toBe 300000
+    expect(geometry.aspectRatio).toBe 7.5
+    expect(deriveGeometry({}).aspectRatio).toBeGreaterThan 0

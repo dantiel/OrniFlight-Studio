@@ -10,7 +10,7 @@ describe 'ConnectionBar — Interaction', ->
   afterEach ->
     vi.restoreAllMocks()
 
-  renderApp = (route = '/wings') ->
+  renderApp = (route = '/device') ->
     render h(MemoryRouter, { initialEntries: [route] }, h(App, null))
 
   it 'renders connection status BREATHING on startup', ->
@@ -28,14 +28,17 @@ describe 'ConnectionBar — Interaction', ->
     expect(screen.getByText 'Orni').toBeInTheDocument()
     expect(screen.getByText 'Studio').toBeInTheDocument()
 
-  it 'renders six config tab navigation links', ->
+  it 'renders nine domain workspace links', ->
     renderApp()
     links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 6
+    expect(links.length).toBe 9
     texts = Array.from(links).map (l) -> l.textContent
-    expect(texts).toContain 'Wings'
-    expect(texts).toContain 'Flight'
-    expect(texts).toContain 'Perception'
-    expect(texts).toContain 'Voice'
-    expect(texts).toContain 'Memory'
-    expect(texts).toContain 'Flash'
+    expect(texts).toContain 'Device'
+    expect(texts).toContain 'Airframe'
+    expect(texts).toContain 'Flight Control'
+    expect(texts).toContain 'Receiver'
+    expect(texts).toContain 'Power'
+    expect(texts).toContain 'Sensors'
+    expect(texts).toContain 'Safety'
+    expect(texts).toContain 'Data'
+    expect(texts).toContain 'Flash Firmware'

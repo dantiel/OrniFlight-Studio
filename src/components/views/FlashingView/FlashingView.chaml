@@ -1,5 +1,6 @@
 - import useFlashController from '../../../hooks/useFlashController.coffee'
 - import { FLASH_OPTIONS } from '../../../firmware/flashUi.coffee'
+- import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
 - ctrl = useFlashController()
 .view-layout.layout-flash
   %ViewArea{ area: 'device' }
@@ -21,12 +22,13 @@
       %FlashProgress{ phase: ctrl.phase, progress: ctrl.progress, label: ctrl.label }
       %div.forge-actions
         %FlashButton{ variant: ctrl.btn.variant, label: ctrl.btn.label, glyph: ctrl.btn.glyph, disabled: ctrl.btn.disabled, onClick: ctrl.onClick }
-      %div.forge-options
-        - for opt in FLASH_OPTIONS
-          %label.fw-option{ key: opt[0] }
-            %input.fw-option-check{ type: 'checkbox', checked: ctrl.options[opt[0]], onChange: (e) -> ctrl.onOption(opt[0], e.target.checked) }
-            %span.fw-option-label= opt[1]
-            %span.fw-option-hint= opt[2]
+      %StudioAccordion{ title: 'Advanced flash options', defaultOpen: true }
+        %div.forge-options
+          - for opt in FLASH_OPTIONS
+            %label.fw-option{ key: opt[0] }
+              %input.fw-option-check{ type: 'checkbox', checked: ctrl.options[opt[0]], onChange: (e) -> ctrl.onOption(opt[0], e.target.checked) }
+              %span.fw-option-label= opt[1]
+              %span.fw-option-hint= opt[2]
       - if ctrl.error
         %div.forge-error= ctrl.error
   %ViewArea{ area: 'console' }

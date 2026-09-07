@@ -1,0 +1,17 @@
+.progressive-blur
+  position: absolute
+  left: 0
+  right: 0
+  height: 42px
+  z-index: 2
+  pointer-events: none
+  backdrop-filter: blur(5px)
+  -webkit-backdrop-filter: blur(5px)
+  mask-image: linear-gradient(to bottom, #000, transparent)
+
+  &.top
+    top: 0
+
+  &.bottom
+    bottom: 0
+    transform: rotate(180deg)
