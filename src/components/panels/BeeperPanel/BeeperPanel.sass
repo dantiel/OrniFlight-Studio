@@ -1,0 +1,19 @@
+// BeeperPanel — off-mask toggles + DShot beacon (MSP 184/185)
+// Shared .safety-* primitives live in FailsafeView.sass, this file
+// only specialises the panel.
+.panel-beeper
+  .beeper-tone
+    max-width: 220px
+
+  .safety-subsection
+    margin-top: 14px
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  .safety-subsection-head
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.12em
+    text-transform: uppercase
+    color: var(--of-text-dim)

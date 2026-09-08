@@ -15,6 +15,10 @@ import {
   decodeOsdConfig, encodeOsdItem
   decodeVtxConfig, encodeVtxConfig
   decodeSerialConfig, encodeSerialConfig
+  decodeFailsafeConfig, encodeFailsafeConfig
+  decodeArmingConfig, encodeArmingConfig
+  decodeFeatureConfig, encodeFeatureConfig
+  decodeBeeperConfig, encodeBeeperConfig
   decodeRxConfig, encodeRxConfig
   channelMapFromRxMap, rxMapFromChannelMap
   RX_MAPPABLE_CHANNEL_COUNT, MAX_SUPPORTED_RC_CHANNEL_COUNT
@@ -28,6 +32,10 @@ import {
   frequencyFor, clampFrequency, VTX_DEFAULT_POWER
 } from '../lib/vtxCatalog.coffee'
 import { SERIAL_CONFIG_BYTES } from '../lib/serialCatalog.coffee'
+import {
+  DEFAULT_FAILSAFE_CONFIG, DEFAULT_ARMING_CONFIG
+  DEFAULT_FEATURE_MASK, DEFAULT_BEEPER_CONFIG
+} from '../lib/safetyCatalog.coffee'
 
 POLL_INTERVAL_MS = 100
 STATUS_EVERY_ROUNDS = 5
@@ -314,6 +322,71 @@ class OrniFlightSession
         )
     readBack
 
+  readFailsafeConfig: ->
+    payload = await @client.requestOptional MSP_CODES.FAILSAFE_CONFIG
+    if payload then decodeFailsafeConfig(payload) else null
+
+  # SET_FAILSAFE_CONFIG consumes the full 8-byte record; the
+  # read-back verifies every field, falling back to the firmware
+  # defaults for anything the caller omitted.
+  writeFailsafeConfig: (config = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_FAILSAFE_CONFIG,
+      encodeFailsafeConfig config
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readFailsafeConfig()
+    unless readBack? and failsafeConfigMatches config, readBack
+      throw new Error 'Failsafe configuration read-back mismatch'
+    readBack
+
+  readArmingConfig: ->
+    payload = await @client.requestOptional MSP_CODES.ARMING_CONFIG
+    if payload then decodeArmingConfig(payload) else null
+
+  # The write always emits 3 bytes — smallAngle only reaches the
+  # firmware when the third byte rides along.
+  writeArmingConfig: (config = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_ARMING_CONFIG,
+      encodeArmingConfig config
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readArmingConfig()
+    unless readBack? and armingConfigMatches config, readBack
+      throw new Error 'Arming configuration read-back mismatch'
+    readBack
+
+  readFeatureConfig: ->
+    payload = await @client.requestOptional MSP_CODES.FEATURE_CONFIG
+    if payload then decodeFeatureConfig(payload) else null
+
+  # SET_FEATURE_CONFIG only stages the mask — the EEPROM_WRITE that
+  # follows materializes it via writeEEPROMWithFeatures.
+  writeFeatureConfig: (mask = DEFAULT_FEATURE_MASK) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_FEATURE_CONFIG,
+      encodeFeatureConfig mask
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readFeatureConfig()
+    unless readBack? and readBack == (mask >>> 0)
+      throw new Error 'Feature configuration read-back mismatch'
+    readBack
+
+  readBeeperConfig: ->
+    payload = await @client.requestOptional MSP_CODES.BEEPER_CONFIG
+    if payload then decodeBeeperConfig(payload) else null
+
+  # SET_BEEPER_CONFIG tolerates 4/5/9-byte payloads on the firmware
+  # side; the write always emits the full 9-byte record.
+  writeBeeperConfig: (config = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_BEEPER_CONFIG,
+      encodeBeeperConfig config
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readBeeperConfig()
+    unless readBack? and beeperConfigMatches config, readBack
+      throw new Error 'Beeper configuration read-back mismatch'
+    readBack
+
   readRxConfig: ->
     payload = await @client.requestOptional MSP_CODES.RX_CONFIG
     if payload then decodeRxConfig(payload) else null
@@ -507,6 +580,29 @@ serialPortMatches = (expected = {}, actual = {}) ->
     'functionMask', 'mspBaud', 'gpsBaud', 'telemetryBaud', 'blackboxBaud'
   ]
     return false unless actual[key] == expected[key]
+  true
+
+# Field-wise comparisons for the safety documents — omitted fields
+# fall back to the firmware defaults the encoder emitted.
+failsafeConfigMatches = (expected = {}, actual = {}) ->
+  for key in [
+    'delay', 'offDelay', 'throttle', 'switchMode'
+    'throttleLowDelay', 'procedure'
+  ]
+    unless actual[key] == (expected[key] ? DEFAULT_FAILSAFE_CONFIG[key])
+      return false
+  true
+
+armingConfigMatches = (expected = {}, actual = {}) ->
+  for key in ['autoDisarmDelay', 'smallAngle']
+    unless actual[key] == (expected[key] ? DEFAULT_ARMING_CONFIG[key])
+      return false
+  true
+
+beeperConfigMatches = (expected = {}, actual = {}) ->
+  for key in ['offFlags', 'dshotBeaconTone', 'dshotBeaconOffFlags']
+    unless actual[key] == (expected[key] ? DEFAULT_BEEPER_CONFIG[key])
+      return false
   true
 
 # Wing-mapping read-back compares field-wise so array fields

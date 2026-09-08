@@ -1,0 +1,29 @@
+- import './BeeperPanel.sass'
+- import useSafetyStore from '../../../stores/useSafetyStore.coffee'
+- import { BEEPER_MODES, BEEPER_ALL, BEEPER_ALL_FLAG, DSHOT_BEACON_MODES, beeperModeSilenced } from '../../../lib/safetyCatalog.coffee'
+- store = useSafetyStore()
+- beeper = store.draft.beeper
+- valueFromEvent = (f) -> (e) -> f e.target.value
+- boolFromEvent = (f) -> (e) -> f e.target.checked
+%Section{ heading: 'Beeper', subheading: 'MSP 184/185, 9-byte wire record — a set off-mask flag silences its condition.' }
+  %label.safety-field.beeper-tone
+    %span.safety-field-label DShot beacon tone (0–255)
+    %input.safety-input{ type: 'number', min: '0', max: '255', step: '1', value: String(beeper.dshotBeaconTone), onChange: valueFromEvent((value) -> store.setBeeper { dshotBeaconTone: value }) }
+  .safety-subsection
+    .safety-subsection-head DShot beacon silence
+    - for mode in DSHOT_BEACON_MODES
+      %label.safety-toggle-row{ key: "beacon-#{mode.name}" }
+        %input.safety-check{ type: 'checkbox', checked: !beeperModeSilenced(beeper.dshotBeaconOffFlags, mode.id), onChange: boolFromEvent((value) -> store.setBeeperBeaconMode mode.id, value) }
+        %span.safety-toggle-label
+          = mode.label
+  .safety-subsection
+    .safety-subsection-head Beeper conditions
+    %label.safety-toggle-row{ key: 'beeper-all' }
+      %input.safety-check{ type: 'checkbox', checked: Boolean(beeper.offFlags & BEEPER_ALL_FLAG), onChange: boolFromEvent((value) -> store.setBeeperMode BEEPER_ALL.id, !value) }
+      %span.safety-toggle-label
+        = BEEPER_ALL.label
+    - for mode in BEEPER_MODES
+      %label.safety-toggle-row{ key: "beeper-#{mode.name}" }
+        %input.safety-check{ type: 'checkbox', checked: !beeperModeSilenced(beeper.offFlags, mode.id), onChange: boolFromEvent((value) -> store.setBeeperMode mode.id, value) }
+        %span.safety-toggle-label
+          = mode.label

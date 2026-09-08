@@ -1,0 +1,35 @@
+- import useSafetyStore from '../../../stores/useSafetyStore.coffee'
+- store = useSafetyStore()
+- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = store.mode != 'device' or !store.session
+- saveDisabled = store.mode == 'device' and !store.loadedSession
+- log = (label) -> (error) -> console.error label, error
+- readFromDevice = -> store.loadFromDevice().catch log 'Safety read failed'
+- saveToDevice = -> store.save().catch log 'Safety save failed'
+.view-layout.layout-safety
+  %ViewArea{ area: 'side' }
+    .safety-side
+      .safety-header
+        %span.safety-mode-badge{ className: "safety-mode-#{store.mode}" }
+          = modeLabel
+        - if store.dirty
+          %span.safety-dirty-badge DIRTY
+      %Section{ heading: 'Safety', subheading: 'Failsafe, arming, features and beeper — MSP 36/37, 61/62, 75/76, 184/185.' }
+        %p.safety-note
+          = "All four documents ride the wire format exactly. Every save runs SET + EEPROM_WRITE and verifies the read-back; writes lock while armed."
+      - if store.lastError
+        %div.safety-error{ role: 'alert' }
+          = store.lastError
+      .safety-actions
+        %button.safety-action.safety-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
+          Read device
+        %button.safety-action.safety-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
+          Save
+        %button.safety-action.safety-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
+          Revert
+  %ViewArea{ area: 'vport' }
+    .safety-main
+      %FailsafePanel
+      %ArmingPanel
+      %FeaturePanel
+      %BeeperPanel

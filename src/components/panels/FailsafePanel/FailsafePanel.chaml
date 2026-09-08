@@ -1,0 +1,34 @@
+- import './FailsafePanel.sass'
+- import useSafetyStore from '../../../stores/useSafetyStore.coffee'
+- import { FAILSAFE_PROCEDURES, FAILSAFE_SWITCH_MODES, FAILSAFE_THROTTLE_MIN, FAILSAFE_THROTTLE_MAX } from '../../../lib/safetyCatalog.coffee'
+- store = useSafetyStore()
+- draft = store.draft.failsafe
+- valueFromEvent = (f) -> (e) -> f e.target.value
+%Section{ heading: 'Failsafe', subheading: 'Deterministic behavior after link loss — MSP 75/76, 8-byte wire record.' }
+  .safety-grid.panel-failsafe
+    %label.safety-field
+      %span.safety-field-label Guard time (× 0.1 s)
+      %input.safety-input{ type: 'number', min: '0', max: '255', step: '1', value: String(draft.delay), onChange: valueFromEvent((value) -> store.setFailsafe { delay: value }) }
+    %label.safety-field
+      %span.safety-field-label Landing time (× 0.1 s)
+      %input.safety-input{ type: 'number', min: '0', max: '255', step: '1', value: String(draft.offDelay), onChange: valueFromEvent((value) -> store.setFailsafe { offDelay: value }) }
+    %label.safety-field
+      %span.safety-field-label Throttle (µs)
+      %input.safety-input{ type: 'number', min: String(FAILSAFE_THROTTLE_MIN), max: String(FAILSAFE_THROTTLE_MAX), step: '1', value: String(draft.throttle), onChange: valueFromEvent((value) -> store.setFailsafe { throttle: value }) }
+    %label.safety-field
+      %span.safety-field-label Throttle-low delay (ms)
+      %input.safety-input{ type: 'number', min: '0', max: '65535', step: '1', value: String(draft.throttleLowDelay), onChange: valueFromEvent((value) -> store.setFailsafe { throttleLowDelay: value }) }
+    %label.safety-field
+      %span.safety-field-label Switch mode
+      %select.safety-input{ value: String(draft.switchMode), onChange: valueFromEvent((value) -> store.setFailsafe { switchMode: Number(value) }) }
+        - for mode in FAILSAFE_SWITCH_MODES
+          %option{ key: "switch-#{mode.id}", value: String(mode.id) }
+            = "#{mode.name} — #{mode.note}"
+    %label.safety-field
+      %span.safety-field-label Procedure
+      %select.safety-input{ value: String(draft.procedure), onChange: valueFromEvent((value) -> store.setFailsafe { procedure: Number(value) }) }
+        - for procedure in FAILSAFE_PROCEDURES
+          %option{ key: "proc-#{procedure.id}", value: String(procedure.id) }
+            = procedure.name
+  %p.safety-note
+    = "Ornithopter path: DROP folds the wings into the glide fallback; AUTO-LAND holds level flight while the motor settles. Throttle #{FAILSAFE_THROTTLE_MIN} µs = motor off."

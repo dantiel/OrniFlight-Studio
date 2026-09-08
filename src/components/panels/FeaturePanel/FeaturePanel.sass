@@ -1,0 +1,11 @@
+// FeaturePanel — absolute u32 feature mask toggles (MSP 36/37)
+// Two-column toggle list; shared .safety-* primitives live in
+// FailsafeView.sass, this file only specialises the panel.
+.panel-features
+  grid-template-columns: repeat(2, 1fr)
+
+  .safety-toggle-name
+    margin-left: auto
+    font-family: var(--of-font-mono)
+    font-size: 9px
+    opacity: 0.55

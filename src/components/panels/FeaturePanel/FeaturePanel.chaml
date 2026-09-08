@@ -1,0 +1,17 @@
+- import './FeaturePanel.sass'
+- import useSafetyStore from '../../../stores/useSafetyStore.coffee'
+- import { FEATURE_BITS, featureBit } from '../../../lib/safetyCatalog.coffee'
+- store = useSafetyStore()
+- mask = store.draft.features
+- boolFromEvent = (f) -> (e) -> f e.target.checked
+%Section{ heading: 'Features', subheading: 'Absolute u32 mask — SET stages it, EEPROM_WRITE materializes it (MSP 36/37).' }
+  .safety-feature-list.panel-features
+    - for feature in FEATURE_BITS
+      %div.safety-toggle-row{ key: "feature-#{feature.name}" }
+        %input.safety-check{ type: 'checkbox', id: "feature-check-#{feature.name}", checked: Boolean(mask & featureBit(feature)), onChange: boolFromEvent((value) -> store.setFeatureBit featureBit(feature), value) }
+        %label.safety-toggle-label{ htmlFor: "feature-check-#{feature.name}" }
+          = feature.label
+        %span.safety-toggle-name
+          = feature.name
+  %p.safety-note
+    = "The mask rides the wire absolute — unsupported bits are never fabricated. Receiver features gate the input path; MOTOR_STOP keeps the drive off until throttle for glide-first ornithopters."

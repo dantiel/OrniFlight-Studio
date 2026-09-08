@@ -1,0 +1,16 @@
+- import './ArmingPanel.sass'
+- import useSafetyStore from '../../../stores/useSafetyStore.coffee'
+- import { ARMING_SMALL_ANGLE_MAX, GYRO_CAL_ON_FIRST_ARM_DEFAULT } from '../../../lib/safetyCatalog.coffee'
+- store = useSafetyStore()
+- draft = store.draft.arming
+- valueFromEvent = (f) -> (e) -> f e.target.value
+%Section{ heading: 'Arming', subheading: 'Arm prevention and auto-disarm — MSP 61/62, 3-byte wire record.' }
+  .safety-grid.panel-arming
+    %label.safety-field
+      %span.safety-field-label Auto-disarm delay (s, 0 = off)
+      %input.safety-input{ type: 'number', min: '0', max: '255', step: '1', value: String(draft.autoDisarmDelay), onChange: valueFromEvent((value) -> store.setArming { autoDisarmDelay: value }) }
+    %label.safety-field
+      %span.safety-field-label Max arming angle (°, #{ARMING_SMALL_ANGLE_MAX} = always)
+      %input.safety-input{ type: 'number', min: '0', max: String(ARMING_SMALL_ANGLE_MAX), step: '1', value: String(draft.smallAngle), onChange: valueFromEvent((value) -> store.setArming { smallAngle: value }) }
+  %p.safety-note
+    = "small_angle gates arming until the craft rests within the window. Gyro calibration on first arm rides the firmware default (#{GYRO_CAL_ON_FIRST_ARM_DEFAULT} — off) and is not part of the wire record."

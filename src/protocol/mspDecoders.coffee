@@ -6,6 +6,10 @@ import {
   vtxValueFor, VTX_DEFAULT_POWER
 } from '../lib/vtxCatalog.coffee'
 import { SERIAL_CONFIG_BYTES } from '../lib/serialCatalog.coffee'
+import {
+  DEFAULT_FAILSAFE_CONFIG, DEFAULT_ARMING_CONFIG
+  DEFAULT_FEATURE_MASK, DEFAULT_BEEPER_CONFIG
+} from '../lib/safetyCatalog.coffee'
 
 SIGNATURE_LENGTH = 32
 
@@ -357,6 +361,10 @@ clampU16 = (value) ->
 clampU8 = (value) ->
   Math.max 0, Math.min 255, Math.round finiteOr 0, value
 
+clampU32 = (value) ->
+  value = Math.trunc finiteOr 0, value
+  value >>> 0
+
 clampInt = (lo, hi, value) ->
   Math.max lo, Math.min hi, Math.round finiteOr lo, value
 
@@ -577,6 +585,93 @@ encodeSerialConfig = (port = {}) ->
   view.setUint8 6, clampU8(port.blackboxBaud ? 0)
   out
 
+# ── Safety configuration (MSP 61/62, 75/76, 36/37, 184/185) ──
+# Four independent flat wire records; the firmware arbitrates none
+# of them, so each codec stays a standalone document.
+
+# MSP 75: u8 delay, u8 offDelay, u16 throttle, u8 switchMode,
+# u16 throttleLowDelay, u8 procedure — 8 fixed bytes
+# (failsafe.c failsafeConfig_t, all units × 0.1 s except the u16s).
+FAILSAFE_CONFIG_BYTES = 8
+
+decodeFailsafeConfig = (payload) ->
+  reader = new ByteReader payload
+  {
+    delay: if reader.remaining() then reader.u8() else DEFAULT_FAILSAFE_CONFIG.delay
+    offDelay: if reader.remaining() then reader.u8() else DEFAULT_FAILSAFE_CONFIG.offDelay
+    throttle: if reader.remaining() >= 2 then reader.u16() else DEFAULT_FAILSAFE_CONFIG.throttle
+    switchMode: if reader.remaining() then reader.u8() else DEFAULT_FAILSAFE_CONFIG.switchMode
+    throttleLowDelay: if reader.remaining() >= 2 then reader.u16() else DEFAULT_FAILSAFE_CONFIG.throttleLowDelay
+    procedure: if reader.remaining() then reader.u8() else DEFAULT_FAILSAFE_CONFIG.procedure
+  }
+
+encodeFailsafeConfig = (config = {}) ->
+  out = new Uint8Array FAILSAFE_CONFIG_BYTES
+  view = new DataView out.buffer
+  view.setUint8 0, clampU8 config.delay ? DEFAULT_FAILSAFE_CONFIG.delay
+  view.setUint8 1, clampU8 config.offDelay ? DEFAULT_FAILSAFE_CONFIG.offDelay
+  view.setUint16 2, clampU16(config.throttle ? DEFAULT_FAILSAFE_CONFIG.throttle), true
+  view.setUint8 4, clampU8 config.switchMode ? DEFAULT_FAILSAFE_CONFIG.switchMode
+  view.setUint16 5, clampU16(config.throttleLowDelay ? DEFAULT_FAILSAFE_CONFIG.throttleLowDelay), true
+  view.setUint8 7, clampU8 config.procedure ? DEFAULT_FAILSAFE_CONFIG.procedure
+  out
+
+# MSP 61: u8 autoDisarmDelay, u8 reserved (0), u8 smallAngle —
+# 3 fixed bytes. MSP_SET_ARMING_CONFIG consumes smallAngle only
+# when a third byte arrives, so writes always emit all three.
+ARMING_CONFIG_BYTES = 3
+
+decodeArmingConfig = (payload) ->
+  reader = new ByteReader payload
+  autoDisarmDelay = if reader.remaining() then reader.u8() else DEFAULT_ARMING_CONFIG.autoDisarmDelay
+  # Byte 2 is reserved; smallAngle rides byte 3.
+  reader.skip 1 if reader.remaining()
+  smallAngle = if reader.remaining() then reader.u8() else DEFAULT_ARMING_CONFIG.smallAngle
+  { autoDisarmDelay, smallAngle }
+
+encodeArmingConfig = (config = {}) ->
+  out = new Uint8Array ARMING_CONFIG_BYTES
+  view = new DataView out.buffer
+  view.setUint8 0, clampU8 config.autoDisarmDelay ? DEFAULT_ARMING_CONFIG.autoDisarmDelay
+  view.setUint8 1, 0
+  view.setUint8 2, clampU8 config.smallAngle ? DEFAULT_ARMING_CONFIG.smallAngle
+  out
+
+# MSP 36: u32 absolute feature mask (getFeatureMask). SET stages the
+# value; EEPROM_WRITE materializes it (writeEEPROMWithFeatures).
+FEATURE_CONFIG_BYTES = 4
+
+decodeFeatureConfig = (payload) ->
+  reader = new ByteReader payload
+  if reader.remaining() >= FEATURE_CONFIG_BYTES then reader.u32() else DEFAULT_FEATURE_MASK
+
+encodeFeatureConfig = (mask = DEFAULT_FEATURE_MASK) ->
+  out = new Uint8Array FEATURE_CONFIG_BYTES
+  view = new DataView out.buffer
+  view.setUint32 0, clampU32(mask), true
+  out
+
+# MSP 184: u32 beeperOffFlags, u8 dshotBeaconTone,
+# u32 dshotBeaconOffFlags — 9 fixed bytes. SET accepts 4/5/9-byte
+# payloads (trailing fields optional); writes emit the full 9.
+BEEPER_CONFIG_BYTES = 9
+
+decodeBeeperConfig = (payload) ->
+  reader = new ByteReader payload
+  {
+    offFlags: if reader.remaining() >= 4 then reader.u32() else DEFAULT_BEEPER_CONFIG.offFlags
+    dshotBeaconTone: if reader.remaining() then reader.u8() else DEFAULT_BEEPER_CONFIG.dshotBeaconTone
+    dshotBeaconOffFlags: if reader.remaining() >= 4 then reader.u32() else DEFAULT_BEEPER_CONFIG.dshotBeaconOffFlags
+  }
+
+encodeBeeperConfig = (config = {}) ->
+  out = new Uint8Array BEEPER_CONFIG_BYTES
+  view = new DataView out.buffer
+  view.setUint32 0, clampU32(config.offFlags ? DEFAULT_BEEPER_CONFIG.offFlags), true
+  view.setUint8 4, clampU8 config.dshotBeaconTone ? DEFAULT_BEEPER_CONFIG.dshotBeaconTone
+  view.setUint32 5, clampU32(config.dshotBeaconOffFlags ? DEFAULT_BEEPER_CONFIG.dshotBeaconOffFlags), true
+  out
+
 # ── Receiver & modes (MSP 44/45, 64/65, 77/78, 34/35, 116/119, 238) ─
 # Wire layouts follow the OrniFlight/Betaflight msp.c serialisation.
 MAX_SUPPORTED_RC_CHANNEL_COUNT = 18
@@ -786,6 +881,10 @@ export {
   decodeOsdConfig, encodeOsdItem
   decodeVtxConfig, encodeVtxConfig
   decodeSerialConfig, encodeSerialConfig
+  decodeFailsafeConfig, encodeFailsafeConfig, FAILSAFE_CONFIG_BYTES
+  decodeArmingConfig, encodeArmingConfig, ARMING_CONFIG_BYTES
+  decodeFeatureConfig, encodeFeatureConfig, FEATURE_CONFIG_BYTES
+  decodeBeeperConfig, encodeBeeperConfig, BEEPER_CONFIG_BYTES
   decodeRxConfig, encodeRxConfig, RX_CONFIG_BYTES
   channelMapFromRxMap, rxMapFromChannelMap
   MAX_SUPPORTED_RC_CHANNEL_COUNT, RX_MAPPABLE_CHANNEL_COUNT

@@ -21,6 +21,7 @@ import ReceiverView from '../components/views/ReceiverView/ReceiverView.coffee'
 import ModesView from '../components/views/ModesView/ModesView.coffee'
 import VtxView from '../components/views/VtxView/VtxView.coffee'
 import PortsView from '../components/views/PortsView/PortsView.coffee'
+import FailsafeView from '../components/views/FailsafeView/FailsafeView.coffee'
 import CliTerminalView from '../components/views/CliTerminalView/CliTerminalView.coffee'
 import PerceptionView from '../components/views/PerceptionView/PerceptionView.chaml'
 import VoiceView from '../components/views/VoiceView/VoiceView.chaml'
@@ -42,7 +43,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - `const portsEl = h(AnimatedPage, null, h(PortsView, null))`
 - `const powerEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'power'}))`
 - `const sensorsEl = h(AnimatedPage, null, h(PerceptionView, null))`
-- `const safetyEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'safety'}))`
+- `const safetyEl = h(AnimatedPage, null, h(FailsafeView, null))`
 - `const osdEl = h(AnimatedPage, null, h(OsdEditorView, null))`
 - `const dataEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'data'}))`
 - `const flashEl = h(AnimatedPage, null, h(FlashingView, null))`
