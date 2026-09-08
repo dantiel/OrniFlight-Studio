@@ -17,6 +17,9 @@ Companion documents:
   the draft/saved/mode pattern and the wing-mapping appendix codec.
 - [`RECEIVER-MODES.md`](RECEIVER-MODES.md) — the RX & AUX mode-range surface;
   shares the draft/saved/mode pattern and the armed-guard write discipline.
+- [`FAILSAFE-ARMING.md`](FAILSAFE-ARMING.md) — the safety surface
+  (failsafe, arming, features, beeper); shares the draft/saved/mode
+  pattern and the armed-guard write discipline.
 
 ---
 

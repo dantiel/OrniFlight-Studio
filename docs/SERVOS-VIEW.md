@@ -15,6 +15,9 @@ Companion documents:
 - [`PID-TUNING-VIEW.md`](PID-TUNING-VIEW.md) and
   [`CONFIGURATION-VIEW.md`](CONFIGURATION-VIEW.md) — the sibling polymorphic
   stores; the draft/saved/mode pattern and the source-device pin are shared.
+- [`FAILSAFE-ARMING.md`](FAILSAFE-ARMING.md) — the safety surface
+  (failsafe, arming, features, beeper); shares the draft/saved/mode
+  pattern and the armed-guard write discipline.
 
 ---
 

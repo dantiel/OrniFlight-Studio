@@ -19,6 +19,9 @@ Companion documents:
   invariants are shared.
 - [`SERVOS-VIEW.md`](SERVOS-VIEW.md) — the servo & wing-mapping surface; shares
   the draft/saved/mode pattern and the armed-guard write discipline.
+- [`FAILSAFE-ARMING.md`](FAILSAFE-ARMING.md) — the safety surface
+  (failsafe, arming, features, beeper); shares the draft/saved/mode
+  pattern and the armed-guard write discipline.
 
 ---
 

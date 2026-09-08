@@ -16,6 +16,9 @@ Companion documents:
   surface; the legacy `servos` slice here shares its wire codec.
 - [`RECEIVER-MODES.md`](RECEIVER-MODES.md) — the RX & AUX mode-range surface;
   shares the polymorphic draft/saved/mode pattern and source-device pin.
+- [`FAILSAFE-ARMING.md`](FAILSAFE-ARMING.md) — the safety surface
+  (failsafe, arming, features, beeper); shares the draft/saved/mode
+  pattern and the armed-guard write discipline.
 
 ---
 
