@@ -486,6 +486,32 @@ describe 'receiver and modes codecs', ->
     payload = [1, asciiBytes('ARM;ANGLE')...]
     expect(decodeBoxNames payload).toEqual ['ARM']
 
+  it 'drops a trailing partial RXFAIL channel', ->
+    channels = decodeRxFailConfig [0, u16(1500)..., 2]
+    expect(channels).toHaveLength 1
+    expect(channels[0]).toEqual { index: 0, mode: 0, value: 1500 }
+
+  it 'bounds mode-range decoding on truncated payloads', ->
+    expect(decodeModeRanges [28, 5, 10]).toHaveLength 0
+    ranges = decodeModeRanges [28, 5, 10, 20, 50]
+    expect(ranges).toHaveLength 1
+    expect(ranges[0].permanentId).toBe 28
+
+  it 'returns null for an empty mode-range extras payload', ->
+    expect(decodeModeRangesExtra []).toBe null
+
+  it 'bounds mode-range extras by the available bytes', ->
+    extras = decodeModeRangesExtra [5, 28, 1, 36, 50, 0, 51]
+    expect(extras).toHaveLength 2
+    expect(extras[1].permanentId).toBe 50
+
+  it 'falls back on out-of-range channel-map indices', ->
+    expect(channelMapFromRxMap [0, 1, 3, 2, 4, 5, 6, 99]).toBe 'AETR1234'
+
+  it 'decodes empty box name payloads gracefully', ->
+    expect(decodeBoxNames []).toEqual []
+    expect(decodeBoxNames [0]).toEqual []
+
   it 'lists CRSF first among serial providers', ->
     expect(SERIALRX_PROVIDERS[0].id).toBe 9
     expect(SERIALRX_PROVIDERS[0].name).toBe 'CRSF'

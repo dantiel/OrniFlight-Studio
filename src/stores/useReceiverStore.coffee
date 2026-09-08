@@ -42,7 +42,7 @@ clone = (value) -> JSON.parse JSON.stringify value
 finiteOr = (fallback, value) ->
   return fallback unless value?
   number = Number(value)
-  if Number.isFinite(number) then number else fallback
+  if Number.isNaN(number) then fallback else number
 
 clampInt = (lo, hi, value) ->
   Math.max lo, Math.min hi, Math.round finiteOr lo, value

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import useModesStore from '../stores/useModesStore.coffee'
+import useModesStore, { isRangeUsable } from '../stores/useModesStore.coffee'
 
 describe 'useModesStore', ->
   store = useModesStore
@@ -117,11 +117,35 @@ describe 'useModesStore', ->
   it 'rejects unknown modes', ->
     expect((-> state().setMode 'astral')).toThrow 'Unknown modes mode'
 
-  it 'degrades non-finite inputs to the lower bound', ->
+  it 'treats ARM (permanentId 0) with a range as usable', ->
+    state().setRangeField 0, 'startStep', 10
+    state().setRangeField 0, 'endStep', 20
+    expect(state().draft.ranges[0].permanentId).toBe 0
+    expect(isRangeUsable state().draft.ranges[0]).toBe true
+
+  it 'treats a zero-width range as empty regardless of box', ->
+    state().setRangeField 0, 'permanentId', 28
+    expect(state().draft.ranges[0].permanentId).toBe 28
+    expect(isRangeUsable state().draft.ranges[0]).toBe false
+
+  it 'writes ARM (permanentId 0) with a range to the device', ->
+    writes = []
+    session = deviceSession { log: writes, ranges: [], extras: null }
+    await state().loadFromDevice session
+    state().setRangeField 0, 'startStep', 10
+    state().setRangeField 0, 'endStep', 20
+    await state().save()
+    expect(writes[0].permanentId).toBe 0
+    expect(writes[0].startStep).toBe 10
+    expect(writes[0].endStep).toBe 20
+
+  it 'clamps non-finite and extreme inputs to the domain', ->
     state().setRangeField 0, 'startStep', NaN
     expect(state().draft.ranges[0].startStep).toBe 0
     state().setRangeField 0, 'endStep', Infinity
     expect(state().draft.ranges[0].endStep).toBe 48
+    state().setRangeField 0, 'startStep', -Infinity
+    expect(state().draft.ranges[0].startStep).toBe 0
 
 deviceSession = (options = {}) ->
   {

@@ -32,10 +32,9 @@ clone = (value) -> JSON.parse JSON.stringify value
 finiteOr = (fallback, value) ->
   return fallback unless value?
   number = Number(value)
-  if Number.isFinite(number) then number else fallback
+  if Number.isNaN(number) then fallback else number
 
 clampInt = (lo, hi, value) ->
-  return hi if value == Infinity
   Math.max lo, Math.min hi, Math.round finiteOr lo, value
 
 defaultRanges = ->
@@ -51,9 +50,11 @@ defaultRanges = ->
 
 MODES_DEFAULTS = Object.freeze { ranges: defaultRanges() }
 
-# A slot counts as configured when a real box sits in a real range.
+# A slot is usable when it carries a non-degenerate band — firmware
+# IS_RANGE_USABLE. ARM (permanentId 0) is a real box, so the empty
+# signal is the zero-width range alone, never the box id.
 isRangeUsable = (range) ->
-  range.permanentId != 0 and range.startStep < range.endStep
+  range.startStep < range.endStep
 
 useModesStore = create (set, get) ->
   defaults = clone MODES_DEFAULTS.ranges

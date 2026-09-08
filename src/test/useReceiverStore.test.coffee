@@ -139,10 +139,16 @@ describe 'useReceiverStore', ->
       'Unknown receiver mode'
     )
 
-  it 'degrades non-finite inputs to the lower bound', ->
+  it 'clamps non-finite and extreme inputs to the domain', ->
     state().setRxConfigField 'maxcheck', NaN
     expect(state().draft.maxcheck).toBe 500
+    state().setRxConfigField 'maxcheck', Infinity
+    expect(state().draft.maxcheck).toBe 2500
+    state().setRxConfigField 'maxcheck', -Infinity
+    expect(state().draft.maxcheck).toBe 500
     state().setRxFailField 0, 'step', Infinity
+    expect(state().draft.rxFail[0].step).toBe 60
+    state().setRxFailField 0, 'step', -Infinity
     expect(state().draft.rxFail[0].step).toBe 0
 
 deviceSession = (options = {}) ->

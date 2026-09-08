@@ -1,7 +1,7 @@
 - import { fmt0, intFromEvent } from '../../../lib/essential.coffee'
 - import useModesStore from '../../../stores/useModesStore.coffee'
 - import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
-- import { MODE_CATALOG, modeCatalogEntries, ACRO_HINT } from '../../../lib/modeCatalog.coffee'
+- import { modeCatalogEntries, ACRO_HINT } from '../../../lib/modeCatalog.coffee'
 - import { MODE_RANGE_USEC_MIN, MODE_RANGE_STEP_MAX } from '../../../protocol/mspDecoders.coffee'
 - store = useModesStore()
 - draft = store.draft
@@ -10,12 +10,11 @@
 - readDisabled = store.mode != 'device' or !store.session
 - saveDisabled = store.mode == 'device' and !store.loadedSession
 - entries = modeCatalogEntries()
-- entryName = (id) -> if id == 0 then '—' else MODE_CATALOG[id]?.name ? "Box #{id}"
 - usFromStep = (step) -> MODE_RANGE_USEC_MIN + step * 25
 - auxValue = (auxIndex) -> telemetry[auxIndex + 4] or 0
-- inRange = (v, lo, hi) -> v >= usFromStep(lo) and v <= usFromStep(hi)
+- inRange = (v, lo, hi) -> v >= usFromStep(lo) and v < usFromStep(hi)
 - inside = (r) -> inRange auxValue(r.auxChannelIndex), r.startStep, r.endStep
-- rangeActive = (r) -> r.permanentId and r.startStep < r.endStep and inside(r)
+- rangeActive = (r) -> r.startStep < r.endStep and inside(r)
 - valueFromEvent = (f) -> (e) -> f e.target.value
 .view-layout.layout-modes
   %ViewArea{ area: 'side' }
@@ -49,7 +48,6 @@
           %span.mode-range-index
             = index + 1
           %select.mode-range-box{ value: String(range.permanentId), onChange: valueFromEvent((value) -> store.setRangeField index, 'permanentId', value) }
-            %option{ key: 'empty', value: '0' } —
             - for entry in entries
               %option{ key: "box-#{entry.permanentId}", value: String(entry.permanentId) }
                 = entry.name

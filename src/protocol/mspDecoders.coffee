@@ -345,7 +345,7 @@ encodeName = (name) ->
 finiteOr = (fallback, value) ->
   return fallback unless value?
   number = Number(value)
-  if Number.isFinite(number) then number else fallback
+  if Number.isNaN(number) then fallback else number
 
 clampU16 = (value) ->
   Math.max 0, Math.min 65535, Math.round finiteOr 0, value
