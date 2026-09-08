@@ -1,0 +1,228 @@
+###
+# ORNIFLIGHT STUDIO — Ornithopter Store (Zustand)
+#
+# The unified body-plan document: kernel (Muskelflügel /
+# Getriebeherz), mixer profile (firmware MixerProfile enum
+# 0…7), servo speed, per-servo trims, the three flight
+# profiles (CH7 → active index) with their glide degrees.
+#
+# Polymorphic — sim mode holds full authority and mirrors
+# mappable fields into the engine singleton; device mode rides
+# the OrniFlight session with the loadedSession guard:
+#   · modelName  → session.setCraftName
+#   · servoSpeed → per-servo rate (60000/ms per 60°)
+#   · glideAngle → session.writeGlideDegree (active profile)
+# Kernel/profile remain studio-side body-plan metadata on a
+# device — the firmware carries no MixerProfile enum.
+###
+import { create } from 'zustand'
+import { engine } from '../simulation/engine.coffee'
+import {
+  KERNELS, MIXER_PROFILES, profilesForKernel, firstForKernel
+} from '../lib/mixerCatalog.coffee'
+
+SPEED_LIMITS = [40, 400]
+TRIM_LIMITS = [-50, 50]
+GLIDE_LIMITS = [-15, 15]
+PROFILE_IDS = [0..7]
+
+TRIM_FIELDS = [
+  'leftWing', 'rightWing', 'rudder', 'backLeftWing'
+  'vtailLeft', 'vtailRight', 'elevator'
+]
+# Closed set — inherited object keys never pass.
+DOC_FIELDS = [
+  'modelName', 'kernel', 'profileId', 'servoSpeed', 'activeProfile'
+]
+
+clone = (value) -> JSON.parse JSON.stringify value
+
+finiteOr = (fallback, value) ->
+  return fallback unless value?
+  number = Number(value)
+  if Number.isFinite(number) then number else fallback
+
+clampInt = (lo, hi, value) ->
+  Math.max lo, Math.min hi, Math.round finiteOr lo, value
+
+defaultDraft = ->
+  modelName: 'Orni I'
+  kernel: 'servo'
+  profileId: 1
+  servoSpeed: 220
+  trims:
+    leftWing: 0
+    rightWing: 0
+    rudder: 0
+    backLeftWing: 0
+    vtailLeft: 0
+    vtailRight: 0
+    elevator: 0
+  glideAngle: [0, 0, 0]
+  activeProfile: 0
+
+# Body plan → 3D arrangement: the mixer profile chooses which
+# wing pairs the model grows.
+ARRANGEMENT_FOR_PROFILE = {
+  0: 'single'
+  1: 'single_canard'
+  2: 'tandem_x'
+  3: 'tandem_parallel'
+  4: 'tandem_parallel'
+  5: 'double_decker'
+  6: 'single'
+  7: 'single_canard'
+}
+
+mirrorToEngine = (draft) ->
+  # Servo speed rides the engine as the travel-time of one stroke.
+  engine.setSimulationParams
+    servoTravelTimeMs: draft.servoSpeed
+  name = ARRANGEMENT_FOR_PROFILE[draft.profileId]
+  engine.applyArrangement name if name
+
+useOrnithopterStore = create (set, get) ->
+  defaults = defaultDraft()
+
+  setField: (field, value) ->
+    return unless field in DOC_FIELDS
+    draft = clone get().draft
+    draft[field] = value
+    set { draft, dirty: true }
+
+  setModelName: (name) ->
+    name = String(name or '').slice 0, 32
+    set
+      draft: { get().draft..., modelName: name }
+      dirty: true
+
+  setKernel: (kernel) ->
+    unless KERNELS.some (k) -> k.id is kernel
+      throw new Error "Unknown kernel: #{kernel}"
+    draft = clone get().draft
+    draft.kernel = kernel
+    draft.profileId = firstForKernel kernel
+    set { draft, dirty: true }
+
+  setProfileId: (id) ->
+    id = Number id
+    unless Number.isFinite(id) and 0 <= id <= 7
+      throw new Error "Unknown mixer profile: #{id}"
+    set
+      draft: { get().draft..., profileId: id }
+      dirty: true
+
+  setServoSpeed: (value) ->
+    set
+      draft:
+        { get().draft..., servoSpeed: clampInt SPEED_LIMITS..., value }
+      dirty: true
+
+  applySpeedPreset: (presetId) ->
+    draft = clone get().draft
+    draft.servoSpeed = switch presetId
+      when 'smooth' then 280
+      when 'tuned' then 220
+      when 'direct' then 150
+      when 'swift' then 100
+      when 'violent' then 60
+      else draft.servoSpeed
+    set { draft, dirty: true }
+
+  setTrim: (prop, value) ->
+    return unless prop in TRIM_FIELDS
+    trims = clone get().draft.trims
+    trims[prop] = clampInt TRIM_LIMITS..., value
+    set
+      draft: { get().draft..., trims }
+      dirty: true
+
+  setGlideAngle: (index, value) ->
+    return unless 0 <= index < 3
+    glideAngle = clone get().draft.glideAngle
+    glideAngle[index] = clampInt GLIDE_LIMITS..., value
+    set
+      draft: { get().draft..., glideAngle }
+      dirty: true
+
+  setActiveProfile: (index) ->
+    set
+      draft: { get().draft..., activeProfile: clampInt 0, 2, index }
+      dirty: true
+
+  save: ->
+    { mode, session, draft, loadedSession } = get()
+    if mode == 'device'
+      throw new Error 'No device session attached' unless session?
+      unless loadedSession
+        throw new Error(
+          'Read the device before writing — the draft may belong ' +
+          'to another craft'
+        )
+      await session.setCraftName draft.modelName
+      profile = MIXER_PROFILES[draft.profileId]
+      rate = clampInt 0, 255, Math.round 60000 / draft.servoSpeed
+      for i in [0...profile.servos]
+        await session.writeServoConfiguration i, { rate }
+      await session.writeGlideDegree(
+        draft.glideAngle[draft.activeProfile]
+      )
+    else
+      mirrorToEngine draft
+    saved = clone draft
+    set { saved, dirty: false }
+    saved
+
+  revert: ->
+    draft = clone get().saved
+    set { draft, dirty: false }
+
+  setMode: (mode) ->
+    unless mode in ['sim', 'device']
+      throw new Error "Unknown ornithopter mode: #{mode}"
+    set { mode }
+
+  attachSession: (session) ->
+    set { session, mode: 'device', loadedSession: false }
+
+  loadFromDevice: (session = get().session) ->
+    throw new Error 'No device session attached' unless session?
+    configs = await session.readServoConfigurations()
+    tuning = await session.readServoTuning()
+    draft = clone get().draft
+    if configs.length
+      rate = finiteOr 220, configs[0]?.rate
+      msPer60 = if rate > 0 then Math.round 60000 / rate else 220
+      draft.servoSpeed = clampInt SPEED_LIMITS..., msPer60
+    draft.glideAngle[draft.activeProfile] =
+      clampInt GLIDE_LIMITS..., tuning?.glide ? 0
+    set {
+      mode: 'device'
+      session
+      loadedSession: true
+      draft
+      saved: clone draft
+      dirty: false
+    }
+    clone draft
+
+  reset: ->
+    defaults = defaultDraft()
+    set {
+      mode: 'sim'
+      session: null
+      loadedSession: false
+      draft: defaults
+      saved: clone defaults
+      dirty: false
+    }
+    defaults
+
+  mode: 'sim'
+  session: null
+  loadedSession: false
+  draft: defaults
+  saved: clone defaults
+  dirty: false
+
+export default useOrnithopterStore

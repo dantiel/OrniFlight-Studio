@@ -1,29 +1,32 @@
 // ═══════════════════════════════════════════
-// ProgressiveBlur — soft blur curtain for the
-// virtual safe-area under transparent toolbars.
-// Stacked layers: strongest blur fades furthest.
+// ProgressiveBlur — sticky safe-area curtains
 // ═══════════════════════════════════════════
 
 .progressive-blur
-  position: absolute
-  left: 0
-  right: 0
-  height: 56px
-  z-index: 5
+  position: sticky
+  height: 0
+  z-index: 40
   pointer-events: none
-  overflow: hidden
+  overflow: visible
 
-  &.top
+  &-top
     top: 0
 
-  &.bottom
-    bottom: 0
-    transform: rotate(180deg)
+  &-bottom
+    top: calc(100vh - 64px)
 
 .progressive-blur-layer
   position: absolute
-  inset: 0
-  backdrop-filter: blur(var(--pb-blur)) saturate(1.5)
-  -webkit-backdrop-filter: blur(var(--pb-blur)) saturate(1.5)
+  left: 0
+  right: 0
+  height: 64px
+  backdrop-filter: blur(var(--pb-blur)) saturate(1.6)
+  -webkit-backdrop-filter: blur(var(--pb-blur)) saturate(1.6)
   mask-image: linear-gradient(to bottom, #000 0%, transparent var(--pb-reach))
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent var(--pb-reach))
+
+.progressive-blur-top .progressive-blur-layer
+  top: 0
+
+.progressive-blur-bottom .progressive-blur-layer
+  bottom: 0
+  transform: rotate(180deg)

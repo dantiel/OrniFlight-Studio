@@ -24,6 +24,15 @@ useEngineStore = create (set) ->
   ondasParams:        engine.ondas
   sticks:             engine.sticks
   connected:          engine.connected
+  arrangement:        engine.arrangement
+  pairCount:          engine.pairCount
+  servoMounts:        engine.servoMounts
+  simParams:
+    selfLevelGain:              engine.selfLevelGain
+    yawAmpMix:                  engine.yawAmpMix
+    aeroelasticFlapCoefficient: engine.aeroelasticFlapCoefficient
+    aeroelasticGlideCoefficient: engine.aeroelasticGlideCoefficient
+    servoTravelTimeMs:          engine.servoTravelTimeMs
   selectedServoIndex: 0
 
   selectServo:   (i) -> set { selectedServoIndex: i }
@@ -37,6 +46,23 @@ useEngineStore = create (set) ->
     set
       servos:   engine.servos.map (s) -> { s... }
       pidGains: { engine.pidGains... }
+
+  applyArrangement: (name) ->
+    engine.applyArrangement name
+    set
+      arrangement: engine.arrangement
+      pairCount:   engine.pairCount
+      servoMounts: engine.servoMounts.map (m) -> { m... }
+
+  setSimulationParams: (params) ->
+    engine.setSimulationParams params
+    set
+      simParams:
+        selfLevelGain:              engine.selfLevelGain
+        yawAmpMix:                  engine.yawAmpMix
+        aeroelasticFlapCoefficient: engine.aeroelasticFlapCoefficient
+        aeroelasticGlideCoefficient: engine.aeroelasticGlideCoefficient
+        servoTravelTimeMs:          engine.servoTravelTimeMs
 
   bump: -> engine.bump()
 

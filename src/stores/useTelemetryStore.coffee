@@ -25,6 +25,9 @@ useTelemetryStore = create(
       attitude:        { roll: 0, pitch: 0, yaw: 0 }
       wingAngleL:      0
       wingAngleR:      0
+      flapPhase:       0
+      pairCount:       2
+      servoMounts:     []
       amplitude:       0
       servos:          (Array 16).fill 0
       waveformHistory: []
@@ -49,6 +52,7 @@ useTelemetryStore = create(
           gyroRoll = 0, gyroPitch = 0, gyroYaw = 0
           attitude = { roll: 0, pitch: 0, yaw: 0 }
           wingAngleL = 0, wingAngleR = 0, amplitude = 0
+          flapPhase = 0, pairCount = 2, servoMounts = []
           servos = [], waveformHistory = []
           batteryVoltage = 0, flapFrequency = 0
           rssi = 0, linkQuality = 0
@@ -79,6 +83,9 @@ useTelemetryStore = create(
           attitude
           wingAngleL
           wingAngleR
+          flapPhase
+          pairCount
+          servoMounts
           amplitude
           servos
           waveformHistory: history

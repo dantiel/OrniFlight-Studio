@@ -26,6 +26,9 @@ snapshot = (engine) ->
   attitude:        { tel.attitude... }
   wingAngleL:      tel.wingAngleL
   wingAngleR:      tel.wingAngleR
+  flapPhase:       tel.flapPhase
+  pairCount:       tel.pairCount
+  servoMounts:     tel.servoMounts[...]
   amplitude:       tel.amplitude
   batteryVoltage:  tel.batteryVoltage
   flapFrequency:   tel.flapFrequency

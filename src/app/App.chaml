@@ -7,12 +7,14 @@ import useBridge from '../integration/useBridge.coffee'
 import AnimatedPage from './AnimatedPage.coffee'
 import ConnectionBar from '../components/panels/ConnectionBar/ConnectionBar.chaml'
 import ProgressiveBlur from '../components/overlays/ProgressiveBlur/ProgressiveBlur.coffee'
+import FeatherField from '../components/canvas/FeatherField/FeatherField.coffee'
 import Dock from '../components/overlays/Dock/Dock.coffee'
 import CommandPalette from '../components/overlays/CommandPalette/CommandPalette.coffee'
 import DebugPanel from '../components/debug/DebugPanel/DebugPanel.coffee'
 import BreakpointIndicator from '../components/debug/BreakpointIndicator/BreakpointIndicator.coffee'
 import ConfigurationHub from '../components/views/ConfigurationHub/ConfigurationHub.coffee'
 import WelcomeView from '../components/views/WelcomeView/WelcomeView.coffee'
+import OrnithopterView from '../components/views/OrnithopterView/OrnithopterView.coffee'
 import WingsView from '../components/views/WingsView/WingsView.chaml'
 import ServosView from '../components/views/ServosView/ServosView.chaml'
 import FlightView from '../components/views/FlightView/FlightView.chaml'
@@ -55,11 +57,13 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - `const flashEl = h(AnimatedPage, null, h(FlashingView, null))`
 - `const cliEl = h(AnimatedPage, null, h(CliTerminalView, null))`
 - `const welcomeEl = h(AnimatedPage, null, h(WelcomeView, null))`
+- `const orniEl = h(AnimatedPage, null, h(OrnithopterView, null))`
 .studio-shell{ role: 'application', aria-label: 'OrniFlight Studio' }
   %a.skip-link{ href: '#main-content' }
     Skip to content
   %ConnectionBar
   %div#main-content{ role: 'main' }
+    %FeatherField
     %ProgressiveBlur{ position: 'top' }
     %ProgressiveBlur{ position: 'bottom' }
     %AnimatePresence{ mode: 'wait' }
@@ -77,6 +81,8 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/data', element: dataEl }
         %Route{ path: '/flash', element: flashEl }
         %Route{ path: '/cli', element: cliEl }
+        %Route{ path: '/ornithopter', element: orniEl }
+        %Route{ path: '/kernel', element: orniEl }
         %Route{ path: '/simulator', element: airframeEl }
         %Route{ path: '/servos', element: servosEl }
         %Route{ path: '/pid', element: controlEl }

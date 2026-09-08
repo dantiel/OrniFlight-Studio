@@ -43,6 +43,51 @@ PRESETS =
     pitch_P: 9.0
     yaw_P: 5.0
 
+# ═══════════════════════════════════════════════════════════════
+# Servo arrangements — named ornithopter layouts (mirrors the
+# configurator's simulator ARRANGEMENTS). Each spec is pure data:
+# pair count, CG station (σ·100, + = nose) and per-pair geometry
+# (mount angle °, fore/aft station σ·100, vertical station).
+# ═══════════════════════════════════════════════════════════════
+ARRANGEMENTS =
+  tandem_x:
+    pairs: 2, cg: 0
+    angles: [30, -30, 0, 0]
+    dists:  [40, -40, 0, 0]
+    ys:     [0, 0, 0, 0]
+  single:
+    pairs: 1, cg: -20
+    angles: [0, 0, 0, 0]
+    dists:  [0, 0, 0, 0]
+    ys:     [0, 0, 0, 0]
+  single_canard:
+    pairs: 1, cg: 20
+    angles: [0, 0, 0, 0]
+    dists:  [0, 0, 0, 0]
+    ys:     [0, 0, 0, 0]
+  tandem_parallel:
+    pairs: 2, cg: 0
+    angles: [20, 20, 0, 0]
+    dists:  [40, -40, 0, 0]
+    ys:     [0, 0, 0, 0]
+  triple:
+    pairs: 3, cg: 0
+    angles: [30, 0, -30, 0]
+    dists:  [45, 0, -45, 0]
+    ys:     [0, 0, 0, 0]
+  quad:
+    pairs: 4, cg: 0
+    angles: [30, 10, -10, -30]
+    dists:  [50, 17, -17, -50]
+    ys:     [0, 0, 0, 0]
+  double_decker:
+    pairs: 4, cg: 0
+    angles: [30, 30, -30, -30]
+    dists:  [40, 40, -40, -40]
+    ys:     [6, -6, 6, -6]
+
+DEFAULT_ARRANGEMENT = 'tandem_x'
+
 # ONDAS gain defaults (mirror of constructor @ondas) + scaling
 ONDAS_DEFAULTS =
   cadence_gain: 30
@@ -75,6 +120,11 @@ export deriveGeometry = (geometry = {}) ->
   chord: chord
   wingArea: span * chord
   aspectRatio: if chord > 0 then span / chord else 0
+
+export arrangementNames = -> Object.keys ARRANGEMENTS
+
+export getArrangement = (name) ->
+  ARRANGEMENTS[name] ? ARRANGEMENTS[DEFAULT_ARRANGEMENT]
 
 # ═══════════════════════════════════════════════════════════════
 # OrnithopterModel — the bird's physics, PID, and ONDAS soul
@@ -162,7 +212,16 @@ export class OrnithopterModel
       cgZ: 0
     @pairCount = 2
     @servoMounts = for i in [0...@pairCount]
-      { index: i, x: 0, z: 0, angle: 0 }
+      { index: i, x: 0, z: 0, y: 0, angle: 0, phaseShift: 0 }
+
+    # Sim tuning — aeroelastic coefficients, yaw authority split and
+    # servo travel time mirror the configurator's mature physics knobs.
+    @arrangement = DEFAULT_ARRANGEMENT
+    @selfLevelGain = 3.0
+    @yawAmpMix = 0.5
+    @aeroelasticFlapCoefficient = 20.0
+    @aeroelasticGlideCoefficient = 4.0
+    @servoTravelTimeMs = 300
 
     @connected        = false
     @disturbancePulse = 0.0
@@ -175,6 +234,9 @@ export class OrnithopterModel
       gyro:            { roll: 0, pitch: 0, yaw: 0 }
       wingAngleL:      0
       wingAngleR:      0
+      flapPhase:       0
+      pairCount:       2
+      servoMounts:     []
       flapFrequency:   6.0
       amplitude:       45.0
       batteryVoltage:  12.6
@@ -230,13 +292,46 @@ export class OrnithopterModel
     if values.servoMounts?
       @servoMounts = for i in [0...@pairCount]
         source = values.servoMounts.find((m) -> m?.index == i)
-        source ?= { index: i, x: 0, z: 0, angle: 0 }
+        source ?= { index: i, x: 0, z: 0, y: 0, angle: 0, phaseShift: 0 }
         {
           index: i
           x: Number(source.x) or 0
           z: Number(source.z) or 0
+          y: Number(source.y) or 0
           angle: Number(source.angle) or 0
+          phaseShift: Number(source.phaseShift) or 0
         }
+    @
+
+  applyArrangement: (name) ->
+    spec = ARRANGEMENTS[name] ? ARRANGEMENTS[DEFAULT_ARRANGEMENT]
+    @arrangement = name
+    @pairCount = spec.pairs
+    @mass = { @mass..., cgX: spec.cg }
+    @servoMounts = for i in [0...spec.pairs]
+      {
+        index: i
+        x: 0
+        z: (spec.dists[i] ? 0) / 100
+        y: (spec.ys[i] ? 0) / 100
+        angle: spec.angles[i] ? 0
+        phaseShift: 0
+      }
+    @
+
+  setSimulationParams: (params = {}) ->
+    if params.selfLevelGain?
+      @selfLevelGain = Number(params.selfLevelGain) or 0
+    if params.yawAmpMix?
+      @yawAmpMix = clamp 0, 1, params.yawAmpMix
+    if params.aeroelasticFlapCoefficient?
+      @aeroelasticFlapCoefficient =
+        Number(params.aeroelasticFlapCoefficient) or 0
+    if params.aeroelasticGlideCoefficient?
+      @aeroelasticGlideCoefficient =
+        Number(params.aeroelasticGlideCoefficient) or 0
+    if params.servoTravelTimeMs?
+      @servoTravelTimeMs = clamp 30, 500, params.servoTravelTimeMs
     @
 
   # ── Simulation step ────────────────────────────────────────
@@ -289,6 +384,19 @@ export class OrnithopterModel
     @targetRates.roll  = rcToRate @sticks.roll
     @targetRates.pitch = rcToRate @sticks.pitch
     @targetRates.yaw   = rcToRate @sticks.yaw
+
+    # Attitude self-leveling — when sticks sit near centre, blend an
+    # attitude→rate feedback so the bird returns to level (deg/s per
+    # degree cancels to rad/s per rad). Stick deflection disables it.
+    normR = (@sticks.roll  - 1500) / 500
+    normP = (@sticks.pitch - 1500) / 500
+    normY = (@sticks.yaw   - 1500) / 500
+    active = Math.abs(normR) > 0.03 or
+      Math.abs(normP) > 0.03 or Math.abs(normY) > 0.03
+    unless active
+      @targetRates.roll  += -@attitude.roll  * @selfLevelGain
+      @targetRates.pitch += -@attitude.pitch * @selfLevelGain
+      @targetRates.yaw   += -@attitude.yaw   * @selfLevelGain * 0.6
 
   _physicsStep: (subDt) ->
     thrustFactor =
@@ -439,6 +547,9 @@ export class OrnithopterModel
     tel.gyro           = { @gyro... }
     tel.wingAngleL     = @wingAngleL
     tel.wingAngleR     = @wingAngleR
+    tel.flapPhase      = @flapPhase
+    tel.pairCount      = @pairCount
+    tel.servoMounts    = @servoMounts.map (m) -> { m... }
     tel.flapFrequency  = @flapFrequency
     tel.amplitude      =
       Math.max(Math.abs(@wingAngleL), Math.abs(@wingAngleR)) *

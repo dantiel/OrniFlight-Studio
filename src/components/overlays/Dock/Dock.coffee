@@ -6,6 +6,7 @@ import h from '../../../app/h.coffee'
 
 # Core launcher — the few, the essential, the bird's-eye path.
 ITEMS = [
+  ['Ornithopter', '/ornithopter', '🪽']
   ['Device', '/device', '◫']
   ['Wings', '/airframe', '⌁']
   ['Flight', '/control', '△']

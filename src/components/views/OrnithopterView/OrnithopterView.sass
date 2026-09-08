@@ -1,0 +1,370 @@
+// ═══════════════════════════════════════════
+// OrnithopterView — one page, the whole bird
+// ═══════════════════════════════════════════
+$acc: rgba(var(--of-accent-rgb), 0.26)
+$acc-soft: rgba(var(--of-accent-rgb), 0.1)
+$acc-rim: rgba(var(--of-accent-rgb), 0.5)
+$amb: rgba(224, 123, 57, 0.3)
+$amb-soft: rgba(224, 123, 57, 0.14)
+$amb-rim: rgba(224, 123, 57, 0.5)
+$white-rim: inset 0 1px 0 rgba(255, 255, 255, 0.18)
+
+.ornithopter-view
+  position: relative
+  z-index: 1
+  flex: 1
+  width: 100%
+  max-width: 1080px
+  margin: 0 auto
+  padding: var(--of-space-6) var(--of-space-6) var(--of-space-10)
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-6)
+
+.orni-page-head
+  display: flex
+  justify-content: space-between
+  align-items: flex-end
+  gap: var(--of-space-6)
+  padding: var(--of-space-2) var(--of-space-1)
+  flex-wrap: wrap
+
+  h1
+    font-family: var(--of-font-heading)
+    font-size: 42px
+    letter-spacing: 0.14em
+    margin: 0
+    font-weight: 400
+
+  p
+    margin: var(--of-space-2) 0 0
+    max-width: 46ch
+
+.orni-hermes
+  color: var(--of-text-muted)
+  font-size: var(--of-text-sm)
+  line-height: 1.55
+  margin: 0
+
+.orni-toolbar
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  flex-wrap: wrap
+
+.orni-mode-badge
+  font-size: 10px
+  letter-spacing: 0.16em
+  padding: 4px 10px
+  border-radius: 999px
+  border: 1px solid var(--of-glass-rim-soft)
+  background: var(--of-glass-bg)
+
+.orni-mode-sim
+  color: var(--of-accent)
+
+.orni-mode-device
+  color: var(--of-accent-amber)
+
+.orni-dirty
+  font-size: 10px
+  letter-spacing: 0.14em
+  color: var(--of-text-muted)
+
+.orni-dirty-on
+  color: var(--of-accent-amber)
+
+.orni-action
+  padding: 6px 14px
+  border-radius: var(--of-radius-sm)
+  border: 1px solid var(--of-glass-rim-soft)
+  background: var(--of-glass-card)
+  color: var(--of-text-primary)
+  font-family: var(--of-font-body)
+  font-size: var(--of-text-sm)
+  cursor: pointer
+  transition: background var(--of-dur-fast) var(--of-ease-out)
+
+  &:hover
+    background: var(--of-glass-card-hover)
+
+  &:disabled
+    opacity: 0.4
+    cursor: default
+
+.orni-action-save
+  background: linear-gradient(180deg, $acc, $acc-soft)
+  border-color: rgba(137,152,254,0.4)
+
+.orni-sweep-on
+  background: linear-gradient(180deg, $amb, $amb-soft)
+  border-color: rgba(224,123,57,0.5)
+
+.orni-panel
+  background: var(--of-glass-bg)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur))
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-glass-radius)
+  box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
+  padding: var(--of-space-6)
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-5)
+
+.orni-panel-head
+  display: flex
+  gap: var(--of-space-4)
+  align-items: flex-start
+
+  h2
+    margin: 0
+    font-family: var(--of-font-heading)
+    font-weight: 400
+    letter-spacing: 0.08em
+    font-size: 22px
+
+  p
+    margin-top: var(--of-space-2)
+
+.orni-glyph
+  font-size: 26px
+  line-height: 1
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35))
+
+.orni-grid
+  display: grid
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))
+  gap: var(--of-space-4)
+
+.orni-field
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-2)
+
+.orni-field-label
+  display: flex
+  flex-direction: column
+  gap: 2px
+
+  b
+    font-size: var(--of-text-sm)
+    letter-spacing: 0.05em
+    font-weight: 500
+
+.orni-field-control
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-2)
+
+.orni-input
+  width: 100%
+  padding: 8px 12px
+  border-radius: var(--of-radius-sm)
+  border: 1px solid var(--of-glass-rim-soft)
+  background: var(--of-glass-card)
+  color: var(--of-text-primary)
+  font-family: var(--of-font-body)
+  font-size: var(--of-text-sm)
+
+  &:focus
+    outline: none
+    border-color: var(--of-accent)
+
+.orni-presets
+  margin-top: 0
+
+.orni-segments
+  display: flex
+  gap: var(--of-space-2)
+  flex-wrap: wrap
+
+.orni-segment
+  flex: 1
+  min-width: 150px
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: var(--of-space-2)
+  padding: var(--of-space-4)
+  border-radius: var(--of-radius-sm)
+  border: 1px solid var(--of-glass-rim-soft)
+  background: var(--of-glass-card)
+  color: var(--of-text-primary)
+  font-family: var(--of-font-body)
+  font-size: var(--of-text-sm)
+  cursor: pointer
+  transition: all var(--of-dur-fast) var(--of-ease-out)
+
+  &:hover
+    background: var(--of-glass-card-hover)
+
+.orni-segment-on
+  background: linear-gradient(180deg, $acc, $acc-soft)
+  border-color: rgba(137,152,254,0.5)
+  box-shadow: $white-rim, 0 0 18px rgba(var(--of-accent-rgb), 0.18)
+
+.orni-segment-glyph
+  font-size: 22px
+
+.orni-map
+  padding: 10px 14px
+  border-radius: var(--of-radius-sm)
+  border: 1px dashed var(--of-glass-rim-soft)
+  background: rgba(0,0,0,0.12)
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-sm)
+  letter-spacing: 0.02em
+
+.orni-slider-row
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+
+.orni-slider
+  flex: 1
+  accent-color: var(--of-accent)
+  min-width: 0
+
+.orni-value
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-sm)
+  white-space: nowrap
+  min-width: 64px
+  text-align: right
+
+.orni-trims
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-4)
+  padding-top: var(--of-space-5)
+  border-top: 1px solid var(--of-glass-rim-soft)
+
+  h3
+    margin: 0
+    font-family: var(--of-font-heading)
+    font-weight: 400
+    letter-spacing: 0.06em
+    font-size: 17px
+
+.orni-profile-strip
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  flex-wrap: wrap
+
+.orni-ch7
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-sm)
+  padding: 4px 10px
+  border-radius: var(--of-radius-sm)
+  border: 1px solid var(--of-glass-rim-soft)
+  background: var(--of-glass-card)
+
+.orni-active-face
+  font-size: var(--of-text-sm)
+  font-weight: 600
+  color: var(--of-accent)
+
+.orni-faces
+  display: grid
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))
+  gap: var(--of-space-4)
+
+.orni-face
+  border-radius: var(--of-radius-sm)
+  border: 1px solid var(--of-glass-rim-soft)
+  background: var(--of-glass-card)
+  padding: var(--of-space-4)
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-3)
+  cursor: pointer
+  transition: all var(--of-dur-fast) var(--of-ease-out)
+
+  &:hover
+    background: var(--of-glass-card-hover)
+
+.orni-face-on
+  border-color: rgba(137,152,254,0.5)
+  background: linear-gradient(180deg, $acc, $acc-soft)
+  box-shadow: 0 0 24px rgba(var(--of-accent-rgb), 0.14)
+
+.orni-face-head
+  display: flex
+  justify-content: space-between
+  align-items: center
+
+.orni-face-n
+  font-family: var(--of-font-heading)
+  letter-spacing: 0.06em
+
+.orni-face-live
+  font-size: 10px
+  letter-spacing: 0.14em
+  color: var(--of-accent)
+
+.orni-face-body
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-2)
+
+.orni-face-label
+  font-size: var(--of-text-sm)
+  color: var(--of-text-muted)
+
+.orni-pulse-grid
+  align-items: start
+
+.orni-pulse-side
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-4)
+  grid-column: 1 / -1
+
+.orni-channel-read
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-3)
+
+  b
+    font-size: var(--of-text-sm)
+    letter-spacing: 0.05em
+    font-weight: 500
+
+.orni-servo-bars
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.orni-servo-bar-row
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+
+.orni-servo-bar-ch
+  font-family: var(--of-font-mono)
+  font-size: 11px
+  min-width: 26px
+  color: var(--of-text-muted)
+
+.orni-meter
+  flex: 1
+  height: 8px
+  border-radius: 999px
+  background: rgba(0,0,0,0.2)
+  overflow: hidden
+  position: relative
+
+.orni-meter-fill
+  height: 100%
+  border-radius: 999px
+  background: linear-gradient(90deg, var(--of-accent), $acc)
+  transition: width 120ms linear
+
+.orni-meter-servo
+  background: linear-gradient(90deg, #4cd0b3, rgba(76,208,179,0.5))
+
+.orni-foot
+  text-align: center
+  padding: var(--of-space-8) 0 var(--of-space-4)

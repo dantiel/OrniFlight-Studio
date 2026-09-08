@@ -1,4 +1,5 @@
 - import { fmt1 } from '../../../lib/essential.coffee'
+- import ArrangementPanel from '../../panels/ArrangementPanel/ArrangementPanel.chaml'
 - import useEngineStore from '../../../stores/useEngineStore.coffee'
 - import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 - import useAppStore from '../../../stores/useAppStore.coffee'
@@ -11,8 +12,9 @@
 .view-layout.layout-wings
   %ViewArea{ area: 'side' }
     %Sidebar{ servos: sim.servos, selectedServoIndex: sim.selectedServoIndex, onSelectServo: sim.selectServo, sticks: sim.sticks, onStickChange: sim.setStick, onApplyPreset: sim.applyPreset }
+    %ArrangementPanel
   %ViewArea{ area: 'vport' }
-    %DeferredAircraftViewport{ attitude: tele.attitude || [0, 0, 0], wingAngleL: tele.wingAngleL || 0, wingAngleR: tele.wingAngleR || 0, flapFrequency: tele.flapFrequency || 0, onBump: sim.bump }
+    %DeferredAircraftViewport{ attitude: tele.attitude || [0, 0, 0], wingAngleL: tele.wingAngleL || 0, wingAngleR: tele.wingAngleR || 0, flapFrequency: tele.flapFrequency || 0, flapPhase: tele.flapPhase || 0, amplitude: tele.amplitude || 45, pairCount: tele.pairCount || 2, servoMounts: tele.servoMounts || [], aeroelasticFlapCoefficient: sim.simParams.aeroelasticFlapCoefficient, aeroelasticGlideCoefficient: sim.simParams.aeroelasticGlideCoefficient, onBump: sim.bump }
     %ViewportOverlay{ badges: ["Cadence #{fmt1(tele.flapFrequency)} Hz", "Stroke #{fmt1(tele.amplitude)}°", "t #{fmt1(tele.t)}s"] }
   %ViewArea{ area: 'insp' }
     %ConfigSections

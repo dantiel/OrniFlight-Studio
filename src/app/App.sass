@@ -12,18 +12,6 @@
   background: var(--of-body-bg)
   position: relative
 
-  // Feather bleed-through on the whole studio
-  &::after
-    content: ''
-    position: absolute
-    inset: 0
-    pointer-events: none
-    z-index: 0
-    background-image: var(--of-feathers)
-    background-repeat: repeat
-    background-size: clamp(300px, 25vw, 800px)
-    opacity: var(--of-feather-opacity)
-
 // ═══════════════════════════════════════════
 // View Layout Base
 // ═══════════════════════════════════════════
@@ -109,4 +97,8 @@
   display: flex
   flex-direction: column
   min-height: 0
-  overflow: hidden
+  overflow-y: auto
+  overflow-x: hidden
+  scroll-behavior: smooth
+  position: relative
+  isolation: isolate

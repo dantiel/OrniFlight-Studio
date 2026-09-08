@@ -24,7 +24,7 @@ AnimatedPage = ({ children, className }) ->
     exit: 'exit'
     variants: pageVariants
     transition: pageTransition
-    style: { flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }
+    style: { display: 'flex', flexDirection: 'column', minHeight: '100%' }
   , children
 
 export default AnimatedPage
