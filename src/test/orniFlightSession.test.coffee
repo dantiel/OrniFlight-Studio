@@ -622,6 +622,38 @@ describe 'orniFlightSession', ->
     expect(result.cadence).toBe 30
     expect(writes).toHaveLength 1
 
+  it 'skips inherited keys during wing-mapping read-back', ->
+    current = { anchorGain: 50, cadence: 30 }
+    stored = current
+    writes = []
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      length = bytes[6] | bytes[7] << 8
+      payload = Array.from bytes.subarray 8, 8 + length
+      if command == MSP_CODES.PID_ADVANCED
+        envelope = encodePidAdvanced { appendix: stored }
+        return { command, direction: '>', payload: Array.from envelope }
+      if command == MSP_CODES.SET_PID_ADVANCED
+        writes.push payload
+        stored = decodePidAdvanced(payload).appendix
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.EEPROM_WRITE
+        return { command, direction: '>', payload: [] }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    hostile = Object.assign Object.create({ constructor: 42 }), {
+      anchorGain: 70
+    }
+    result = await session.writeWingMapping hostile
+    expect(result.anchorGain).toBe 70
+    expect(result.cadence).toBe 30
+    expect(writes).toHaveLength 1
+
   it 'refuses the wing mapping when the firmware lacks the appendix', ->
     fallback = scriptedResponder handshakeScript
     responder = (bytes) ->

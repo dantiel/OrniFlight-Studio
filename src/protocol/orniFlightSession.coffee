@@ -193,7 +193,7 @@ class OrniFlightSession
       }
     await @client.request MSP_CODES.EEPROM_WRITE
     readBack = await @readWingMapping()
-    for key of appendix
+    for own key of appendix
       unless wingMappingFieldMatches appendix[key], readBack.appendix[key]
         throw new Error "Wing-mapping read-back failed: #{key}"
     readBack.appendix

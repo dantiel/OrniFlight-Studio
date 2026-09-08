@@ -36,6 +36,16 @@ FULL_U8_WING_FIELDS = [
 PAIR_ARRAY_FIELDS = [
   'servoMountAngle', 'flappingPhaseShift', 'wingOriginOffset'
 ]
+WING_GAIN_FIELDS = [
+  'ferocityP', 'ferocityRoll', 'ferocityYaw', 'anchorGain'
+  'resonanceGain', 'prescience', 'espelho', 'saudade', 'ssff'
+]
+# Closed set: setWingField routes catalog fields only — inherited
+# object keys ('constructor', '__proto__', 'toString') never pass.
+WING_FIELD_NAMES = [
+  SIGNED_WING_FIELDS..., FULL_U8_WING_FIELDS..., WING_GAIN_FIELDS...
+  'servoTravelTimeMs', 'profileIndex'
+]
 
 clone = (value) -> JSON.parse JSON.stringify value
 
@@ -191,8 +201,8 @@ useServoStore = create (set, get) ->
     set { draft: { get().draft..., mixRules: rules }, dirty: true }
 
   setWingField: (field, value) ->
+    return unless field in WING_FIELD_NAMES
     wing = clone get().draft.wing
-    return unless wing[field]?
     wing[field] = clampWingField field, value
     set { draft: { get().draft..., wing }, dirty: true }
 

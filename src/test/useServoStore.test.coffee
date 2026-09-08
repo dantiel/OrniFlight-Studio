@@ -145,6 +145,15 @@ describe 'useServoStore', ->
     state().setWingPairField 'servoMountAngle', 4, 1200
     expect(state().dirty).toBe false
 
+  it 'ignores inherited object keys as wing fields', ->
+    for field in ['constructor', '__proto__', 'toString', 'hasOwnProperty']
+      state().setWingField field, 1200
+    expect(state().dirty).toBe false
+    keys = Object.keys state().draft.wing
+    expect(keys).not.toContain 'constructor'
+    expect(keys).not.toContain 'toString'
+    expect(state().draft.wing.anchorGain).toBe 50
+
   it 'degrades non-finite inputs to the lower bound', ->
     state().setServoField 0, 'min', NaN
     expect(state().draft.servos[0].min).toBe 500
