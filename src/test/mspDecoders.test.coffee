@@ -244,6 +244,42 @@ describe 'mspDecoders', ->
       Array.from payload
     )
 
+  it 'clamps servo and mix-rule indices into the wire range', ->
+    expect(Array.from(encodeServoConfiguration(-1, {}))[0]).toBe 0
+    expect(Array.from(encodeServoConfiguration(99, {}))[0]).toBe 7
+    expect(Array.from(encodeServoMixRule(-1, {}))[0]).toBe 0
+    expect(Array.from(encodeServoMixRule(99, {}))[0]).toBe 15
+
+  it 'degrades the PID advanced decode on empty or short payloads', ->
+    expect(decodePidAdvanced []).toEqual {
+      prefix: [], appendix: null, tail: []
+    }
+    short = decodePidAdvanced [1, 2, 3]
+    expect(short.prefix).toEqual [1, 2, 3]
+    expect(short.appendix).toBeNull()
+    expect(short.tail).toEqual []
+    exact = decodePidAdvanced (0 for _ in [0...46])
+    expect(exact.prefix).toHaveLength 46
+    expect(exact.appendix).toBeNull()
+
+  it 'pads and truncates the PID advanced prefix to 46 bytes', ->
+    padded = encodePidAdvanced { prefix: [7, 8, 9], appendix: null }
+    expect(Array.from padded).toHaveLength 46
+    expect(Array.from padded[0...3]).toEqual [7, 8, 9]
+    expect(Array.from padded[3...]).toEqual (0 for _ in [0...43])
+    longPrefix = (1 for _ in [0...60])
+    truncated = encodePidAdvanced { prefix: longPrefix, appendix: null }
+    expect(Array.from truncated).toHaveLength 46
+
+  it 'decodes a truncated wing appendix without throwing', ->
+    payload = (0 for _ in [0...46]).concat [0, 45 + 128]
+    decoded = decodePidAdvanced payload
+    expect(decoded.prefix).toHaveLength 46
+    expect(decoded.appendix.flapBaseAmplitude).toBe 45
+    expect(decoded.appendix.itermRelaxCutoff).toBe 0
+    expect(decoded.appendix.servoMountAngle).toEqual [0, 0, 0, 0]
+    expect(decoded.tail).toEqual []
+
   it 'round-trips PID tuning through the scaled u16 wire format', ->
     source = {
       roll: { P: 4.0, I: 0.03, D: 23.0 }

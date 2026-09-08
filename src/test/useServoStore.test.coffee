@@ -111,6 +111,48 @@ describe 'useServoStore', ->
       'Unknown servo mode'
     )
 
+  it 'clamps full-u8 wing fields to their wire domain', ->
+    state().setWingField 'servoMaxAmplitude', 300
+    expect(state().draft.wing.servoMaxAmplitude).toBe 255
+    state().setWingField 'flapMagnitude', -10
+    expect(state().draft.wing.flapMagnitude).toBe 0
+    state().setWingField 'itermRelaxCutoff', 999
+    expect(state().draft.wing.itermRelaxCutoff).toBe 255
+    state().setWingField 'freqMax', 42
+    expect(state().draft.wing.freqMax).toBe 42
+    state().setWingField 'profileIndex', 9
+    expect(state().draft.wing.profileIndex).toBe 3
+
+  it 'keeps unsigned gain fields bounded to 0..100', ->
+    state().setWingField 'anchorGain', 300
+    expect(state().draft.wing.anchorGain).toBe 100
+    state().setWingField 'ssff', 300
+    expect(state().draft.wing.ssff).toBe 100
+
+  it 'ignores out-of-range servo and mix-rule indices', ->
+    state().setServoField 8, 'min', 1200
+    state().setServoField -1, 'min', 1200
+    state().setMixRuleField 16, 'rate', 50
+    state().setMixRuleField -1, 'rate', 50
+    expect(state().dirty).toBe false
+    expect(state().draft.servos[0].min).not.toBe 1200
+
+  it 'ignores unknown field names', ->
+    state().setServoField 0, 'astral', 1200
+    state().setMixRuleField 0, 'astral', 1200
+    state().setWingField 'astral', 1200
+    state().setWingPairField 'astral', 0, 1200
+    state().setWingPairField 'servoMountAngle', 4, 1200
+    expect(state().dirty).toBe false
+
+  it 'degrades non-finite inputs to the lower bound', ->
+    state().setServoField 0, 'min', NaN
+    expect(state().draft.servos[0].min).toBe 500
+    state().setGlide NaN
+    expect(state().draft.glide).toBe -90
+    state().setWingField 'warpGain', Infinity
+    expect(state().draft.wing.warpGain).toBe -128
+
 deviceSession = (options = {}) ->
   {
     readServoConfigurations: -> Promise.resolve options.configs ? []

@@ -21,10 +21,17 @@ GLIDE_LIMITS = [-90, 90]
 SIGNED_LIMITS = [-128, 127]
 GAIN_LIMITS = [0, 100]
 CHANNEL_LIMITS = [0, 255]
+U8_LIMITS = [0, 255]
+PROFILE_INDEX_LIMITS = [0, 3]
 
 SIGNED_WING_FIELDS = [
   'flapBaseAmplitude', 'cadence', 'ferocityD', 'balance'
   'warpGain', 'warpYawGain'
+]
+# Firmware msp.c serialises these as raw u8 (no 0–100 domain comment).
+FULL_U8_WING_FIELDS = [
+  'itermRelaxCutoff', 'servoMaxAmplitude', 'flapMagnitude'
+  'freqChannel', 'freqMin', 'freqMax'
 ]
 PAIR_ARRAY_FIELDS = [
   'servoMountAngle', 'flappingPhaseShift', 'wingOriginOffset'
@@ -138,6 +145,10 @@ clampWingField = (field, value) ->
     clampInt SIGNED_LIMITS..., value
   else if field == 'servoTravelTimeMs'
     clampInt 0, 65535, value
+  else if field in FULL_U8_WING_FIELDS
+    clampInt U8_LIMITS..., value
+  else if field == 'profileIndex'
+    clampInt PROFILE_INDEX_LIMITS..., value
   else
     clampInt GAIN_LIMITS..., value
 
