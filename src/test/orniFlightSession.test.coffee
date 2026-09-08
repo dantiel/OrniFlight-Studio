@@ -7,6 +7,7 @@ import OrniFlightSession, {
 import { MockMspTransport, scriptedResponder } from './mockMspTransport.coffee'
 import {
   encodeServoConfiguration, ONDAS_DEFAULTS
+  decodePidAdvanced, encodePidAdvanced
 } from '../protocol/mspDecoders.coffee'
 import { itemPos } from '../lib/osdCatalog.coffee'
 
@@ -484,6 +485,158 @@ describe 'orniFlightSession', ->
     await expect(session.writeServoConfiguration 0, {
       min: 1100, max: 1900, middle: 1520
     }).rejects.toThrow 'read-back failed'
+
+  it 'writes the glide degree through the MSP 212 short form', ->
+    glideWrites = []
+    storedGlide = 0
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      length = bytes[6] | bytes[7] << 8
+      payload = Array.from bytes.subarray 8, 8 + length
+      if command == MSP_CODES.SET_SERVO_CONFIGURATION
+        glideWrites.push payload
+        storedGlide = payload[0]
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.EEPROM_WRITE
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.SERVO_CONFIGURATIONS
+        trailer = [
+          (0 for _ in [0...96])...
+          storedGlide, 0, 0, 0
+        ]
+        return { command, direction: '>', payload: trailer }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    result = await session.writeGlideDegree 20
+    expect(result).toBe 20
+    expect(glideWrites).toEqual [[148]]
+    expect(await session.readGlideDegree()).toBe 20
+
+  it 'throws when the glide read-back diverges', ->
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      if command == MSP_CODES.SET_SERVO_CONFIGURATION
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.EEPROM_WRITE
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.SERVO_CONFIGURATIONS
+        trailer = [
+          (0 for _ in [0...96])...
+          5 + 128, 0, 0, 0
+        ]
+        return { command, direction: '>', payload: trailer }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    await expect(session.writeGlideDegree 20).rejects.toThrow(
+      'Glide read-back failed'
+    )
+
+  it 'writes a servo mix rule with eeprom and read-back', ->
+    rulePayloads = { 3: null }
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      length = bytes[6] | bytes[7] << 8
+      payload = Array.from bytes.subarray 8, 8 + length
+      if command == MSP_CODES.SET_SERVO_MIX_RULE
+        rulePayloads[payload[0]] = payload[1...]
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.EEPROM_WRITE
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.SERVO_MIX_RULES
+        stored = (0 for _ in [0...112])
+        for index, data of rulePayloads when data
+          stored.splice index * 7, data.length, data...
+        return { command, direction: '>', payload: stored }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    result = await session.writeServoMixRule 3, {
+      targetChannel: 1, inputSource: 2, rate: -25
+      speed: 10, min: 0, max: 100, box: 0
+    }
+    expect(result.index).toBe 3
+    expect(result.rule).toMatchObject {
+      targetChannel: 1, inputSource: 2, rate: -25
+    }
+    commands = transport.writes.map((bytes) -> bytes[4] | bytes[5] << 8)
+    expect(commands.slice(-3)).toEqual [
+      MSP_CODES.SET_SERVO_MIX_RULE
+      MSP_CODES.EEPROM_WRITE
+      MSP_CODES.SERVO_MIX_RULES
+    ]
+
+  it 'writes the wing-mapping appendix read-modify-write', ->
+    current = {
+      flapBaseAmplitude: 45, itermRelaxCutoff: 0
+      cadence: 30, ferocityD: 40, balance: 10
+      ferocityP: 20, ferocityRoll: 30, ferocityYaw: 25
+      warpGain: 20, warpYawGain: 15
+      anchorGain: 50, resonanceGain: 10
+      servoMountAngle: [0, 0, 0, 0]
+      flappingPhaseShift: [0, 0, 0, 0]
+      prescience: 5, espelho: 0, saudade: 0, ssff: 20
+      servoTravelTimeMs: 300
+      servoMaxAmplitude: 45, flapMagnitude: 45
+      wingOriginOffset: [0, 0, 0, 0]
+      freqChannel: 0, freqMin: 3, freqMax: 8
+      profileIndex: 0
+    }
+    stored = current
+    writes = []
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      length = bytes[6] | bytes[7] << 8
+      payload = Array.from bytes.subarray 8, 8 + length
+      if command == MSP_CODES.PID_ADVANCED
+        envelope = encodePidAdvanced { appendix: stored }
+        return { command, direction: '>', payload: Array.from envelope }
+      if command == MSP_CODES.SET_PID_ADVANCED
+        writes.push payload
+        stored = decodePidAdvanced(payload).appendix
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.EEPROM_WRITE
+        return { command, direction: '>', payload: [] }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    result = await session.writeWingMapping { anchorGain: 70 }
+    expect(result.anchorGain).toBe 70
+    expect(result.cadence).toBe 30
+    expect(writes).toHaveLength 1
+
+  it 'refuses the wing mapping when the firmware lacks the appendix', ->
+    fallback = scriptedResponder handshakeScript
+    responder = (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      if command == MSP_CODES.PID_ADVANCED
+        return { command, direction: '>', payload: (0 for _ in [0...46]) }
+      fallback bytes
+    transport = new MockMspTransport { autoRespond: true, responder }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    await expect(session.writeWingMapping { anchorGain: 70 }).rejects.toThrow(
+      'wing-mapping appendix'
+    )
 
 osdConfigPayload = (positions) ->
   bytes = []

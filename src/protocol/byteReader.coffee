@@ -10,6 +10,9 @@ class ByteReader
     if @remaining() < count
       throw new RangeError "MSP payload truncated: need #{count}, have #{@remaining()}"
 
+  skip: (count) ->
+    @offset = Math.min @bytes.length, @offset + Math.max 0, count
+
   u8: ->
     @require 1
     @view.getUint8 @offset++

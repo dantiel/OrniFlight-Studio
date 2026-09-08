@@ -1,0 +1,68 @@
+// ServosView — Horus-centred servo & wing-mapping configuration
+.view-layout.layout-servos
+  .servos-side
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 12px
+
+  .servos-header
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 20px
+
+  .servos-mode-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    border: 1px solid var(--of-border-1)
+    color: var(--of-text-muted)
+
+    &.servos-mode-sim
+      border-color: var(--of-accent-dim)
+      color: var(--of-accent)
+
+  .servos-dirty-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    background: var(--of-accent-dim)
+    color: var(--of-text-primary)
+
+  .servos-note
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: var(--of-text-muted)
+
+  .servos-main, .servos-insp, .servos-tele
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 12px
+
+  .servos-actions
+    display: flex
+    gap: 8px
+    margin-top: auto
+
+  .servos-action
+    flex: 1
+    padding: 7px 10px
+    border-radius: 8px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-glass-bg)
+    color: var(--of-text-secondary)
+    cursor: pointer
+    font-family: inherit
+    font-size: 12px
+    letter-spacing: 0.06em
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed

@@ -13,6 +13,7 @@ import BreakpointIndicator from '../components/debug/BreakpointIndicator/Breakpo
 import ConfigurationHub from '../components/views/ConfigurationHub/ConfigurationHub.coffee'
 import WelcomeView from '../components/views/WelcomeView/WelcomeView.coffee'
 import WingsView from '../components/views/WingsView/WingsView.chaml'
+import ServosView from '../components/views/ServosView/ServosView.chaml'
 import FlightView from '../components/views/FlightView/FlightView.chaml'
 import PidTuningView from '../components/views/PidTuningView/PidTuningView.coffee'
 import OsdEditorView from '../components/views/OsdEditorView/OsdEditorView.coffee'
@@ -27,6 +28,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - location = useLocation()
 - `const deviceEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'device'}))`
 - `const airframeEl = h(AnimatedPage, null, h(WingsView, null))`
+- `const servosEl = h(AnimatedPage, null, h(ServosView, null))`
 - `const controlEl = h(AnimatedPage, null, h(PidTuningView, null))`
 - `const deckEl = h(AnimatedPage, null, h(FlightView, null))`
 - `const receiverEl = h(AnimatedPage, null, h(VoiceView, null))`
@@ -59,7 +61,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/flash', element: flashEl }
         %Route{ path: '/cli', element: cliEl }
         %Route{ path: '/simulator', element: airframeEl }
-        %Route{ path: '/servos', element: airframeEl }
+        %Route{ path: '/servos', element: servosEl }
         %Route{ path: '/pid', element: controlEl }
         %Route{ path: '/mixer', element: deckEl }
         %Route{ path: '/gyro', element: sensorsEl }

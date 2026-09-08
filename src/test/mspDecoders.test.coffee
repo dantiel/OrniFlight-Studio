@@ -4,7 +4,10 @@ import {
   decodeBoardInfo, decodeUid, decodeName, decodeStatus, decodeRawImu
   decodeAttitude, decodeChannels, decodeRxMap, decodeServos
   decodeAnalog, decodeBatteryState, encodeName
-  decodeServoConfigurations, encodeServoConfiguration
+  decodeServoConfigurations, encodeServoConfiguration, MAX_SERVO_CONFIGS
+  decodeServoTuning, encodeServoGlide
+  decodeServoMixRules, encodeServoMixRule
+  decodePidAdvanced, encodePidAdvanced
   encodePidTuning, decodePidTuning
   encodeRcTuning, decodeRcTuning
   encodeFilterConfig, decodeFilterConfig
@@ -159,11 +162,10 @@ describe 'mspDecoders', ->
   it 'round-trips servo configurations through the wire format', ->
     source = {
       min: 1100, max: 1900, middle: 1520, rate: 90
-      angleAtMin: 30, angleAtMax: 50
       forwardFromChannel: 3, reversedSources: 5
     }
     bytes = Array.from encodeServoConfiguration(2, source)
-    expect(bytes).toHaveLength 15
+    expect(bytes).toHaveLength 13
     expect(bytes[0]).toBe 2
     configs = decodeServoConfigurations bytes[1...]
     expect(configs).toHaveLength 1
@@ -181,14 +183,66 @@ describe 'mspDecoders', ->
     )
     expect(configs[0]).toMatchObject {
       min: 1000, max: 2000, middle: 1500, rate: 100
-      angleAtMin: 45, angleAtMax: 45
       forwardFromChannel: 0, reversedSources: 0
     }
 
   it 'stops decoding servo configurations on truncated payloads', ->
     expect(decodeServoConfigurations [1, 2, 3]).toEqual []
-    partial = Array.from(encodeServoConfiguration(0, {}))[1...13]
+    partial = Array.from(encodeServoConfiguration(0, {}))[1...12]
     expect(decodeServoConfigurations partial).toEqual []
+
+  it 'decodes the MSP 120 servo tuning trailer after 8 records', ->
+    records = [0...MAX_SERVO_CONFIGS].map (->
+      Array.from(encodeServoConfiguration(0, {}))[1...])
+    payload = records.flat().concat [90 + 128, 30 + 128, 40 + 128, 10 + 128]
+    tuning = decodeServoTuning payload
+    expect(tuning).toEqual {
+      glide: 90, cadence: 30, ferocityD: 40, balance: 10
+    }
+
+  it 'encodes glide payloads for the MSP 212 short form', ->
+    expect(Array.from encodeServoGlide(-15)).toEqual [113]
+    expect(Array.from(encodeServoGlide(20, {
+      cadence: 30, ferocityD: 40, balance: 10
+    }))).toEqual [148, 158, 168, 138]
+
+  it 'round-trips servo mix rules through the wire format', ->
+    source = {
+      targetChannel: 2, inputSource: 3, rate: -50
+      speed: 25, min: 10, max: 90, box: 1
+    }
+    bytes = Array.from encodeServoMixRule(5, source)
+    expect(bytes).toHaveLength 8
+    expect(bytes[0]).toBe 5
+    rules = decodeServoMixRules bytes[1...]
+    expect(rules).toHaveLength 1
+    expect(rules[0]).toMatchObject { source..., index: 0 }
+
+  it 'round-trips the PID advanced wing-mapping appendix', ->
+    appendix = {
+      flapBaseAmplitude: 45
+      itermRelaxCutoff: 10
+      cadence: 30, ferocityD: 40, balance: 10
+      ferocityP: 20, ferocityRoll: 30, ferocityYaw: 25
+      warpGain: 20, warpYawGain: 15
+      anchorGain: 50, resonanceGain: 10
+      servoMountAngle: [12, -8, 0, 5]
+      flappingPhaseShift: [0, 120, 0, 0]
+      prescience: 5, espelho: 0, saudade: 0, ssff: 20
+      servoTravelTimeMs: 300
+      servoMaxAmplitude: 45, flapMagnitude: 45
+      wingOriginOffset: [0, 0, -3, 0]
+      freqChannel: 4, freqMin: 3, freqMax: 8
+      profileIndex: 0
+    }
+    payload = encodePidAdvanced { appendix }
+    expect(payload).toHaveLength 46 + 37
+    decoded = decodePidAdvanced payload
+    expect(decoded.prefix).toHaveLength 46
+    expect(decoded.appendix).toEqual appendix
+    expect(Array.from encodePidAdvanced(decoded)).toEqual(
+      Array.from payload
+    )
 
   it 'round-trips PID tuning through the scaled u16 wire format', ->
     source = {

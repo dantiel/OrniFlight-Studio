@@ -5,6 +5,9 @@ import {
   decodeAttitude, decodeChannels, decodeRxMap, decodeServos
   decodeAnalog, decodeBatteryState, encodeName
   decodeServoConfigurations, encodeServoConfiguration, MAX_SERVO_CONFIGS
+  decodeServoTuning, encodeServoGlide
+  decodeServoMixRules, encodeServoMixRule, MAX_SERVO_MIX_RULES
+  decodePidAdvanced, encodePidAdvanced
   decodePidTuning, encodePidTuning, PID_AXES, PID_TERMS
   decodeRcTuning, encodeRcTuning
   decodeFilterConfig, encodeFilterConfig
@@ -122,6 +125,79 @@ class OrniFlightSession
       )
     { index, config: written }
 
+  # Ornithopter trailer of MSP 120: glide + ONDAS v1 triplet.
+  readServoTuning: ->
+    payload = await @client.requestOptional MSP_CODES.SERVO_CONFIGURATIONS
+    if payload then decodeServoTuning(payload) else null
+
+  readGlideDegree: ->
+    (await @readServoTuning())?.glide ? null
+
+  # Glide rides MSP_SET_SERVO_CONFIGURATION with a ≤4-byte payload —
+  # the firmware's MSP_SET_ORNITHOPTER_GLIDE_DEGREE stub writes
+  # nothing. 1 byte = glide-only, 4 bytes = glide + ONDAS v1 triplet.
+  writeGlideDegree: (degrees, triplet = null) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_SERVO_CONFIGURATION,
+      encodeServoGlide degrees, triplet
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readGlideDegree()
+    unless readBack == degrees
+      throw new Error(
+        "Glide read-back failed: expected #{degrees}, received #{readBack}"
+      )
+    degrees
+
+  readServoMixRules: ->
+    payload = await @client.requestOptional MSP_CODES.SERVO_MIX_RULES
+    if payload then decodeServoMixRules(payload) else []
+
+  writeServoMixRule: (index, rule = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    unless Number.isInteger(index) and 0 <= index < MAX_SERVO_MIX_RULES
+      throw new Error "Servo mix rule index out of range: #{index}"
+    await @client.request MSP_CODES.SET_SERVO_MIX_RULE,
+      encodeServoMixRule index, rule
+    await @client.request MSP_CODES.EEPROM_WRITE
+    stored = await @readServoMixRules()
+    written = stored[index]
+    expected =
+      targetChannel: rule.targetChannel ? 0
+      inputSource: rule.inputSource ? 0
+      rate: rule.rate ? 0
+    matches = written? and
+      written.targetChannel == expected.targetChannel and
+      written.inputSource == expected.inputSource and
+      written.rate == expected.rate
+    unless matches
+      throw new Error "Servo mix rule read-back failed at index #{index}"
+    { index, rule: written }
+
+  readWingMapping: ->
+    payload = await @client.requestOptional MSP_CODES.PID_ADVANCED
+    if payload then decodePidAdvanced(payload) else null
+
+  # Read-modify-write over the PID advanced envelope: the standard
+  # Betaflight prefix travels raw so foreign fields stay untouched.
+  writeWingMapping: (appendix) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    envelope = await @readWingMapping()
+    unless envelope?.appendix?
+      throw new Error 'Firmware does not expose the wing-mapping appendix'
+    merged = { envelope.appendix..., appendix... }
+    await @client.request MSP_CODES.SET_PID_ADVANCED,
+      encodePidAdvanced {
+        prefix: envelope.prefix
+        appendix: merged
+        tail: envelope.tail
+      }
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readWingMapping()
+    for key of appendix
+      unless wingMappingFieldMatches appendix[key], readBack.appendix[key]
+        throw new Error "Wing-mapping read-back failed: #{key}"
+    readBack.appendix
+
   readTuning: ->
     pidPayload = await @client.requestOptional MSP_CODES.PID
     ratePayload = await @client.requestOptional MSP_CODES.RC_TUNING
@@ -230,6 +306,12 @@ class OrniFlightSession
     catch error
       @stop()
       @onFailure error
+
+# Wing-mapping read-back compares field-wise so array fields
+# (servo mount angles, phase shifts, origin offsets) verify as
+# whole documents instead of reference equality.
+wingMappingFieldMatches = (expected, actual) ->
+  JSON.stringify(actual) == JSON.stringify(expected)
 
 # Section-wise comparison for tuning read-back verification. PID gains
 # compare at wire precision (×1000); the remaining sections are integer

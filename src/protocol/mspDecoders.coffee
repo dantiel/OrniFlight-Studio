@@ -127,12 +127,15 @@ decodeBatteryState = (payload) ->
   { cellCount, capacityMah, consumedMah, amperage, state, voltage }
 
 # ── Servo configuration (MSP 120 / 212) ──────────────────────
-# Wire layout per servoParam_t: u16 min, u16 max, u16 middle,
-# i8 rate, u8 angleAtMin, u8 angleAtMax, u8 forwardFromChannel,
-# u32 reversedSources. MSP 120 streams records; 212 prefixes index.
-SERVO_CONFIG_BYTES = 14
+# Wire layout per servoParam_t (OrniFlight msp.c): u16 min,
+# u16 max, u16 middle, i8 rate, u8 forwardFromChannel, u32
+# reversedSources (little-endian). MSP 120 streams 8 records and
+# appends a 4-byte ornithopter trailer (glide + ONDAS v1 triplet,
+# signed on the wire as value + 128); 212 prefixes the servo
+# index and accepts either the 12-byte record or a ≤4-byte glide
+# payload — the firmware's MSP 244 stub writes nothing.
+SERVO_CONFIG_BYTES = 12
 MAX_SERVO_CONFIGS = 8
-DEFAULT_SERVO_SWEEP = 45
 
 decodeServoConfigurations = (payload) ->
   reader = new ByteReader payload
@@ -145,12 +148,20 @@ decodeServoConfigurations = (payload) ->
       max: reader.u16()
       middle: reader.u16()
       rate: reader.i8()
-      angleAtMin: reader.u8()
-      angleAtMax: reader.u8()
       forwardFromChannel: reader.u8()
       reversedSources: reader.u32()
     }
   configs
+
+# MSP 120 trailer (after the 8×12-byte records): glide_angle plus
+# the ONDAS v1 triplet — signed bytes with a +128 wire offset.
+decodeServoTuning = (payload) ->
+  reader = new ByteReader payload
+  reader.skip MAX_SERVO_CONFIGS * SERVO_CONFIG_BYTES
+  glide: if reader.remaining() then reader.u8() - 128 else 0
+  cadence: if reader.remaining() then reader.u8() - 128 else 0
+  ferocityD: if reader.remaining() then reader.u8() - 128 else 0
+  balance: if reader.remaining() then reader.u8() - 128 else 0
 
 encodeServoConfiguration = (index, config = {}) ->
   index = Math.max 0, Math.min(MAX_SERVO_CONFIGS - 1, Number(index) or 0)
@@ -160,11 +171,171 @@ encodeServoConfiguration = (index, config = {}) ->
   view.setUint16 1, config.min ? 1000, true
   view.setUint16 3, config.max ? 2000, true
   view.setUint16 5, config.middle ? 1500, true
-  view.setInt8 7, config.rate ? 100, true
-  view.setUint8 8, config.angleAtMin ? DEFAULT_SERVO_SWEEP
-  view.setUint8 9, config.angleAtMax ? DEFAULT_SERVO_SWEEP
-  view.setUint8 10, config.forwardFromChannel ? index
-  view.setUint32 11, config.reversedSources ? 0, true
+  view.setInt8 7, config.rate ? 100
+  view.setUint8 8, config.forwardFromChannel ? index
+  view.setUint32 9, config.reversedSources ? 0, true
+  out
+
+# Glide payload for MSP 212: 1 byte = glide-only, 4 bytes = glide
+# + ONDAS v1 triplet (cadence, ferocity_d, balance).
+encodeServoGlide = (glide = 0, triplet = null) ->
+  bytes = [clampU8(glide + 128)]
+  if triplet?
+    bytes.push clampU8(triplet.cadence + 128)
+    bytes.push clampU8(triplet.ferocityD + 128)
+    bytes.push clampU8(triplet.balance + 128)
+  Uint8Array.from bytes
+
+# ── Servo mix rules (MSP 241 / 242) ──────────────────────────
+# Wire layout per servoMixer_t: u8 targetChannel, u8 inputSource,
+# i8 rate, u8 speed, i8 min, i8 max, u8 box. MSP 241 streams 16
+# records; 242 prefixes the rule index.
+SERVO_MIX_RULE_BYTES = 7
+MAX_SERVO_MIX_RULES = 16
+
+decodeServoMixRules = (payload) ->
+  reader = new ByteReader payload
+  rules = []
+  while reader.remaining() >= SERVO_MIX_RULE_BYTES and
+      rules.length < MAX_SERVO_MIX_RULES
+    rules.push {
+      index: rules.length
+      targetChannel: reader.u8()
+      inputSource: reader.u8()
+      rate: reader.i8()
+      speed: reader.u8()
+      min: reader.i8()
+      max: reader.i8()
+      box: reader.u8()
+    }
+  rules
+
+encodeServoMixRule = (index, rule = {}) ->
+  index = Math.max 0, Math.min(MAX_SERVO_MIX_RULES - 1, Number(index) or 0)
+  out = new Uint8Array SERVO_MIX_RULE_BYTES + 1
+  view = new DataView out.buffer
+  view.setUint8 0, index
+  view.setUint8 1, rule.targetChannel ? 0
+  view.setUint8 2, rule.inputSource ? 0
+  view.setInt8 3, rule.rate ? 0
+  view.setUint8 4, rule.speed ? 0
+  view.setInt8 5, rule.min ? 0
+  view.setInt8 6, rule.max ? 100
+  view.setUint8 7, rule.box ? 0
+  out
+
+# ── PID advanced envelope (MSP 94 / 95) ──────────────────────
+# OrniFlight appends wing-mapping fields after the standard
+# Betaflight prefix of 46 bytes. The prefix is opaque here — it is
+# carried raw so read-modify-write round-trips are byte-exact.
+# Appendix offsets (0-based within the envelope):
+# 46 flap_base_frequency (removed — always 0)
+# 47 flap_base_amplitude (s8, wire = value + 128)
+# 48 iterm_relax_cutoff (u8)
+# 49–51 cadence / ferocity_d / balance (s8, wire = value + 128)
+# 52–54 ferocity_p / roll / yaw (u8, 0–100)
+# 55 warp_gain, 56 warp_yaw_gain (s8, wire = value + 128)
+# 57 anchor_gain, 58 resonance_gain (u8)
+# 59–62 servo_mount_angle ×4 (s8, wire = value + 128)
+# 63–66 flapping_phase_shift ×4 (s8, wire = value + 128)
+# 67–70 prescience / espelho / saudade / ssff (u8)
+# 71–72 servo_travel_time_ms (u16)
+# 73 servo_max_amplitude, 74 flap_magnitude (u8)
+# 75–78 wing_origin_offset ×4 (s8, wire = value + 128)
+# 79–81 ornithopter_freq channel/min/max (u8)
+# 82 ornithopter profile index (u8)
+# 83+ per-profile aeroelastic tail — carried raw.
+PID_ADVANCED_APPENDIX_OFFSET = 46
+ORNITHOPTER_PAIR_COUNT = 4
+
+readS8Array = (reader, count) ->
+  [0...count].map (->
+    if reader.remaining() then reader.u8() - 128 else 0)
+
+decodePidAdvanced = (payload) ->
+  reader = new ByteReader payload
+  prefix = Array.from reader.take(
+    Math.min PID_ADVANCED_APPENDIX_OFFSET, payload.length
+  )
+  return { prefix, appendix: null, tail: [] } unless reader.remaining()
+  reader.u8() # 46 — flap_base_frequency (removed)
+  appendix =
+    flapBaseAmplitude: if reader.remaining() then reader.u8() - 128 else 0
+    itermRelaxCutoff: if reader.remaining() then reader.u8() else 0
+    cadence: if reader.remaining() then reader.u8() - 128 else 0
+    ferocityD: if reader.remaining() then reader.u8() - 128 else 0
+    balance: if reader.remaining() then reader.u8() - 128 else 0
+    ferocityP: if reader.remaining() then reader.u8() else 0
+    ferocityRoll: if reader.remaining() then reader.u8() else 0
+    ferocityYaw: if reader.remaining() then reader.u8() else 0
+    warpGain: if reader.remaining() then reader.u8() - 128 else 0
+    warpYawGain: if reader.remaining() then reader.u8() - 128 else 0
+    anchorGain: if reader.remaining() then reader.u8() else 0
+    resonanceGain: if reader.remaining() then reader.u8() else 0
+    servoMountAngle: readS8Array reader, ORNITHOPTER_PAIR_COUNT
+    flappingPhaseShift: readS8Array reader, ORNITHOPTER_PAIR_COUNT
+    prescience: if reader.remaining() then reader.u8() else 0
+    espelho: if reader.remaining() then reader.u8() else 0
+    saudade: if reader.remaining() then reader.u8() else 0
+    ssff: if reader.remaining() then reader.u8() else 0
+    servoTravelTimeMs: if reader.remaining() >= 2 then reader.u16() else 0
+    servoMaxAmplitude: if reader.remaining() then reader.u8() else 0
+    flapMagnitude: if reader.remaining() then reader.u8() else 0
+    wingOriginOffset: readS8Array reader, ORNITHOPTER_PAIR_COUNT
+    freqChannel: if reader.remaining() then reader.u8() else 0
+    freqMin: if reader.remaining() then reader.u8() else 0
+    freqMax: if reader.remaining() then reader.u8() else 0
+    profileIndex: if reader.remaining() then reader.u8() else 0
+  tail = Array.from reader.take(reader.remaining())
+  { prefix, appendix, tail }
+
+encodePidAdvancedAppendix = (appendix = {}) ->
+  signed = (value) -> clampU8(value + 128)
+  bytes = [
+    0 # 46 — flap_base_frequency (removed)
+    signed appendix.flapBaseAmplitude
+    clampU8 appendix.itermRelaxCutoff
+    signed appendix.cadence
+    signed appendix.ferocityD
+    signed appendix.balance
+    clampU8 appendix.ferocityP
+    clampU8 appendix.ferocityRoll
+    clampU8 appendix.ferocityYaw
+    signed appendix.warpGain
+    signed appendix.warpYawGain
+    clampU8 appendix.anchorGain
+    clampU8 appendix.resonanceGain
+  ]
+  for i in [0...ORNITHOPTER_PAIR_COUNT]
+    bytes.push signed (appendix.servoMountAngle?[i] ? 0)
+  for i in [0...ORNITHOPTER_PAIR_COUNT]
+    bytes.push signed (appendix.flappingPhaseShift?[i] ? 0)
+  bytes.push clampU8(appendix.prescience), clampU8(appendix.espelho)
+  bytes.push clampU8(appendix.saudade), clampU8(appendix.ssff)
+  travel = clampU16 appendix.servoTravelTimeMs
+  bytes.push travel & 0xff, (travel >> 8) & 0xff
+  bytes.push clampU8(appendix.servoMaxAmplitude)
+  bytes.push clampU8(appendix.flapMagnitude)
+  for i in [0...ORNITHOPTER_PAIR_COUNT]
+    bytes.push signed (appendix.wingOriginOffset?[i] ? 0)
+  bytes.push clampU8(appendix.freqChannel), clampU8(appendix.freqMin)
+  bytes.push clampU8(appendix.freqMax), clampU8(appendix.profileIndex)
+  Uint8Array.from bytes
+
+encodePidAdvanced = (envelope = {}) ->
+  prefix = Array.from envelope.prefix ? []
+  while prefix.length < PID_ADVANCED_APPENDIX_OFFSET
+    prefix.push 0
+  prefix = prefix[0...PID_ADVANCED_APPENDIX_OFFSET]
+  tail = Array.from envelope.tail ? []
+  body = if envelope.appendix?
+    encodePidAdvancedAppendix envelope.appendix
+  else
+    new Uint8Array 0
+  out = new Uint8Array prefix.length + body.length + tail.length
+  out.set prefix, 0
+  out.set body, prefix.length
+  out.set tail, prefix.length + body.length
   out
 
 encodeName = (name) ->
@@ -360,7 +531,12 @@ export {
   decodeAttitude, decodeChannels, decodeRxMap, decodeServos
   decodeAnalog, decodeBatteryState, encodeName
   decodeServoConfigurations, encodeServoConfiguration
-  SERVO_CONFIG_BYTES, MAX_SERVO_CONFIGS, DEFAULT_SERVO_SWEEP
+  SERVO_CONFIG_BYTES, MAX_SERVO_CONFIGS
+  decodeServoTuning, encodeServoGlide
+  decodeServoMixRules, encodeServoMixRule
+  SERVO_MIX_RULE_BYTES, MAX_SERVO_MIX_RULES
+  decodePidAdvanced, encodePidAdvanced
+  PID_ADVANCED_APPENDIX_OFFSET, ORNITHOPTER_PAIR_COUNT
   encodePidTuning, decodePidTuning, PID_AXES, PID_TERMS
   encodeRcTuning, decodeRcTuning
   encodeFilterConfig, decodeFilterConfig

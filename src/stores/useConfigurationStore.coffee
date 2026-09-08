@@ -15,7 +15,6 @@ import { deriveGeometry } from '../simulation/OrnithopterModel.coffee'
 
 PAIR_MIN = 1
 PAIR_MAX = 4
-DEFAULT_SERVO_SWEEP = 45
 
 clone = (value) -> JSON.parse JSON.stringify value
 
@@ -50,6 +49,8 @@ normalizeMass = (mass = {}) ->
     cgZ: finiteOr 0, mass.cgZ
   }
 
+# Wire-true servo defaults — the firmware servoParam_t has no
+# angle fields; the 4-byte MSP 120 trailer carries glide + ONDAS.
 defaultServos = ->
   engine.servos.map (servo) -> {
     index: servo.index
@@ -57,8 +58,6 @@ defaultServos = ->
     max: servo.max
     middle: servo.midpoint
     rate: servo.rate
-    angleAtMin: DEFAULT_SERVO_SWEEP
-    angleAtMax: DEFAULT_SERVO_SWEEP
     forwardFromChannel: servo.index
     reversedSources: 0
   }

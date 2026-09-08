@@ -1,0 +1,63 @@
+- import { fmt0, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
+- import useServoStore from '../../../stores/useServoStore.coffee'
+- store = useServoStore()
+- draft = store.draft
+- wing = draft.wing
+- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = store.mode != 'device' or !store.session
+- saveDisabled = store.mode == 'device' and !store.loadedSession
+- servoLabel = (i) -> "#{if i % 2 == 0 then 'L' else 'R'}#{Math.floor(i / 2) + 1}"
+.view-layout.layout-servos
+  %ViewArea{ area: 'side' }
+    .servos-side
+      .servos-header
+        %span.servos-mode-badge{ className: "servos-mode-#{store.mode}" }
+          = modeLabel
+        - if store.dirty
+          %span.servos-dirty-badge DIRTY
+      %Section{ heading: 'Servo Chiralität' }
+        %p.servos-note
+          Even outputs drive the left wing, odd the right — servo 0/1 form pair 1.
+      .servos-actions
+        %button.servos-action.servos-action-read{ type: 'button', onClick: (-> store.loadFromDevice()), disabled: readDisabled }
+          Read device
+        %button.servos-action.servos-action-save{ type: 'button', onClick: (-> store.save()), disabled: saveDisabled }
+          Save
+        %button.servos-action.servos-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
+          Revert
+  %ViewArea{ area: 'vport' }
+    .servos-main
+      %Section{ heading: 'Wing Mapping', subheading: 'Flap amplitude, WARP and per-pair geometry (MSP 94/95).' }
+        %ParamRow{ key: 'flap-amplitude', label: 'Flap base amplitude', value: wing.flapBaseAmplitude, min: '-90', max: '90', step: '1', display: "#{fmt0(wing.flapBaseAmplitude)}°", onInput: floatFromEvent((value) -> store.setWingField 'flapBaseAmplitude', value) }
+        %ParamRow{ key: 'warp-gain', label: 'WARP gain', value: wing.warpGain, min: '-100', max: '100', step: '1', display: String(wing.warpGain), onInput: intFromEvent((value) -> store.setWingField 'warpGain', value) }
+        %ParamRow{ key: 'warp-yaw-gain', label: 'WARP yaw gain', value: wing.warpYawGain, min: '-100', max: '100', step: '1', display: String(wing.warpYawGain), onInput: intFromEvent((value) -> store.setWingField 'warpYawGain', value) }
+        %ParamRow{ key: 'anchor-gain', label: 'Anchor gain', value: wing.anchorGain, min: '0', max: '100', step: '1', display: String(wing.anchorGain), onInput: intFromEvent((value) -> store.setWingField 'anchorGain', value) }
+        %ParamRow{ key: 'resonance-gain', label: 'Resonance gain', value: wing.resonanceGain, min: '0', max: '100', step: '1', display: String(wing.resonanceGain), onInput: intFromEvent((value) -> store.setWingField 'resonanceGain', value) }
+        - for i in [0...4]
+          %ParamRow{ key: "mount-angle-#{i}", label: "Pair #{i + 1} mount angle", value: wing.servoMountAngle[i], min: '-45', max: '45', step: '1', display: "#{fmt0(wing.servoMountAngle[i])}°", onInput: floatFromEvent((value) -> store.setWingPairField 'servoMountAngle', i, value) }
+        - for i in [0...4]
+          %ParamRow{ key: "origin-offset-#{i}", label: "Pair #{i + 1} origin offset", value: wing.wingOriginOffset[i], min: '-45', max: '45', step: '1', display: "#{fmt0(wing.wingOriginOffset[i])}°", onInput: floatFromEvent((value) -> store.setWingPairField 'wingOriginOffset', i, value) }
+  %ViewArea{ area: 'insp' }
+    .servos-insp
+      %Section{ heading: 'Servo Channels', subheading: 'Per-servo PWM envelope (MSP 120/212).' }
+      - for servo, i in draft.servos
+        %StudioAccordion{ title: "Servo #{i + 1} — #{servoLabel(i)} wing", defaultOpen: i == 0 }
+          %ParamRow{ key: "servo-min-#{i}", label: 'Min pulse', value: servo.min, min: '500', max: '2500', step: '5', display: "#{fmt0(servo.min)} µs", onInput: floatFromEvent((value) -> store.setServoField i, 'min', value) }
+          %ParamRow{ key: "servo-max-#{i}", label: 'Max pulse', value: servo.max, min: '500', max: '2500', step: '5', display: "#{fmt0(servo.max)} µs", onInput: floatFromEvent((value) -> store.setServoField i, 'max', value) }
+          %ParamRow{ key: "servo-middle-#{i}", label: 'Middle pulse', value: servo.middle, min: '500', max: '2500', step: '5', display: "#{fmt0(servo.middle)} µs", onInput: floatFromEvent((value) -> store.setServoField i, 'middle', value) }
+          %ParamRow{ key: "servo-rate-#{i}", label: 'Rate', value: servo.rate, min: '-125', max: '125', step: '1', display: "#{servo.rate}%", onInput: floatFromEvent((value) -> store.setServoField i, 'rate', value) }
+          %ParamRow{ key: "servo-fwd-#{i}", label: 'Forward channel', value: servo.forwardFromChannel, min: '0', max: '17', step: '1', display: String(servo.forwardFromChannel), onInput: intFromEvent((value) -> store.setServoField i, 'forwardFromChannel', value) }
+  %ViewArea{ area: 'tele' }
+    .servos-tele
+      %Section{ heading: 'Glide', subheading: 'Written through MSP 212 — the 244 stub is empty.' }
+        %ParamRow{ key: 'glide-degree', label: 'Glide degree', value: draft.glide, min: '-90', max: '90', step: '1', display: "#{fmt0(draft.glide)}°", onInput: floatFromEvent((value) -> store.setGlide value) }
+      %Section{ heading: 'Mix Rules', subheading: 'Custom servo mixers (MSP 241/242).' }
+        - for rule, i in draft.mixRules.slice 0, 8
+          %StudioAccordion{ title: "Rule #{i + 1}", defaultOpen: false }
+            %ParamRow{ key: "rule-target-#{i}", label: 'Target channel', value: rule.targetChannel, min: '0', max: '7', step: '1', display: String(rule.targetChannel), onInput: intFromEvent((value) -> store.setMixRuleField i, 'targetChannel', value) }
+            %ParamRow{ key: "rule-input-#{i}", label: 'Input source', value: rule.inputSource, min: '0', max: '17', step: '1', display: String(rule.inputSource), onInput: intFromEvent((value) -> store.setMixRuleField i, 'inputSource', value) }
+            %ParamRow{ key: "rule-rate-#{i}", label: 'Rate', value: rule.rate, min: '-125', max: '125', step: '1', display: "#{rule.rate}%", onInput: floatFromEvent((value) -> store.setMixRuleField i, 'rate', value) }
+            %ParamRow{ key: "rule-speed-#{i}", label: 'Speed', value: rule.speed, min: '0', max: '255', step: '1', display: String(rule.speed), onInput: intFromEvent((value) -> store.setMixRuleField i, 'speed', value) }
+            %ParamRow{ key: "rule-min-#{i}", label: 'Min %', value: rule.min, min: '-125', max: '125', step: '1', display: "#{rule.min}%", onInput: floatFromEvent((value) -> store.setMixRuleField i, 'min', value) }
+            %ParamRow{ key: "rule-max-#{i}", label: 'Max %', value: rule.max, min: '-125', max: '125', step: '1', display: "#{rule.max}%", onInput: floatFromEvent((value) -> store.setMixRuleField i, 'max', value) }
+            %ParamRow{ key: "rule-box-#{i}", label: 'Box', value: rule.box, min: '0', max: '3', step: '1', display: String(rule.box), onInput: intFromEvent((value) -> store.setMixRuleField i, 'box', value) }
