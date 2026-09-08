@@ -122,8 +122,8 @@ useSafetyStore = create (set, get) ->
       set { session: null, mode: 'sim' }
 
   loadFromDevice: (session = get().session) ->
-    throw new Error 'No device session attached' unless session?
     try
+      throw new Error 'No device session attached' unless session?
       failsafe = await session.readFailsafeConfig()
       arming = await session.readArmingConfig()
       features = await session.readFeatureConfig()
