@@ -4,6 +4,8 @@ import useConfigurationStore from '../stores/useConfigurationStore.coffee'
 import useTuningStore from '../stores/useTuningStore.coffee'
 import useReceiverStore from '../stores/useReceiverStore.coffee'
 import useModesStore from '../stores/useModesStore.coffee'
+import useVtxStore from '../stores/useVtxStore.coffee'
+import usePortsStore from '../stores/usePortsStore.coffee'
 import useTelemetryStore from '../stores/useTelemetryStore.coffee'
 import { pushTelemetry } from '../streams/telemetryStream.coffee'
 import WebSerialRuntimeTransport, {
@@ -41,6 +43,10 @@ cleanup = ->
   useReceiverStore.getState().setMode 'sim'
   useModesStore.getState().attachSession null
   useModesStore.getState().setMode 'sim'
+  useVtxStore.getState().attachSession null
+  useVtxStore.getState().setMode 'sim'
+  usePortsStore.getState().attachSession null
+  usePortsStore.getState().setMode 'sim'
   session?.stop()
   try
     if session then await session.close() else await client?.close()
@@ -87,6 +93,10 @@ connectFirmware = ->
     useReceiverStore.getState().setMode 'device'
     useModesStore.getState().attachSession session
     useModesStore.getState().setMode 'device'
+    useVtxStore.getState().attachSession session
+    useVtxStore.getState().setMode 'device'
+    usePortsStore.getState().attachSession session
+    usePortsStore.getState().setMode 'device'
     true
   catch error
     # A cancelled browser picker is a normal return to offline mode.

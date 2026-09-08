@@ -17,13 +17,14 @@ describe 'ConfigTabs — Interaction', ->
   getTabLink = (text) ->
     document.querySelector "a.config-view-btn[href=\"/#{text.toLowerCase()}\"]"
 
-  it 'renders all eleven domain workspaces with full labels', ->
+  it 'renders all thirteen domain workspaces with full labels', ->
     renderApp()
     links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 11
+    expect(links.length).toBe 13
     labels = [
       'Device', 'Airframe', 'Flight Control', 'Receiver', 'Power',
-      'Sensors', 'Safety', 'OSD', 'Data', 'Flash Firmware', 'CLI'
+      'Sensors', 'Safety', 'OSD', 'VTX', 'Ports', 'Data'
+      'Flash Firmware', 'CLI'
     ]
     expect(Array.from(links).map((link) -> link.textContent)).toEqual labels
 

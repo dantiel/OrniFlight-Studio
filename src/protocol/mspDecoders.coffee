@@ -2,6 +2,10 @@ import ByteReader from './byteReader.coffee'
 import {
   OSD_DEFAULTS, OSD_ITEM_COUNT, OSD_PROFILE_COUNT, sanitizePos
 } from '../lib/osdCatalog.coffee'
+import {
+  vtxValueFor, VTX_DEFAULT_POWER
+} from '../lib/vtxCatalog.coffee'
+import { SERIAL_CONFIG_BYTES } from '../lib/serialCatalog.coffee'
 
 SIGNATURE_LENGTH = 32
 
@@ -512,6 +516,67 @@ encodeOsdItem = (index, position) ->
   payload[3] = 1 # screen 1 = in-flight OSD screen
   payload
 
+# ── VTX configuration (MSP 88 / 89) ─────────────────────────
+# Wire layout of MSP_VTX_CONFIG (OrniFlight msp.c): u8 vtxType,
+# u8 band, u8 channel, u8 power, u8 pitmode, u16 freq,
+# u8 deviceIsReady, u8 lowPowerDisarm — 8 fixed bytes.
+# SET_VTX_CONFIG carries [u16 value, u8 power, u8 pitmode,
+# u8 lowPowerDisarm]: value ≤ 63 is (band-1)×8+(channel-1),
+# 64..5999 is a custom frequency with band 0. The firmware only
+# consumes pitmode and lowPowerDisarm when a VTX device answers.
+
+decodeVtxConfig = (payload) ->
+  reader = new ByteReader payload
+  vtxType: if reader.remaining() then reader.u8() else 255
+  band: if reader.remaining() then reader.u8() else 0
+  channel: if reader.remaining() then reader.u8() else 0
+  power: if reader.remaining() then reader.u8() else 1
+  pitmode: if reader.remaining() then reader.u8() else 0
+  freq: if reader.remaining() >= 2 then reader.u16() else 0
+  deviceIsReady: if reader.remaining() then reader.u8() else 0
+  lowPowerDisarm: if reader.remaining() then reader.u8() else 0
+
+encodeVtxConfig = (config = {}) ->
+  out = new Uint8Array 5
+  view = new DataView out.buffer
+  view.setUint16 0, vtxValueFor(config), true
+  view.setUint8 2, clampU8 config.power ? VTX_DEFAULT_POWER
+  view.setUint8 3, clampU8 config.pitmode ? 0
+  view.setUint8 4, clampU8 config.lowPowerDisarm ? 0
+  out
+
+# ── Serial port configuration (MSP 54 / 55) ─────────────────
+# Wire record (OrniFlight msp.c): u8 identifier, u16 functionMask,
+# u8 msp_baudrateIndex, u8 gps_baudrateIndex,
+# u8 telemetry_baudrateIndex, u8 blackbox_baudrateIndex — 7 bytes
+# per port. MSP 54 streams one record per available port; 55
+# accepts any payload whose length is a multiple of 7.
+
+decodeSerialConfig = (payload) ->
+  reader = new ByteReader payload
+  ports = []
+  while reader.remaining() >= SERIAL_CONFIG_BYTES
+    ports.push {
+      identifier: reader.u8()
+      functionMask: reader.u16()
+      mspBaud: reader.u8()
+      gpsBaud: reader.u8()
+      telemetryBaud: reader.u8()
+      blackboxBaud: reader.u8()
+    }
+  ports
+
+encodeSerialConfig = (port = {}) ->
+  out = new Uint8Array SERIAL_CONFIG_BYTES
+  view = new DataView out.buffer
+  view.setUint8 0, clampU8(port.identifier ? 0)
+  view.setUint16 1, clampU16(port.functionMask ? 0), true
+  view.setUint8 3, clampU8(port.mspBaud ? 0)
+  view.setUint8 4, clampU8(port.gpsBaud ? 0)
+  view.setUint8 5, clampU8(port.telemetryBaud ? 0)
+  view.setUint8 6, clampU8(port.blackboxBaud ? 0)
+  out
+
 # ── Receiver & modes (MSP 44/45, 64/65, 77/78, 34/35, 116/119, 238) ─
 # Wire layouts follow the OrniFlight/Betaflight msp.c serialisation.
 MAX_SUPPORTED_RC_CHANNEL_COUNT = 18
@@ -719,6 +784,8 @@ export {
   encodeFilterConfig, decodeFilterConfig
   encodeOndas, decodeOndas, ONDAS_DEFAULTS, ONDAS_KEYS
   decodeOsdConfig, encodeOsdItem
+  decodeVtxConfig, encodeVtxConfig
+  decodeSerialConfig, encodeSerialConfig
   decodeRxConfig, encodeRxConfig, RX_CONFIG_BYTES
   channelMapFromRxMap, rxMapFromChannelMap
   MAX_SUPPORTED_RC_CHANNEL_COUNT, RX_MAPPABLE_CHANNEL_COUNT

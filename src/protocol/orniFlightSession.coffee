@@ -13,6 +13,8 @@ import {
   decodeFilterConfig, encodeFilterConfig
   decodeOndas, encodeOndas, ONDAS_DEFAULTS, TUNING_FALLBACKS
   decodeOsdConfig, encodeOsdItem
+  decodeVtxConfig, encodeVtxConfig
+  decodeSerialConfig, encodeSerialConfig
   decodeRxConfig, encodeRxConfig
   channelMapFromRxMap, rxMapFromChannelMap
   RX_MAPPABLE_CHANNEL_COUNT, MAX_SUPPORTED_RC_CHANNEL_COUNT
@@ -22,6 +24,10 @@ import {
   decodeBoxIds, decodeBoxNames
 } from './mspDecoders.coffee'
 import { OSD_ITEM_COUNT } from '../lib/osdCatalog.coffee'
+import {
+  frequencyFor, clampFrequency, VTX_DEFAULT_POWER
+} from '../lib/vtxCatalog.coffee'
+import { SERIAL_CONFIG_BYTES } from '../lib/serialCatalog.coffee'
 
 POLL_INTERVAL_MS = 100
 STATUS_EVERY_ROUNDS = 5
@@ -267,6 +273,47 @@ class OrniFlightSession
       throw new Error 'OSD configuration read-back failed'
     readBack
 
+  readVtxConfig: ->
+    payload = await @client.requestOptional MSP_CODES.VTX_CONFIG
+    if payload then decodeVtxConfig(payload) else null
+
+  # The read-back verifies band/channel/frequency and power strictly;
+  # pitmode and lowPowerDisarm ride the device link, so they are only
+  # verified when the firmware actually consumed them (a VTX device
+  # answered and deviceIsReady reports 1).
+  writeVtxConfig: (config = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_VTX_CONFIG, encodeVtxConfig config
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readVtxConfig()
+    unless readBack? and vtxConfigMatches config, readBack
+      throw new Error 'VTX configuration read-back mismatch'
+    readBack
+
+  readSerialConfig: ->
+    payload = await @client.requestOptional MSP_CODES.CF_SERIAL_CONFIG
+    if payload then decodeSerialConfig(payload) else []
+
+  # SET_CF_SERIAL_CONFIG accepts several 7-byte records per request —
+  # the whole document travels in one frame, then EEPROM_WRITE.
+  writeSerialConfig: (ports) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    unless Array.isArray(ports) and ports.length
+      throw new Error 'Serial port configuration missing'
+    payload = new Uint8Array ports.length * SERIAL_CONFIG_BYTES
+    for port, index in ports
+      payload.set encodeSerialConfig(port), index * SERIAL_CONFIG_BYTES
+    await @client.request MSP_CODES.SET_CF_SERIAL_CONFIG, payload
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readSerialConfig()
+    for port in ports
+      written = readBack.find (p) -> p.identifier == port.identifier
+      unless written? and serialPortMatches port, written
+        throw new Error(
+          "Serial configuration read-back failed at identifier #{port.identifier}"
+        )
+    readBack
+
   readRxConfig: ->
     payload = await @client.requestOptional MSP_CODES.RX_CONFIG
     if payload then decodeRxConfig(payload) else null
@@ -434,6 +481,33 @@ class OrniFlightSession
     catch error
       @stop()
       @onFailure error
+
+# VTX read-back mirrors the firmware's conditional consumption of the
+# trailing bytes: band/channel/frequency/power always, pitmode and
+# lowPowerDisarm only when a VTX device answered the write.
+vtxConfigMatches = (expected = {}, actual = {}) ->
+  band = expected.band ? 1
+  if band >= 1
+    return false unless actual.band == band
+    return false unless actual.channel == (expected.channel ? 1)
+    expectedFreq = expected.freq ? frequencyFor band, (expected.channel ? 1)
+    return false unless actual.freq == expectedFreq
+  else
+    return false unless actual.band == 0
+    return false unless actual.freq == clampFrequency expected.freq
+  return false unless actual.power == (expected.power ? VTX_DEFAULT_POWER)
+  if actual.deviceIsReady == 1
+    return false unless actual.pitmode == (expected.pitmode ? 0)
+    return false unless actual.lowPowerDisarm == (expected.lowPowerDisarm ? 0)
+  true
+
+# Field-wise comparison for serial port read-back verification.
+serialPortMatches = (expected = {}, actual = {}) ->
+  for key in [
+    'functionMask', 'mspBaud', 'gpsBaud', 'telemetryBaud', 'blackboxBaud'
+  ]
+    return false unless actual[key] == expected[key]
+  true
 
 # Wing-mapping read-back compares field-wise so array fields
 # (servo mount angles, phase shifts, origin offsets) verify as

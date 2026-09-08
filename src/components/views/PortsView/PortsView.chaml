@@ -1,0 +1,55 @@
+- import usePortsStore from '../../../stores/usePortsStore.coffee'
+- import { SERIAL_FUNCTIONS, BAUD_RATES, BAUD_FIELDS, portLabel, functionLabels } from '../../../lib/serialCatalog.coffee'
+- store = usePortsStore()
+- draft = store.draft
+- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = store.mode != 'device' or !store.session
+- saveDisabled = store.mode == 'device' and !store.loadedSession
+- boolFromEvent = (f) -> (e) -> f e.target.checked
+- valueFromEvent = (f) -> (e) -> f e.target.value
+- log = (label) -> (error) -> console.error label, error
+- readFromDevice = -> store.loadFromDevice().catch log 'Ports read failed'
+- saveToDevice = -> store.save().catch log 'Ports save failed'
+.view-layout.layout-ports
+  %ViewArea{ area: 'side' }
+    .ports-side
+      .ports-header
+        %span.ports-mode-badge{ className: "ports-mode-#{store.mode}" }
+          = modeLabel
+        - if store.dirty
+          %span.ports-dirty-badge DIRTY
+      %Section{ heading: 'UART Ports', subheading: 'MSP 54/55 — 7-byte wire records.' }
+        %p.ports-note
+          Enabling a function clears conflicting functions on the same port — exactly like the firmware arbitration.
+      .ports-actions
+        %button.ports-action.ports-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
+          Read device
+        %button.ports-action.ports-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
+          Save
+        %button.ports-action.ports-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
+          Revert
+  %ViewArea{ area: 'vport' }
+    .ports-main
+      %Section{ heading: 'Port Configuration', subheading: 'Function assignment and baud rates per serial port.' }
+      - for port in draft
+        .port-row{ key: "port-#{port.identifier}" }
+          .port-row-head
+            %span.port-label
+              = portLabel(port.identifier)
+            %span.port-functions
+              = functionLabels(port.functionMask).join(' · ') or '—'
+          .port-fn-grid
+            - for fn in SERIAL_FUNCTIONS
+              %label.port-fn-toggle{ key: "fn-#{port.identifier}-#{fn.id}" }
+                %input.port-fn-check{ type: 'checkbox', checked: Boolean(port.functionMask & fn.id), onChange: boolFromEvent((value) -> store.setPortFunction port.identifier, fn.id, value) }
+                %span.port-fn-text
+                  = fn.label
+          .port-baud-grid
+            - for [field, label] in BAUD_FIELDS
+              %label.port-baud-field{ key: "baud-#{port.identifier}-#{field}" }
+                %span.port-baud-label
+                  = label
+                %select.port-baud-select{ value: String(port[field]), onChange: valueFromEvent((value) -> store.setPortBaud port.identifier, field, value) }
+                  - for rate, index in BAUD_RATES
+                    %option{ key: "rate-#{index}", value: String(index) }
+                      = rate

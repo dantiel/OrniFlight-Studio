@@ -14,6 +14,8 @@ ROUTES = [
   ['Sensors', '/sensors', '◎']
   ['Safety', '/safety', '◇']
   ['OSD', '/osd', '⌗']
+  ['VTX', '/vtx', '≋']
+  ['Ports', '/ports', '⇶']
   ['Data', '/data', '▦']
   ['Flash Firmware', '/flash', '↯']
   ['CLI Terminal', '/cli', '❯']

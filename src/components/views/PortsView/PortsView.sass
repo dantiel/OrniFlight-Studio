@@ -1,0 +1,154 @@
+// PortsView · serial port function document (MSP 54/55)
+// sidebar | port rows with function checkboxes + baud selects
+.view-layout.layout-ports
+  height: 100%
+  grid-template-columns: 240px 1fr
+  grid-template-rows: 1fr
+  grid-template-areas: "side vport"
+
+  .view-area-side
+    grid-area: side
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-right: none
+    border-top: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-vport
+    grid-area: vport
+    overflow-y: auto
+
+  .ports-side
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 12px
+
+  .ports-header
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 20px
+
+  .ports-mode-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    border: 1px solid var(--of-border-1)
+    color: var(--of-text-muted)
+
+    &.ports-mode-sim
+      border-color: var(--of-accent-dim)
+      color: var(--of-accent)
+
+  .ports-dirty-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    border: 1px solid var(--of-accent)
+    color: var(--of-accent)
+
+  .ports-note
+    margin: 0
+    font-size: 12px
+    color: var(--of-text-muted)
+    line-height: 1.5
+
+  .ports-actions
+    display: flex
+    flex-direction: column
+    gap: 6px
+    margin-top: auto
+
+  .ports-action
+    padding: 7px 10px
+    border-radius: 6px
+    border: 1px solid var(--of-border-1)
+    background: transparent
+    color: inherit
+    font: inherit
+    font-size: 12px
+    cursor: pointer
+
+    &:hover:not(:disabled)
+      border-color: var(--of-accent)
+      color: var(--of-accent)
+
+    &:disabled
+      opacity: 0.4
+      cursor: default
+
+  .ports-main
+    padding: 16px
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  .port-row
+    padding: 12px
+    border-radius: 10px
+    border: 1px solid var(--of-border-1)
+    display: flex
+    flex-direction: column
+    gap: 10px
+
+  .port-row-head
+    display: flex
+    align-items: baseline
+    gap: 10px
+
+  .port-label
+    font-size: 14px
+    font-weight: 600
+
+  .port-functions
+    font-size: 11px
+    color: var(--of-text-muted)
+    letter-spacing: 0.08em
+
+  .port-fn-grid
+    display: flex
+    flex-wrap: wrap
+    gap: 8px 16px
+
+  .port-fn-toggle
+    display: flex
+    align-items: center
+    gap: 6px
+    font-size: 12px
+
+  .port-fn-check
+    accent-color: var(--of-accent)
+
+  .port-baud-grid
+    display: flex
+    flex-wrap: wrap
+    gap: 8px 20px
+
+  .port-baud-field
+    display: flex
+    align-items: center
+    gap: 8px
+    font-size: 12px
+
+  .port-baud-label
+    font-size: 10px
+    letter-spacing: 0.12em
+    text-transform: uppercase
+    color: var(--of-text-muted)
+
+  .port-baud-select
+    padding: 4px 8px
+    border-radius: 6px
+    border: 1px solid var(--of-border-1)
+    background: transparent
+    color: inherit
+    font: inherit
+    font-size: 12px

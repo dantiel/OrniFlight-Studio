@@ -17,6 +17,10 @@ import { NavLink } from 'react-router-dom'
     %span.tab-label Safety
   %NavLink{ to: '/osd', end: true, className: 'config-view-btn', data-glyph: '⌗' }
     %span.tab-label OSD
+  %NavLink{ to: '/vtx', end: true, className: 'config-view-btn', data-glyph: '≋' }
+    %span.tab-label VTX
+  %NavLink{ to: '/ports', end: true, className: 'config-view-btn', data-glyph: '⇶' }
+    %span.tab-label Ports
   %NavLink{ to: '/data', end: true, className: 'config-view-btn', data-glyph: '▦' }
     %span.tab-label Data
   %NavLink{ to: '/flash', end: true, className: 'config-view-btn', data-glyph: '↯' }

@@ -1,0 +1,87 @@
+- import useVtxStore from '../../../stores/useVtxStore.coffee'
+- import { VTX_BANDS, VTX_CHANNEL_COUNT, VTX_POWER_LEVELS, VTX_TYPE_LABELS, bandLabel, bandLetter, lookupBandChannel } from '../../../lib/vtxCatalog.coffee'
+- store = useVtxStore()
+- draft = store.draft
+- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = store.mode != 'device' or !store.session
+- saveDisabled = store.mode == 'device' and !store.loadedSession
+- typeLabel = VTX_TYPE_LABELS[draft.vtxType] ? 'Unknown'
+- located = if draft.band == 0 then lookupBandChannel(draft.freq) else null
+- freqNote = if draft.band >= 1 then "#{bandLabel(draft.band)} CH#{draft.channel} — #{bandLetter(draft.band)}#{draft.channel}" else if located? then "CUSTOM — ≈ #{bandLabel(located.band)} #{located.channel}" else 'CUSTOM'
+- valueFromEvent = (f) -> (e) -> f e.target.value
+- boolFromEvent = (f) -> (e) -> f e.target.checked
+- log = (label) -> (error) -> console.error label, error
+- readFromDevice = -> store.loadFromDevice().catch log 'VTX read failed'
+- saveToDevice = -> store.save().catch log 'VTX save failed'
+.view-layout.layout-vtx
+  %ViewArea{ area: 'side' }
+    .vtx-side
+      .vtx-header
+        %span.vtx-mode-badge{ className: "vtx-mode-#{store.mode}" }
+          = modeLabel
+        - if store.dirty
+          %span.vtx-dirty-badge DIRTY
+      %Section{ heading: 'VTX Transmitter', subheading: 'MSP 88/89 — 5.8 GHz, band 0 = custom.' }
+        %p.vtx-note
+          = "Device type: #{typeLabel}"
+      %Section{ heading: 'Band & Channel' }
+        .vtx-control-row
+          %label.vtx-control
+            %span.vtx-control-label Band
+            %select.vtx-select{ value: String(draft.band), onChange: valueFromEvent((value) -> store.setBand Number(value)) }
+              %option{ value: '0' } CUSTOM
+              - for band in VTX_BANDS
+                %option{ key: "band-#{band.index}", value: String(band.index) }
+                  = band.name
+          %label.vtx-control
+            %span.vtx-control-label Channel
+            %select.vtx-select{ value: String(draft.channel), disabled: draft.band == 0, onChange: valueFromEvent((value) -> store.setChannel Number(value)) }
+              - for channel in [1..VTX_CHANNEL_COUNT]
+                %option{ key: "ch-#{channel}", value: String(channel) }
+                  = "CH#{channel}"
+      %Section{ heading: 'Custom Frequency', subheading: '5600–5950 MHz — rides band 0 on the wire.' }
+        %label.vtx-control
+          %span.vtx-control-label MHz
+          %input.vtx-freq-input{ type: 'number', min: '5600', max: '5950', step: '1', value: String(draft.freq), onChange: valueFromEvent((value) -> store.setCustomFreq value) }
+      %Section{ heading: 'Transmission' }
+        %label.vtx-control
+          %span.vtx-control-label Power
+          %select.vtx-select{ value: String(draft.power), onChange: valueFromEvent((value) -> store.setPower Number(value)) }
+            - for level in VTX_POWER_LEVELS
+              %option{ key: "power-#{level.value}", value: String(level.value) }
+                = level.label
+        %label.vtx-toggle-row
+          %input.vtx-check{ type: 'checkbox', checked: Boolean(draft.pitmode), onChange: boolFromEvent((value) -> store.setPitMode value) }
+          %span Pit mode
+        %label.vtx-toggle-row
+          %input.vtx-check{ type: 'checkbox', checked: Boolean(draft.lowPowerDisarm), onChange: boolFromEvent((value) -> store.setLowPowerDisarm value) }
+          %span Low power on disarm
+      .vtx-actions
+        %button.vtx-action.vtx-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
+          Read device
+        %button.vtx-action.vtx-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
+          Save
+        %button.vtx-action.vtx-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
+          Revert
+  %ViewArea{ area: 'vport' }
+    .vtx-main
+      %Section{ heading: 'Transmit Frequency', subheading: 'The active cell glows — click any cell to tune.' }
+      .vtx-frequency-block
+        .vtx-frequency
+          = draft.freq
+          %span.vtx-frequency-unit MHz
+        .vtx-frequency-note
+          = freqNote
+      .vtx-band-table
+        .vtx-band-table-head
+          %span.vtx-band-corner CH
+          - for channel in [1..VTX_CHANNEL_COUNT]
+            %span.vtx-band-colhead{ key: "ch-#{channel}" }
+              = channel
+        - for band in VTX_BANDS
+          .vtx-band-row{ key: "band-#{band.index}" }
+            %span.vtx-band-name
+              = band.name
+            - for freq, chIndex in band.frequencies
+              %button.vtx-band-cell{ key: "cell-#{band.index}-#{chIndex}", type: 'button', className: "vtx-band-cell #{if draft.freq == freq then 'vtx-band-cell-active' else ''}", onClick: (-> store.setBandChannel band.index, chIndex + 1) }
+                = freq

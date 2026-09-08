@@ -19,6 +19,8 @@ import PidTuningView from '../components/views/PidTuningView/PidTuningView.coffe
 import OsdEditorView from '../components/views/OsdEditorView/OsdEditorView.coffee'
 import ReceiverView from '../components/views/ReceiverView/ReceiverView.coffee'
 import ModesView from '../components/views/ModesView/ModesView.coffee'
+import VtxView from '../components/views/VtxView/VtxView.coffee'
+import PortsView from '../components/views/PortsView/PortsView.coffee'
 import CliTerminalView from '../components/views/CliTerminalView/CliTerminalView.coffee'
 import PerceptionView from '../components/views/PerceptionView/PerceptionView.chaml'
 import VoiceView from '../components/views/VoiceView/VoiceView.chaml'
@@ -36,6 +38,8 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - `const receiverEl = h(AnimatedPage, null, h(ReceiverView, null))`
 - `const voiceEl = h(AnimatedPage, null, h(VoiceView, null))`
 - `const modesEl = h(AnimatedPage, null, h(ModesView, null))`
+- `const vtxEl = h(AnimatedPage, null, h(VtxView, null))`
+- `const portsEl = h(AnimatedPage, null, h(PortsView, null))`
 - `const powerEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'power'}))`
 - `const sensorsEl = h(AnimatedPage, null, h(PerceptionView, null))`
 - `const safetyEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'safety'}))`
@@ -74,6 +78,8 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/perception', element: sensorsEl }
         %Route{ path: '/voice', element: voiceEl }
         %Route{ path: '/modes', element: modesEl }
+        %Route{ path: '/vtx', element: vtxEl }
+        %Route{ path: '/ports', element: portsEl }
         %Route{ path: '/memory', element: deckEl }
         %Route{ path: '/profiles', element: deckEl }
         %Route{ path: '/firmware', element: flashEl }
