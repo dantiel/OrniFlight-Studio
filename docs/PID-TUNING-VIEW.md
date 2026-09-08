@@ -15,6 +15,8 @@ Companion documents:
   store; the draft/saved/mode pattern and security invariants are shared.
 - [`SERVOS-VIEW.md`](SERVOS-VIEW.md) — the servo & wing-mapping surface; shares
   the draft/saved/mode pattern and the wing-mapping appendix codec.
+- [`RECEIVER-MODES.md`](RECEIVER-MODES.md) — the RX & AUX mode-range surface;
+  shares the draft/saved/mode pattern and the armed-guard write discipline.
 
 ---
 

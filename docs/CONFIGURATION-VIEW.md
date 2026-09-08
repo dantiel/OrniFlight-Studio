@@ -14,6 +14,8 @@ Companion documents:
   session boundary described here.
 - [`SERVOS-VIEW.md`](SERVOS-VIEW.md) — the dedicated servo & wing-mapping
   surface; the legacy `servos` slice here shares its wire codec.
+- [`RECEIVER-MODES.md`](RECEIVER-MODES.md) — the RX & AUX mode-range surface;
+  shares the polymorphic draft/saved/mode pattern and source-device pin.
 
 ---
 
