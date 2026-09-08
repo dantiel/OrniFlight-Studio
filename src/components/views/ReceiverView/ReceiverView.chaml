@@ -1,0 +1,77 @@
+- import { fmt0, intFromEvent } from '../../../lib/essential.coffee'
+- import useReceiverStore from '../../../stores/useReceiverStore.coffee'
+- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+- import { SERIALRX_PROVIDERS, RC_CHANNEL_LETTERS, RXFAIL_MODE, RXFAIL_STEP_MAX } from '../../../protocol/mspDecoders.coffee'
+- store = useReceiverStore()
+- draft = store.draft
+- telemetry = useTelemetryStore (state) -> state.rcChannels
+- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = store.mode != 'device' or !store.session
+- saveDisabled = store.mode == 'device' and !store.loadedSession
+- POSITION_LABELS = ['ROLL', 'PITCH', 'YAW', 'THROTTLE', 'AUX1', 'AUX2', 'AUX3', 'AUX4']
+- RXFAIL_LABELS = ['AUTO', 'HOLD', 'SET', 'INVALID']
+- CHANNEL_LETTERS = RC_CHANNEL_LETTERS.split ''
+- pct = (v) -> Math.max 0, Math.min 100, (v - 885) / 12.3
+- chanPct = (index) -> pct telemetry[index] or 0
+- valueFromEvent = (f) -> (e) -> f e.target.value
+.view-layout.layout-receiver
+  %ViewArea{ area: 'side' }
+    .receiver-side
+      .receiver-header
+        %span.receiver-mode-badge{ className: "receiver-mode-#{store.mode}" }
+          = modeLabel
+        - if store.dirty
+          %span.receiver-dirty-badge DIRTY
+      .receiver-actions
+        %button.receiver-action.receiver-action-read{ type: 'button', onClick: (-> store.loadFromDevice()), disabled: readDisabled }
+          Read device
+        %button.receiver-action.receiver-action-save{ type: 'button', onClick: (-> store.save()), disabled: saveDisabled }
+          Save
+        %button.receiver-action.receiver-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
+          Revert
+      %Section{ heading: 'RX Protocol', subheading: 'Serial receiver provider (MSP 44).' }
+        %select.receiver-provider{ value: String(draft.provider), onChange: valueFromEvent((value) -> store.setRxConfigField 'provider', value) }
+          - for provider in SERIALRX_PROVIDERS
+            %option{ key: "provider-#{provider.id}", value: String(provider.id) }
+              = provider.label
+        %ParamRow{ key: 'maxcheck', label: 'Max check', value: draft.maxcheck, min: '500', max: '2500', step: '5', display: "#{fmt0(draft.maxcheck)} µs", onInput: intFromEvent((value) -> store.setRxConfigField 'maxcheck', value) }
+        %ParamRow{ key: 'midrc', label: 'Mid RC', value: draft.midrc, min: '500', max: '2500', step: '5', display: "#{fmt0(draft.midrc)} µs", onInput: intFromEvent((value) -> store.setRxConfigField 'midrc', value) }
+        %ParamRow{ key: 'mincheck', label: 'Min check', value: draft.mincheck, min: '500', max: '2500', step: '5', display: "#{fmt0(draft.mincheck)} µs", onInput: intFromEvent((value) -> store.setRxConfigField 'mincheck', value) }
+        %ParamRow{ key: 'rx-min-usec', label: 'RX min pulse', value: draft.rxMinUsec, min: '500', max: '3000', step: '5', display: "#{fmt0(draft.rxMinUsec)} µs", onInput: intFromEvent((value) -> store.setRxConfigField 'rxMinUsec', value) }
+        %ParamRow{ key: 'rx-max-usec', label: 'RX max pulse', value: draft.rxMaxUsec, min: '500', max: '3000', step: '5', display: "#{fmt0(draft.rxMaxUsec)} µs", onInput: intFromEvent((value) -> store.setRxConfigField 'rxMaxUsec', value) }
+        %ParamRow{ key: 'airmode-threshold', label: 'Airmode threshold', value: draft.airModeActivateThreshold, min: '0', max: '250', step: '1', display: "#{fmt0(draft.airModeActivateThreshold * 10 + 1000)} µs", onInput: intFromEvent((value) -> store.setRxConfigField 'airModeActivateThreshold', value) }
+      %Section{ heading: 'Channel Map', subheading: 'Logical inputs to physical channels (MSP 64).' }
+        - for position in [0...8]
+          .channel-map-row{ key: "cmap-#{position}" }
+            %span.channel-map-label
+              = POSITION_LABELS[position]
+            %select.channel-map-select{ value: draft.channelMap[position], onChange: valueFromEvent((value) -> store.setChannelMapPosition position, value) }
+              - for letter in CHANNEL_LETTERS
+                %option{ key: "letter-#{letter}", value: letter }
+                  = letter
+  %ViewArea{ area: 'vport' }
+    .receiver-main
+      %Section{ heading: 'Failsafe Channels', subheading: 'Per-channel loss behaviour — value slots in 750–2250 µs (MSP 77).' }
+      - for channel, index in draft.rxFail
+        .rxfail-row{ key: "rxfail-#{index}" }
+          %span.rxfail-label
+            = "Ch #{index + 1}"
+          %select.rxfail-mode{ value: String(channel.mode), onChange: valueFromEvent((value) -> store.setRxFailField index, 'mode', value) }
+            - for label, modeValue in RXFAIL_LABELS
+              %option{ key: "rxfail-mode-#{modeValue}", value: String(modeValue) }
+                = label
+          %input.rxfail-slider{ type: 'range', min: '0', max: String(RXFAIL_STEP_MAX), step: '1', value: String(channel.step), onInput: intFromEvent((value) -> store.setRxFailField index, 'step', value) }
+          %span.rxfail-value
+            = "#{fmt0(750 + channel.step * 25)} µs"
+  %ViewArea{ area: 'insp' }
+    %ModesView
+  %ViewArea{ area: 'tele' }
+    .receiver-tele
+      %Section{ heading: 'Live Channels', subheading: 'Physical channel stream — mapped preview of the receiver document.' }
+      .channel-bars
+        - for index in [0...18]
+          .channel-bar-cell{ key: "chan-#{index}" }
+            %span.channel-bar-label
+              = CHANNEL_LETTERS[index] or index + 1
+            .channel-bar-track
+              .channel-bar-fill{ style: { width: "#{chanPct(index)}%" } }

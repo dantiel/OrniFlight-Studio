@@ -1,0 +1,143 @@
+// ModesView — AUX mode-range document (MSP 34/35 + optional 238)
+// sidebar | full-height range table
+.view-layout.layout-modes
+  height: 100%
+  grid-template-columns: 240px 1fr
+  grid-template-rows: 1fr
+  grid-template-areas: "side vport"
+
+  .view-area-side
+    grid-area: side
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-right: none
+    border-top: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-vport
+    grid-area: vport
+    overflow-y: auto
+
+  .modes-side
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 12px
+
+  .modes-header
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 20px
+
+  .modes-mode-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    border: 1px solid var(--of-border-1)
+    color: var(--of-text-muted)
+
+    &.modes-mode-sim
+      border-color: var(--of-accent-dim)
+      color: var(--of-accent)
+
+  .modes-dirty-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    background: var(--of-accent-dim)
+    color: var(--of-text-primary)
+
+  .modes-note
+    margin: 0
+    font-size: 12px
+    line-height: 1.5
+    color: var(--of-text-muted)
+
+  .modes-note-warn
+    color: var(--of-warning, #d9a441)
+
+  .modes-actions
+    display: flex
+    gap: 8px
+    margin-top: auto
+
+  .modes-action
+    flex: 1
+    padding: 7px 10px
+    border-radius: 8px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-glass-bg)
+    color: var(--of-text-secondary)
+    cursor: pointer
+    font-family: inherit
+    font-size: 12px
+    letter-spacing: 0.06em
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed
+
+  .modes-main
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding: 12px
+
+  .mode-range-row
+    display: grid
+    grid-template-columns: 30px 150px 72px 1fr 84px
+    gap: 2px 8px
+    align-items: center
+    padding: 6px 8px
+    border: 1px solid var(--of-border-1)
+    border-radius: 8px
+    background: var(--of-glass-card)
+
+    &.mode-range-active
+      border-color: var(--of-accent)
+
+  .mode-range-index
+    font-size: 10px
+    color: var(--of-text-muted)
+    font-family: var(--of-font-mono)
+
+  .mode-range-box, .mode-range-aux
+    padding: 3px 6px
+    border-radius: 6px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-surface-2, #1e1e21)
+    color: var(--of-text-primary)
+    font-family: inherit
+    font-size: 11px
+    max-width: 100%
+
+  .mode-range-sliders
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 0 6px
+    align-items: center
+
+  .mode-range-slider
+    width: 100%
+
+  .mode-range-slider-label
+    font-size: 9px
+    font-family: var(--of-font-mono)
+    color: var(--of-text-muted)
+
+  .mode-range-live
+    justify-self: end
+    font-size: 10px
+    font-family: var(--of-font-mono)
+    color: var(--of-text-muted)
+
+    &.mode-range-live-active
+      color: var(--of-accent)

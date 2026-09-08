@@ -1,0 +1,202 @@
+// ReceiverView — RX protocol, channel map, failsafe slots
+// sidebar | failsafe table | embedded modes | live channel stream
+.view-layout.layout-receiver
+  grid-template-columns: 240px 1fr 320px
+  grid-template-rows: 1fr 200px
+  grid-template-areas: "side vport insp" "tele tele tele"
+
+  .view-area-side
+    grid-area: side
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-right: none
+    border-top: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-vport
+    grid-area: vport
+    overflow-y: auto
+
+  .view-area-insp
+    grid-area: insp
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-left: none
+    border-top: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-tele
+    grid-area: tele
+    border-top: 1px solid var(--of-border-1)
+    overflow-y: auto
+
+  .receiver-side
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 12px
+
+  .receiver-header
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 20px
+
+  .receiver-mode-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    border: 1px solid var(--of-border-1)
+    color: var(--of-text-muted)
+
+    &.receiver-mode-sim
+      border-color: var(--of-accent-dim)
+      color: var(--of-accent)
+
+  .receiver-dirty-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    background: var(--of-accent-dim)
+    color: var(--of-text-primary)
+
+  .receiver-actions
+    display: flex
+    gap: 8px
+
+  .receiver-action
+    flex: 1
+    padding: 7px 10px
+    border-radius: 8px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-glass-bg)
+    color: var(--of-text-secondary)
+    cursor: pointer
+    font-family: inherit
+    font-size: 12px
+    letter-spacing: 0.06em
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed
+
+  .receiver-provider
+    width: 100%
+    padding: 6px 8px
+    border-radius: 8px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-surface-2, #1e1e21)
+    color: var(--of-text-primary)
+    font-family: inherit
+    font-size: 12px
+
+  .channel-map-row
+    display: grid
+    grid-template-columns: 90px 1fr
+    gap: 8px
+    align-items: center
+    padding: 2px 0
+
+  .channel-map-label
+    font-size: 10px
+    letter-spacing: 0.1em
+    color: var(--of-text-muted)
+    font-family: var(--of-font-mono)
+
+  .channel-map-select
+    padding: 3px 6px
+    border-radius: 6px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-surface-2, #1e1e21)
+    color: var(--of-text-primary)
+    font-family: inherit
+    font-size: 11px
+
+  .receiver-main
+    display: flex
+    flex-direction: column
+    gap: 4px
+    padding: 12px
+
+  .rxfail-row
+    display: grid
+    grid-template-columns: 64px 92px 1fr 84px
+    gap: 8px
+    align-items: center
+    padding: 4px 8px
+    border: 1px solid var(--of-border-1)
+    border-radius: 8px
+    background: var(--of-glass-card)
+
+  .rxfail-label
+    font-size: 10px
+    color: var(--of-text-muted)
+    font-family: var(--of-font-mono)
+
+  .rxfail-mode
+    padding: 3px 6px
+    border-radius: 6px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-surface-2, #1e1e21)
+    color: var(--of-text-primary)
+    font-family: inherit
+    font-size: 11px
+
+  .rxfail-slider
+    width: 100%
+
+  .rxfail-value
+    justify-self: end
+    font-size: 10px
+    font-family: var(--of-font-mono)
+    color: var(--of-text-muted)
+
+  .receiver-tele
+    display: flex
+    flex-direction: column
+    gap: 8px
+    padding: 12px
+
+  .channel-bars
+    display: grid
+    grid-template-columns: repeat(18, 1fr)
+    gap: 4px
+    align-items: end
+    height: 84px
+
+  .channel-bar-cell
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 2px
+
+  .channel-bar-label
+    font-size: 9px
+    font-family: var(--of-font-mono)
+    color: var(--of-text-muted)
+
+  .channel-bar-track
+    width: 100%
+    height: 48px
+    position: relative
+    border-radius: 4px
+    background: var(--of-surface-3, #26262a)
+    overflow: hidden
+
+  .channel-bar-fill
+    position: absolute
+    bottom: 0
+    left: 0
+    right: 0
+    background: linear-gradient(to top, var(--of-accent-dim), var(--of-accent))
+    border-radius: 4px

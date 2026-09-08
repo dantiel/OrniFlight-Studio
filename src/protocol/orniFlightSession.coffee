@@ -13,6 +13,13 @@ import {
   decodeFilterConfig, encodeFilterConfig
   decodeOndas, encodeOndas, ONDAS_DEFAULTS, TUNING_FALLBACKS
   decodeOsdConfig, encodeOsdItem
+  decodeRxConfig, encodeRxConfig
+  channelMapFromRxMap, rxMapFromChannelMap
+  RX_MAPPABLE_CHANNEL_COUNT, MAX_SUPPORTED_RC_CHANNEL_COUNT
+  decodeRxFailConfig, encodeRxFailChannel
+  decodeModeRanges, decodeModeRangesExtra, encodeModeRange
+  MAX_MODE_ACTIVATION_CONDITION_COUNT
+  decodeBoxIds, decodeBoxNames
 } from './mspDecoders.coffee'
 import { OSD_ITEM_COUNT } from '../lib/osdCatalog.coffee'
 
@@ -259,6 +266,127 @@ class OrniFlightSession
     unless readBack? and osdItemsMatch items, readBack.items
       throw new Error 'OSD configuration read-back failed'
     readBack
+
+  readRxConfig: ->
+    payload = await @client.requestOptional MSP_CODES.RX_CONFIG
+    if payload then decodeRxConfig(payload) else null
+
+  # Writes the 16-byte RX_CONFIG document; the read-back verifies only
+  # the fields the caller actually supplied — the firmware may tailor
+  # provider-specific defaults for the rest.
+  writeRxConfig: (config = {}) ->
+    if @lastStatus?.armed
+      throw new Error 'Cannot write configuration while armed'
+    await @client.request MSP_CODES.SET_RX_CONFIG, encodeRxConfig config
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readRxConfig()
+    unless readBack?
+      throw new Error 'RX configuration read-back failed'
+    for own key of config
+      expected = config[key]
+      actual = readBack[key]
+      if key == 'airModeActivateThreshold'
+        expected = Math.round(expected * 10) / 10
+        actual = Math.round(actual * 10) / 10
+      unless actual == expected
+        throw new Error "RX configuration read-back failed: #{key}"
+    readBack
+
+  readRxMap: ->
+    payload = await @client.requestOptional MSP_CODES.RX_MAP
+    if payload then decodeRxMap(payload) else []
+
+  writeRxMap: (rxMap) ->
+    if @lastStatus?.armed
+      throw new Error 'Cannot write configuration while armed'
+    unless Array.isArray(rxMap) and rxMap.length == RX_MAPPABLE_CHANNEL_COUNT
+      throw new Error 'RX map must carry 8 channel positions'
+    await @client.request MSP_CODES.SET_RX_MAP, Uint8Array.from rxMap
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readRxMap()
+    for index in [0...RX_MAPPABLE_CHANNEL_COUNT]
+      unless readBack[index] == rxMap[index]
+        throw new Error "RX map read-back failed at position #{index}"
+    # The live telemetry mapping rides this array — refresh it so the
+    # poll loop resolves channels through the new assignment.
+    @rxMap = readBack
+    @identity = { @identity..., rxMap: readBack } if @identity?
+    readBack
+
+  readRxFailConfig: ->
+    payload = await @client.requestOptional MSP_CODES.RXFAIL_CONFIG
+    if payload then decodeRxFailConfig(payload) else []
+
+  # RXFAIL streams a dynamic channel count (runtime channelCount) —
+  # the read-back verifies the written slot only when the firmware
+  # actually reports it; shorter streams pass.
+  writeRxFailChannel: (index, channel = {}) ->
+    if @lastStatus?.armed
+      throw new Error 'Cannot write configuration while armed'
+    unless Number.isInteger(index) and
+        0 <= index < MAX_SUPPORTED_RC_CHANNEL_COUNT
+      throw new Error "RX fail channel index out of range: #{index}"
+    await @client.request MSP_CODES.SET_RXFAIL_CONFIG,
+      encodeRxFailChannel index, channel
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readRxFailConfig()
+    if index < readBack.length
+      written = readBack[index]
+      expectedMode = channel.mode ? 0
+      expectedValue = channel.value ? 1500
+      unless written.mode == expectedMode and written.value == expectedValue
+        throw new Error "RX fail read-back failed at channel #{index}"
+    { index, channel: readBack[index] }
+
+  # MODE_RANGES_EXTRA is optional — legacy firmwares answer MODE_RANGES
+  # only; extras null signals the degraded mode (no logic/link columns).
+  readModeRanges: ->
+    payload = await @client.requestOptional MSP_CODES.MODE_RANGES
+    ranges = if payload then decodeModeRanges(payload) else []
+    extraPayload = await @client.requestOptional MSP_CODES.MODE_RANGES_EXTRA
+    extras = if extraPayload then decodeModeRangesExtra(extraPayload) else null
+    { ranges, extras }
+
+  writeModeRange: (index, range = {}) ->
+    if @lastStatus?.armed
+      throw new Error 'Cannot write configuration while armed'
+    unless Number.isInteger(index) and
+        0 <= index < MAX_MODE_ACTIVATION_CONDITION_COUNT
+      throw new Error "Mode range index out of range: #{index}"
+    unless Number.isInteger(range.permanentId) and
+        range.permanentId != 255
+      throw new Error 'Mode range permanentId missing or invalid'
+    # 255 means "no link" on the wire — clamp to the ARM-neutral 0.
+    linkedTo = if range.linkedToPermId == 255
+      0
+    else
+      range.linkedToPermId ? 0
+    await @client.request MSP_CODES.SET_MODE_RANGE,
+      encodeModeRange index, { range..., linkedToPermId: linkedTo }
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readModeRanges()
+    written = readBack.ranges[index]
+    expected =
+      permanentId: range.permanentId
+      auxChannelIndex: range.auxChannelIndex ? 0
+      startStep: range.startStep ? 0
+      endStep: range.endStep ? 0
+    matches = written? and
+      written.permanentId == expected.permanentId and
+      written.auxChannelIndex == expected.auxChannelIndex and
+      written.startStep == expected.startStep and
+      written.endStep == expected.endStep
+    unless matches
+      throw new Error "Mode range read-back failed at index #{index}"
+    { index, range: written }
+
+  readBoxIds: (page = 0) ->
+    payload = await @client.requestOptional MSP_CODES.BOXIDS, [page]
+    if payload then decodeBoxIds(payload) else []
+
+  readBoxNames: (page = 0) ->
+    payload = await @client.requestOptional MSP_CODES.BOXNAMES, [page]
+    if payload then decodeBoxNames(payload) else []
 
   _poll: ->
     return unless @running

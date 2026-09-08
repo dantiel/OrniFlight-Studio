@@ -7,7 +7,7 @@ import OrniFlightSession, {
 import { MockMspTransport, scriptedResponder } from './mockMspTransport.coffee'
 import {
   encodeServoConfiguration, ONDAS_DEFAULTS
-  decodePidAdvanced, encodePidAdvanced
+  decodePidAdvanced, encodePidAdvanced, RX_CONFIG_BYTES
 } from '../protocol/mspDecoders.coffee'
 import { itemPos } from '../lib/osdCatalog.coffee'
 
@@ -804,3 +804,271 @@ describe 'OrniFlightSession OSD layout', ->
     await expect(session.writeOsdConfig null).rejects.toThrow(
       'OSD configuration items missing'
     )
+
+describe 'receiver and modes session', ->
+  rxConfigPayload = ->
+    [
+      9
+      u16(1900)...
+      u16(1500)...
+      u16(1050)...
+      0
+      u16(885)...
+      u16(2115)...
+      0, 0
+      u16(1000)...
+    ]
+
+  modeRangesPayload = (slots) ->
+    payload = []
+    for slot in slots
+      payload.push slot[0], slot[1], slot[2], slot[3]
+    payload
+
+  modeRangesExtraPayload = (slots) ->
+    payload = [slots.length]
+    for slot in slots
+      payload.push slot[0], slot[4], slot[5]
+    payload
+
+  receiverState = ->
+    rxConfig: rxConfigPayload()
+    rxMap: [0, 1, 3, 2, 4, 5, 6, 7]
+    rxFail: ([0, u16(1500)...] for _ in [0...6])
+    modeRanges: ([0, 0, 0, 0, 0, 0] for _ in [0...20])
+
+  # Stateful device double: stores SET payloads, answers reads from
+  # the stored state, falls back to the handshake script.
+  receiverResponder = (state) ->
+    fallback = scriptedResponder handshakeScript
+    (bytes) ->
+      command = bytes[4] | bytes[5] << 8
+      if command == MSP_CODES.SET_RX_CONFIG
+        state.rxConfig = Array.from bytes.subarray 8, 8 + RX_CONFIG_BYTES
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.SET_RX_MAP
+        state.rxMap = Array.from bytes.subarray 8, 16
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.SET_RXFAIL_CONFIG
+        index = bytes[8]
+        # The firmware only stores slots inside its runtime channelCount.
+        state.rxFail[index] = Array.from bytes.subarray 9, 12 if (
+          index < state.rxFail.length
+        )
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.SET_MODE_RANGE
+        state.modeRanges[bytes[8]] = Array.from bytes.subarray 9, 15
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.EEPROM_WRITE
+        return { command, direction: '>', payload: [] }
+      if command == MSP_CODES.RX_CONFIG
+        return { command, direction: '>', payload: state.rxConfig }
+      if command == MSP_CODES.RX_MAP
+        return { command, direction: '>', payload: state.rxMap }
+      if command == MSP_CODES.RXFAIL_CONFIG
+        payload = []
+        payload.push slot... for slot in state.rxFail
+        return { command, direction: '>', payload }
+      if command == MSP_CODES.MODE_RANGES
+        return {
+          command, direction: '>', payload: modeRangesPayload state.modeRanges
+        }
+      if command == MSP_CODES.MODE_RANGES_EXTRA
+        return {
+          command, direction: '>'
+          payload: modeRangesExtraPayload state.modeRanges
+        }
+      fallback bytes
+
+  openResponderSession = (state) ->
+    transport = new MockMspTransport {
+      autoRespond: true
+      responder: receiverResponder state
+    }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    { transport, session }
+
+  it 'reads the receiver document', ->
+    state = receiverState()
+    { session } = await openSession {
+      handshakeScript...
+      [MSP_CODES.RX_CONFIG]: state.rxConfig
+      [MSP_CODES.RX_MAP]: state.rxMap
+      [MSP_CODES.RXFAIL_CONFIG]: state.rxFail.flat()
+    }
+    await session.handshake()
+    config = await session.readRxConfig()
+    expect(config.provider).toBe 9
+    expect(config.maxcheck).toBe 1900
+    expect(config.airModeActivateThreshold).toBe 0
+    expect(await session.readRxMap()).toEqual state.rxMap
+    channels = await session.readRxFailConfig()
+    expect(channels).toHaveLength 6
+    expect(channels[0]).toEqual { index: 0, mode: 0, value: 1500 }
+
+  it 'writes receiver configuration and verifies only supplied fields', ->
+    state = receiverState()
+    { transport, session } = await openResponderSession state
+    result = await session.writeRxConfig { provider: 7 }
+    expect(result.provider).toBe 7
+    writes = transport.writes.filter (bytes) ->
+      (bytes[4] | bytes[5] << 8) == MSP_CODES.SET_RX_CONFIG
+    expect(writes).toHaveLength 1
+    expect(writes[0][8]).toBe 7
+    expect(transport.writes.some (bytes) ->
+      (bytes[4] | bytes[5] << 8) == MSP_CODES.EEPROM_WRITE
+    ).toBe true
+
+  it 'throws when the receiver read-back diverges', ->
+    state = receiverState()
+    transport = new MockMspTransport {
+      autoRespond: true
+      responder: (bytes) ->
+        command = bytes[4] | bytes[5] << 8
+        if command == MSP_CODES.SET_RX_CONFIG
+          state.rxConfig = Array.from bytes.subarray 8, 8 + RX_CONFIG_BYTES
+          state.rxConfig[0] += 1
+          return { command, direction: '>', payload: [] }
+        receiverResponder(state)(bytes)
+    }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    await expect(session.writeRxConfig { provider: 7 }).rejects.toThrow(
+      'RX configuration read-back failed: provider'
+    )
+
+  it 'writes the channel map and refreshes the telemetry mapping', ->
+    state = receiverState()
+    { transport, session } = await openResponderSession state
+    newMap = [0, 1, 2, 3, 4, 5, 6, 7]
+    await session.writeRxMap newMap
+    expect(session.rxMap).toEqual newMap
+    expect(session.identity.rxMap).toEqual newMap
+    writes = transport.writes.filter (bytes) ->
+      (bytes[4] | bytes[5] << 8) == MSP_CODES.SET_RX_MAP
+    expect(writes).toHaveLength 1
+    await expect(session.writeRxMap [0, 1]).rejects.toThrow(
+      '8 channel positions'
+    )
+
+  it 'writes failsafe slots and tolerates a shorter read-back', ->
+    state = receiverState()
+    { session } = await openResponderSession state
+    result = await session.writeRxFailChannel 2, { mode: 2, value: 1200 }
+    expect(result.channel).toEqual { index: 2, mode: 2, value: 1200 }
+    # Index beyond the firmware's channelCount passes silently.
+    beyond = await session.writeRxFailChannel 10, { mode: 2, value: 1200 }
+    expect(beyond.channel).toBeUndefined()
+    await expect(session.writeRxFailChannel 18, {}).rejects.toThrow(
+      'RX fail channel index out of range'
+    )
+
+  it 'reads mode ranges with optional extras', ->
+    state = receiverState()
+    state.modeRanges[1] = [28, 5, 10, 20, 1, 36]
+    script = {
+      handshakeScript...
+      [MSP_CODES.MODE_RANGES]: modeRangesPayload state.modeRanges
+      [MSP_CODES.MODE_RANGES_EXTRA]: modeRangesExtraPayload state.modeRanges
+    }
+    { session } = await openSession script
+    await session.handshake()
+    { ranges, extras } = await session.readModeRanges()
+    expect(ranges).toHaveLength 20
+    expect(ranges[1]).toEqual {
+      index: 1, permanentId: 28, auxChannelIndex: 5, startStep: 10, endStep: 20
+    }
+    expect(extras[1]).toEqual {
+      index: 1, permanentId: 28, modeLogic: 1, linkedToPermId: 36
+    }
+
+  it 'degrades when extras are unsupported', ->
+    state = receiverState()
+    script = {
+      handshakeScript...
+      [MSP_CODES.MODE_RANGES]: modeRangesPayload state.modeRanges
+      [MSP_CODES.MODE_RANGES_EXTRA]: 'unsupported'
+    }
+    { session } = await openSession script
+    await session.handshake()
+    { ranges, extras } = await session.readModeRanges()
+    expect(ranges).toHaveLength 20
+    expect(extras).toBe null
+
+  it 'writes a mode range and clamps linkedTo 255 to neutral', ->
+    state = receiverState()
+    { transport, session } = await openResponderSession state
+    await session.writeModeRange 1, {
+      permanentId: 28, auxChannelIndex: 5
+      startStep: 10, endStep: 20
+      modeLogic: 1, linkedToPermId: 255
+    }
+    writes = transport.writes.filter (bytes) ->
+      (bytes[4] | bytes[5] << 8) == MSP_CODES.SET_MODE_RANGE
+    expect(writes).toHaveLength 1
+    expect(writes[0].slice 8, 15).toEqual [1, 28, 5, 10, 20, 1, 0]
+    expect(state.modeRanges[1]).toEqual [28, 5, 10, 20, 1, 0]
+
+  it 'rejects invalid mode-range writes', ->
+    state = receiverState()
+    { session } = await openResponderSession state
+    await expect(session.writeModeRange 20, {}).rejects.toThrow(
+      'Mode range index out of range'
+    )
+    await expect(session.writeModeRange 0, {
+      permanentId: 255
+    }).rejects.toThrow 'Mode range permanentId missing or invalid'
+
+  it 'throws when a mode-range read-back diverges', ->
+    state = receiverState()
+    transport = new MockMspTransport {
+      autoRespond: true
+      responder: (bytes) ->
+        command = bytes[4] | bytes[5] << 8
+        if command == MSP_CODES.SET_MODE_RANGE
+          state.modeRanges[bytes[8]] = Array.from bytes.subarray 8, 15
+          state.modeRanges[bytes[8]][3] = 99
+          return { command, direction: '>', payload: [] }
+        receiverResponder(state)(bytes)
+    }
+    client = new MspClient transport, { timeoutMs: 500 }
+    await client.open()
+    session = new OrniFlightSession client
+    await session.handshake()
+    await expect(session.writeModeRange 1, {
+      permanentId: 28, auxChannelIndex: 5, startStep: 10, endStep: 20
+    }).rejects.toThrow 'Mode range read-back failed at index 1'
+
+  it 'reads box ids and names', ->
+    script = {
+      handshakeScript...
+      [MSP_CODES.BOXIDS]: [0, 27, 28]
+      [MSP_CODES.BOXNAMES]: [3, asciiBytes('ARM;ANGLE;HORIZON')...]
+    }
+    { session } = await openSession script
+    await session.handshake()
+    expect(await session.readBoxIds()).toEqual [0, 27, 28]
+    expect(await session.readBoxIds(1)).toEqual [0, 27, 28]
+    expect(await session.readBoxNames()).toEqual ['ARM', 'ANGLE', 'HORIZON']
+
+  it 'refuses receiver and modes writes while armed', ->
+    state = receiverState()
+    { session } = await openResponderSession state
+    session.lastStatus.armed = true
+    await expect(session.writeRxConfig { provider: 7 }).rejects.toThrow(
+      'Cannot write configuration while armed'
+    )
+    await expect(session.writeRxMap [0, 1, 3, 2, 4, 5, 6, 7]).rejects.toThrow(
+      'Cannot write configuration while armed'
+    )
+    await expect(session.writeRxFailChannel 0, {}).rejects.toThrow(
+      'Cannot write configuration while armed'
+    )
+    await expect(session.writeModeRange 0, {
+      permanentId: 28
+    }).rejects.toThrow 'Cannot write configuration while armed'

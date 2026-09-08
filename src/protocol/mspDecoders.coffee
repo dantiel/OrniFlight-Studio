@@ -353,6 +353,9 @@ clampU16 = (value) ->
 clampU8 = (value) ->
   Math.max 0, Math.min 255, Math.round finiteOr 0, value
 
+clampInt = (lo, hi, value) ->
+  Math.max lo, Math.min hi, Math.round finiteOr lo, value
+
 # ── PID tuning (MSP 112 / 202) ──────────────────────────────
 # Wire layout: 24 bytes — four axes in fixed order roll → pitch →
 # yaw → flap, each P u16×1000, I u16×1000, D u16×1000 (little-endian).
@@ -509,6 +512,180 @@ encodeOsdItem = (index, position) ->
   payload[3] = 1 # screen 1 = in-flight OSD screen
   payload
 
+# ── Receiver & modes (MSP 44/45, 64/65, 77/78, 34/35, 116/119, 238) ─
+# Wire layouts follow the OrniFlight/Betaflight msp.c serialisation.
+MAX_SUPPORTED_RC_CHANNEL_COUNT = 18
+RX_MAPPABLE_CHANNEL_COUNT = 8
+MAX_MODE_ACTIVATION_CONDITION_COUNT = 20
+RXFAIL_MODE = Object.freeze { AUTO: 0, HOLD: 1, SET: 2, INVALID: 3 }
+RXFAIL_VALUE_MIN = 750
+RXFAIL_STEP = 25
+RXFAIL_STEP_MAX = 60
+MODE_RANGE_USEC_MIN = 900
+MODE_RANGE_USEC_MAX = 2100
+MODE_RANGE_STEP_MAX = 48
+# rcmap[logicalInput] = letter index of the assigned physical channel;
+# the letter table doubles as the physical index (A=0 … h=17).
+RC_CHANNEL_LETTERS = 'AERT12345678abcdefgh'
+SERIALRX_PROVIDERS = Object.freeze [
+  Object.freeze { id: 9, name: 'CRSF', label: 'CRSF — ELRS / TBS Crossfire' }
+  Object.freeze { id: 2, name: 'SBUS', label: 'SBUS (FrSky / Futaba)' }
+  Object.freeze { id: 7, name: 'IBUS', label: 'iBUS (FlySky)' }
+  Object.freeze { id: 12, name: 'FPORT', label: 'F.Port (FrSky)' }
+  Object.freeze { id: 3, name: 'SUMD', label: 'SUMD (Graupner)' }
+  Object.freeze { id: 4, name: 'SUMH', label: 'SUMH (Graupner)' }
+  Object.freeze { id: 8, name: 'JETIEXBUS', label: 'JETI EXBus' }
+  Object.freeze { id: 10, name: 'SRXL2', label: 'SRXL2 (Spektrum)' }
+  Object.freeze { id: 0, name: 'SPEKTRUM1024', label: 'Spektrum 1024' }
+  Object.freeze { id: 1, name: 'SPEKTRUM2048', label: 'Spektrum 2048' }
+  Object.freeze { id: 5, name: 'XBUS_MODE_B', label: 'XBUS Mode B' }
+  Object.freeze { id: 6, name: 'XBUS_MODE_B_RJ01', label: 'XBUS Mode B (RJ01)' }
+  Object.freeze { id: 11, name: 'CUSTOM', label: 'Custom provider' }
+]
+
+# MSP 44: u8 provider, u16 maxcheck/midrc/mincheck, u8 bind, u16
+# rx_min_usec/rx_max_usec, u8 rcInterpolation + interval, u16
+# airModeActivateThreshold (wire = value × 10 + 1000). Remaining
+# guards tolerate a trailing SPI tail.
+RX_CONFIG_BYTES = 16
+
+decodeRxConfig = (payload) ->
+  reader = new ByteReader payload
+  provider = reader.u8()
+  maxcheck = reader.u16()
+  midrc = reader.u16()
+  mincheck = reader.u16()
+  spektrumSatBind = reader.u8()
+  rxMinUsec = if reader.remaining() >= 2 then reader.u16() else 885
+  rxMaxUsec = if reader.remaining() >= 2 then reader.u16() else 2115
+  rcInterpolation = if reader.remaining() >= 1 then reader.u8() else 0
+  rcInterpolationInterval = if reader.remaining() >= 1 then reader.u8() else 0
+  airModeRaw = if reader.remaining() >= 2 then reader.u16() else 1000
+  {
+    provider, maxcheck, midrc, mincheck, spektrumSatBind
+    rxMinUsec, rxMaxUsec, rcInterpolation, rcInterpolationInterval
+    airModeActivateThreshold: (airModeRaw - 1000) / 10
+  }
+
+encodeRxConfig = (config = {}) ->
+  out = new Uint8Array RX_CONFIG_BYTES
+  view = new DataView out.buffer
+  view.setUint8 0, clampU8 config.provider ? 9
+  view.setUint16 1, config.maxcheck ? 1900, true
+  view.setUint16 3, config.midrc ? 1500, true
+  view.setUint16 5, config.mincheck ? 1050, true
+  view.setUint8 7, clampU8 config.spektrumSatBind ? 0
+  view.setUint16 8, config.rxMinUsec ? 885, true
+  view.setUint16 10, config.rxMaxUsec ? 2115, true
+  view.setUint8 12, clampU8 config.rcInterpolation ? 0
+  view.setUint8 13, clampU8 config.rcInterpolationInterval ? 0
+  threshold = Math.round((config.airModeActivateThreshold ? 0) * 10) + 1000
+  view.setUint16 14, clampU16(threshold), true
+  out
+
+# MSP 64: rcmap carries the letter index per logical input; the display
+# map is its inversion as letters — default wire [0,1,3,2,4,5,6,7]
+# reads back as 'AETR1234'.
+channelMapFromRxMap = (rxMap) ->
+  letters = []
+  for position in [0...RX_MAPPABLE_CHANNEL_COUNT]
+    index = rxMap[position]
+    index = position unless Number.isInteger(index) and index >= 0
+    letters.push RC_CHANNEL_LETTERS[index] ? RC_CHANNEL_LETTERS[position]
+  letters.join ''
+
+rxMapFromChannelMap = (letters) ->
+  text = String(letters ? '')
+  out = new Uint8Array RX_MAPPABLE_CHANNEL_COUNT
+  for position in [0...RX_MAPPABLE_CHANNEL_COUNT]
+    index = RC_CHANNEL_LETTERS.indexOf text[position]
+    index = position unless index >= 0
+    out[position] = index
+  out
+
+# MSP 77: dynamic-length channel stream — {mode u8, value u16} per
+# channel; the firmware emits only its runtime channelCount slots.
+decodeRxFailConfig = (payload) ->
+  reader = new ByteReader payload
+  channels = []
+  while reader.remaining() >= 3
+    channels.push {
+      index: channels.length
+      mode: reader.u8()
+      value: reader.u16()
+    }
+  channels
+
+encodeRxFailChannel = (index, channel = {}) ->
+  out = new Uint8Array 4
+  view = new DataView out.buffer
+  view.setUint8 0, clampU8 index
+  view.setUint8 1, clampU8 channel.mode ? RXFAIL_MODE.AUTO
+  view.setUint16 2, clampU16(channel.value ? 1500), true
+  out
+
+# Failsafe pulse domain: 750 µs + step × 25 µs (step 0..60).
+rxFailStepToValue = (step) ->
+  RXFAIL_VALUE_MIN + RXFAIL_STEP * clampInt 0, RXFAIL_STEP_MAX, step
+
+rxFailValueToStep = (value) ->
+  step = Math.round (value - RXFAIL_VALUE_MIN) / RXFAIL_STEP
+  clampInt 0, RXFAIL_STEP_MAX, step
+
+# MSP 34: 20 fixed 4-byte slots {permId, aux, startStep, endStep}.
+decodeModeRanges = (payload) ->
+  reader = new ByteReader payload
+  ranges = []
+  while ranges.length < MAX_MODE_ACTIVATION_CONDITION_COUNT and
+      reader.remaining() >= 4
+    ranges.push {
+      index: ranges.length
+      permanentId: reader.u8()
+      auxChannelIndex: reader.u8()
+      startStep: reader.u8()
+      endStep: reader.u8()
+    }
+  ranges
+
+# MSP 238: u8 count then count×3 bytes {permId, modeLogic, linkedTo}
+# aligned to the slot index they describe.
+decodeModeRangesExtra = (payload) ->
+  reader = new ByteReader payload
+  return null unless reader.remaining() >= 1
+  count = reader.u8()
+  extras = []
+  while extras.length < count and reader.remaining() >= 3
+    extras.push {
+      index: extras.length
+      permanentId: reader.u8()
+      modeLogic: reader.u8()
+      linkedToPermId: reader.u8()
+    }
+  extras
+
+encodeModeRange = (index, range = {}) ->
+  out = new Uint8Array 7
+  out[0] = clampU8 index
+  out[1] = clampU8 range.permanentId ? 0
+  out[2] = clampU8 range.auxChannelIndex ? 0
+  out[3] = clampU8 range.startStep ? 0
+  out[4] = clampU8 range.endStep ? 0
+  out[5] = clampU8 range.modeLogic ? 0
+  out[6] = clampU8 range.linkedToPermId ? 0
+  out
+
+decodeBoxIds = (payload) -> Array.from payload
+
+# MSP 116: u8 count then ';'-separated box names.
+decodeBoxNames = (payload) ->
+  reader = new ByteReader payload
+  count = if reader.remaining() then reader.u8() else 0
+  names = reader.ascii(reader.remaining()).split(';')
+    .map((name) -> name.trim())
+    .filter((name) -> name.length > 0)
+  names = names[0...count] if count > 0 and count < names.length
+  names
+
 # ⚙️ Tuning fallbacks — OrniFlight firmware standards for sections the
 # flight controller does not expose. Shared by session reads and the
 # tuning store so defaults can never drift between the two.
@@ -542,5 +719,16 @@ export {
   encodeFilterConfig, decodeFilterConfig
   encodeOndas, decodeOndas, ONDAS_DEFAULTS, ONDAS_KEYS
   decodeOsdConfig, encodeOsdItem
+  decodeRxConfig, encodeRxConfig, RX_CONFIG_BYTES
+  channelMapFromRxMap, rxMapFromChannelMap
+  MAX_SUPPORTED_RC_CHANNEL_COUNT, RX_MAPPABLE_CHANNEL_COUNT
+  RC_CHANNEL_LETTERS, SERIALRX_PROVIDERS
+  decodeRxFailConfig, encodeRxFailChannel
+  RXFAIL_MODE, RXFAIL_VALUE_MIN, RXFAIL_STEP, RXFAIL_STEP_MAX
+  rxFailStepToValue, rxFailValueToStep
+  decodeModeRanges, decodeModeRangesExtra, encodeModeRange
+  MAX_MODE_ACTIVATION_CONDITION_COUNT
+  MODE_RANGE_USEC_MIN, MODE_RANGE_USEC_MAX, MODE_RANGE_STEP_MAX
+  decodeBoxIds, decodeBoxNames
   TUNING_FALLBACKS
 }

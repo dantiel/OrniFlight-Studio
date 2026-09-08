@@ -13,6 +13,17 @@ import {
   encodeFilterConfig, decodeFilterConfig
   encodeOndas, decodeOndas, ONDAS_DEFAULTS, ONDAS_KEYS
   decodeOsdConfig, encodeOsdItem
+  decodeRxConfig, encodeRxConfig, RX_CONFIG_BYTES
+  channelMapFromRxMap, rxMapFromChannelMap
+  MAX_SUPPORTED_RC_CHANNEL_COUNT, RX_MAPPABLE_CHANNEL_COUNT
+  RC_CHANNEL_LETTERS, SERIALRX_PROVIDERS
+  decodeRxFailConfig, encodeRxFailChannel
+  RXFAIL_MODE, RXFAIL_VALUE_MIN, RXFAIL_STEP, RXFAIL_STEP_MAX
+  rxFailStepToValue, rxFailValueToStep
+  decodeModeRanges, decodeModeRangesExtra, encodeModeRange
+  MAX_MODE_ACTIVATION_CONDITION_COUNT
+  MODE_RANGE_USEC_MIN, MODE_RANGE_USEC_MAX, MODE_RANGE_STEP_MAX
+  decodeBoxIds, decodeBoxNames
 } from '../protocol/mspDecoders.coffee'
 import { itemPos } from '../lib/osdCatalog.coffee'
 
@@ -372,3 +383,113 @@ describe 'mspDecoders', ->
     bytes = Array.from encodePidTuning({})
     expect(bytes).toHaveLength 24
     expect(bytes.every (byte) -> byte == 0).toBe true
+
+describe 'receiver and modes codecs', ->
+  it 'round-trips the 16-byte RX_CONFIG document', ->
+    config = {
+      provider: 9, maxcheck: 1900, midrc: 1500, mincheck: 1050
+      spektrumSatBind: 0, rxMinUsec: 885, rxMaxUsec: 2115
+      rcInterpolation: 1, rcInterpolationInterval: 20
+      airModeActivateThreshold: 50
+    }
+    encoded = encodeRxConfig config
+    expect(encoded).toHaveLength RX_CONFIG_BYTES
+    expect(Array.from encoded).toEqual [
+      9
+      u16(1900)...
+      u16(1500)...
+      u16(1050)...
+      0
+      u16(885)...
+      u16(2115)...
+      1, 20
+      u16(1500)...
+    ]
+    expect(decodeRxConfig encoded).toEqual config
+
+  it 'tolerates a truncated RX_CONFIG without the SPI tail', ->
+    decoded = decodeRxConfig [9, u16(1900)..., u16(1500)..., u16(1050)..., 0]
+    expect(decoded.rxMinUsec).toBe 885
+    expect(decoded.rxMaxUsec).toBe 2115
+    expect(decoded.rcInterpolation).toBe 0
+    expect(decoded.airModeActivateThreshold).toBe 0
+
+  it 'inverts the channel map between letters and rcmap wire', ->
+    expect(channelMapFromRxMap [0, 1, 3, 2, 4, 5, 6, 7]).toBe 'AETR1234'
+    expect(Array.from rxMapFromChannelMap('AETR1234')).toEqual [
+      0, 1, 3, 2, 4, 5, 6, 7
+    ]
+    expect(
+      channelMapFromRxMap Array.from(rxMapFromChannelMap('TAER1234'))
+    ).toBe 'TAER1234'
+    # Unknown letters fall back to the position index.
+    expect(Array.from rxMapFromChannelMap('AEXR1234')).toEqual [
+      0, 1, 2, 2, 4, 5, 6, 7
+    ]
+
+  it 'converts failsafe steps and pulse values', ->
+    expect(rxFailStepToValue 0).toBe RXFAIL_VALUE_MIN
+    expect(rxFailStepToValue 60).toBe 2250
+    expect(rxFailStepToValue 99).toBe 2250
+    expect(rxFailStepToValue -5).toBe RXFAIL_VALUE_MIN
+    expect(rxFailValueToStep 750).toBe 0
+    expect(rxFailValueToStep 2250).toBe 60
+    expect(rxFailValueToStep 999).toBe 10
+
+  it 'decodes the dynamic-length RXFAIL stream', ->
+    payload = [0, u16(1500)..., 2, u16(1200)..., 3, u16(885)...]
+    channels = decodeRxFailConfig payload
+    expect(channels).toHaveLength 3
+    expect(channels[1]).toEqual { index: 1, mode: 2, value: 1200 }
+
+  it 'encodes a failsafe slot with defaults', ->
+    encoded = Array.from encodeRxFailChannel 5, { mode: 2, value: 1200 }
+    expect(encoded).toEqual [
+      5, 2, u16(1200)...
+    ]
+    expect(Array.from encodeRxFailChannel(2)).toEqual [
+      2, RXFAIL_MODE.AUTO, u16(1500)...
+    ]
+
+  it 'decodes 20 mode-range slots', ->
+    payload = []
+    for index in [0...MAX_MODE_ACTIVATION_CONDITION_COUNT]
+      payload.push index % 5, index % 4, index, index + 1
+    ranges = decodeModeRanges payload
+    expect(ranges).toHaveLength MAX_MODE_ACTIVATION_CONDITION_COUNT
+    expect(ranges[3]).toEqual {
+      index: 3, permanentId: 3, auxChannelIndex: 3, startStep: 3, endStep: 4
+    }
+
+  it 'decodes mode-range extras aligned by index', ->
+    payload = [20]
+    for index in [0...20]
+      payload.push 28, index % 3, 36
+    extras = decodeModeRangesExtra payload
+    expect(extras).toHaveLength 20
+    expect(extras[7]).toEqual {
+      index: 7, permanentId: 28, modeLogic: 1, linkedToPermId: 36
+    }
+
+  it 'encodes a 7-byte mode-range write', ->
+    encoded = encodeModeRange 3, {
+      permanentId: 28, auxChannelIndex: 5
+      startStep: 10, endStep: 20
+      modeLogic: 1, linkedToPermId: 36
+    }
+    expect(Array.from encoded).toEqual [3, 28, 5, 10, 20, 1, 36]
+
+  it 'decodes box ids and names', ->
+    expect(decodeBoxIds [0, 27, 28]).toEqual [0, 27, 28]
+    payload = [2, asciiBytes('ARM;ANGLE')...]
+    expect(decodeBoxNames payload).toEqual ['ARM', 'ANGLE']
+    payload = [1, asciiBytes('ARM;ANGLE')...]
+    expect(decodeBoxNames payload).toEqual ['ARM']
+
+  it 'lists CRSF first among serial providers', ->
+    expect(SERIALRX_PROVIDERS[0].id).toBe 9
+    expect(SERIALRX_PROVIDERS[0].name).toBe 'CRSF'
+    expect(RXFAIL_STEP_MAX).toBe 60
+    expect(MODE_RANGE_STEP_MAX).toBe 48
+    expect(MODE_RANGE_USEC_MIN).toBe 900
+    expect(MODE_RANGE_USEC_MAX).toBe 2100

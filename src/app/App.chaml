@@ -17,6 +17,8 @@ import ServosView from '../components/views/ServosView/ServosView.chaml'
 import FlightView from '../components/views/FlightView/FlightView.chaml'
 import PidTuningView from '../components/views/PidTuningView/PidTuningView.coffee'
 import OsdEditorView from '../components/views/OsdEditorView/OsdEditorView.coffee'
+import ReceiverView from '../components/views/ReceiverView/ReceiverView.coffee'
+import ModesView from '../components/views/ModesView/ModesView.coffee'
 import CliTerminalView from '../components/views/CliTerminalView/CliTerminalView.coffee'
 import PerceptionView from '../components/views/PerceptionView/PerceptionView.chaml'
 import VoiceView from '../components/views/VoiceView/VoiceView.chaml'
@@ -31,7 +33,9 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - `const servosEl = h(AnimatedPage, null, h(ServosView, null))`
 - `const controlEl = h(AnimatedPage, null, h(PidTuningView, null))`
 - `const deckEl = h(AnimatedPage, null, h(FlightView, null))`
-- `const receiverEl = h(AnimatedPage, null, h(VoiceView, null))`
+- `const receiverEl = h(AnimatedPage, null, h(ReceiverView, null))`
+- `const voiceEl = h(AnimatedPage, null, h(VoiceView, null))`
+- `const modesEl = h(AnimatedPage, null, h(ModesView, null))`
 - `const powerEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'power'}))`
 - `const sensorsEl = h(AnimatedPage, null, h(PerceptionView, null))`
 - `const safetyEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'safety'}))`
@@ -68,7 +72,8 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/wings', element: airframeEl }
         %Route{ path: '/flight', element: deckEl }
         %Route{ path: '/perception', element: sensorsEl }
-        %Route{ path: '/voice', element: receiverEl }
+        %Route{ path: '/voice', element: voiceEl }
+        %Route{ path: '/modes', element: modesEl }
         %Route{ path: '/memory', element: deckEl }
         %Route{ path: '/profiles', element: deckEl }
         %Route{ path: '/firmware', element: flashEl }
