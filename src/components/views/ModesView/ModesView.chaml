@@ -16,6 +16,9 @@
 - inside = (r) -> inRange auxValue(r.auxChannelIndex), r.startStep, r.endStep
 - rangeActive = (r) -> r.startStep < r.endStep and inside(r)
 - valueFromEvent = (f) -> (e) -> f e.target.value
+- log = (label) -> (error) -> console.error label, error
+- readFromDevice = -> store.loadFromDevice().catch log 'Modes read failed'
+- saveToDevice = -> store.save().catch log 'Modes save failed'
 .view-layout.layout-modes
   %ViewArea{ area: 'side' }
     .modes-side
@@ -34,9 +37,9 @@
           %p.modes-note.modes-note-warn
             Legacy firmware — logic and links ride at their defaults.
       .modes-actions
-        %button.modes-action.modes-action-read{ type: 'button', onClick: (-> store.loadFromDevice()), disabled: readDisabled }
+        %button.modes-action.modes-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
           Read device
-        %button.modes-action.modes-action-save{ type: 'button', onClick: (-> store.save()), disabled: saveDisabled }
+        %button.modes-action.modes-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
           Save
         %button.modes-action.modes-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
           Revert

@@ -14,6 +14,9 @@
 - pct = (v) -> Math.max 0, Math.min 100, (v - 885) / 12.3
 - chanPct = (index) -> pct telemetry[index] or 0
 - valueFromEvent = (f) -> (e) -> f e.target.value
+- log = (label) -> (error) -> console.error label, error
+- readFromDevice = -> store.loadFromDevice().catch log 'Receiver read failed'
+- saveToDevice = -> store.save().catch log 'Receiver save failed'
 .view-layout.layout-receiver
   %ViewArea{ area: 'side' }
     .receiver-side
@@ -23,9 +26,9 @@
         - if store.dirty
           %span.receiver-dirty-badge DIRTY
       .receiver-actions
-        %button.receiver-action.receiver-action-read{ type: 'button', onClick: (-> store.loadFromDevice()), disabled: readDisabled }
+        %button.receiver-action.receiver-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
           Read device
-        %button.receiver-action.receiver-action-save{ type: 'button', onClick: (-> store.save()), disabled: saveDisabled }
+        %button.receiver-action.receiver-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
           Save
         %button.receiver-action.receiver-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
           Revert

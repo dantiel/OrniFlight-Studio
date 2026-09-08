@@ -73,3 +73,26 @@ describe 'ReceiverView', { timeout: 20000 }, ->
     fireEvent.change boxSelects[0], { target: { value: '28' } }
     expect(useModesStore.getState().draft.ranges[0].permanentId).toBe 28
     expect(modes().getByText 'DIRTY').toBeInTheDocument()
+
+  it 'logs a failed device save instead of rejecting silently', ->
+    session =
+      readRxConfig: -> Promise.resolve null
+      readRxMap: -> Promise.resolve []
+      readRxFailConfig: -> Promise.resolve []
+      writeRxConfig: -> Promise.reject new Error 'armed guard'
+    useReceiverStore.getState().attachSession session
+    await useReceiverStore.getState().loadFromDevice session
+    errorSpy = vi.spyOn(console, 'error').mockImplementation -> null
+    renderView()
+    fireEvent.click view().getAllByText('Save')[0]
+    await vi.waitFor -> expect(errorSpy).toHaveBeenCalled()
+
+  it 'logs a failed device mode save instead of rejecting silently', ->
+    session =
+      readModeRanges: -> Promise.resolve { ranges: [], extras: null }
+    useModesStore.getState().attachSession session
+    await useModesStore.getState().loadFromDevice session
+    errorSpy = vi.spyOn(console, 'error').mockImplementation -> null
+    renderView()
+    fireEvent.click modes().getAllByText('Save')[0]
+    await vi.waitFor -> expect(errorSpy).toHaveBeenCalled()
