@@ -80,9 +80,14 @@ The **PID Tuning View** ??? the polymorphic flight-control tuning surface
 (draft/saved/dirty/mode, live engine mirror, MSP PID/RATE/FILTER/ONDAS sync) ???
 is documented in [docs/PID-TUNING-VIEW.md](docs/PID-TUNING-VIEW.md).
 
-The **OSD Editor** ??? the polymorphic visual drag-and-drop OSD layout editor
+The **OSD Editor** — the polymorphic visual drag-and-drop OSD layout editor
 (draft/saved/dirty/mode, raw u16[52] wire document, MSP 84/85 sync with
-read-back) ??? is documented in [docs/OSD-EDITOR.md](docs/OSD-EDITOR.md).
+read-back) — is documented in [docs/OSD-EDITOR.md](docs/OSD-EDITOR.md).
+
+The **Sensors, Power & Adjustments** — the polymorphic telemetry-core
+configuration surface (sensor chip/alignment/calibration, battery & onboard
+meter thresholds, 30-slot in-flight adjustment bindings) — is documented in
+[docs/SENSORS-POWER-ADJUSTMENTS.md](docs/SENSORS-POWER-ADJUSTMENTS.md).
 
 ```
 orniflight-studio/
