@@ -29,7 +29,7 @@
           %label.vtx-control
             %span.vtx-control-label Band
             %select.vtx-select{ value: String(draft.band), onChange: valueFromEvent((value) -> store.setBand Number(value)) }
-              %option{ value: '0' } CUSTOM
+              %option{ value: '0', disabled: true } CUSTOM
               - for band in VTX_BANDS
                 %option{ key: "band-#{band.index}", value: String(band.index) }
                   = band.name

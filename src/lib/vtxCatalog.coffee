@@ -123,8 +123,10 @@ frequencyFor = (band, channel) ->
 # Wire value packing — the inverse of the firmware's
 # newBand = value / 8 + 1, newChannel = value % 8 + 1.
 packBandChannel = (band, channel) ->
-  return null unless band >= 1 and band <= VTX_BAND_COUNT
-  return null unless channel >= 1 and channel <= VTX_CHANNEL_COUNT
+  bandOk = 1 <= band <= VTX_BAND_COUNT
+  chOk = 1 <= channel <= VTX_CHANNEL_COUNT
+  return null unless Number.isInteger(band) and bandOk
+  return null unless Number.isInteger(channel) and chOk
   (band - 1) * VTX_CHANNEL_COUNT + (channel - 1)
 
 unpackBandChannel = (value) ->
