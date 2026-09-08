@@ -86,6 +86,7 @@ useAdjustmentsStore = create (set, get) ->
     try
       throw new Error 'No device session attached' unless session?
       ranges = await session.readAdjustmentRanges()
+      ranges ?= []
       unless ranges.length
         ranges = draftDefaults().ranges
       while ranges.length < MAX_ADJUSTMENT_RANGE_COUNT

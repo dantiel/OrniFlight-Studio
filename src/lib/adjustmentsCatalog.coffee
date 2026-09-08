@@ -15,11 +15,10 @@
 #     slots), MSP_SET_ADJUSTMENT_RANGE (7-byte record)
 ###
 
-clampU8 = (value) ->
-  Math.max 0, Math.min 255, Math.round(value ? 0)
-
-clampInt = (min, max, value) ->
-  Math.max min, Math.min max, Math.round(value ? min)
+clampInt = (lo, hi, value) ->
+  value = Math.round Number value
+  value = lo unless Number.isFinite value
+  Math.max lo, Math.min hi, value
 
 MAX_ADJUSTMENT_RANGE_COUNT = 30
 MAX_SIMULTANEOUS_ADJUSTMENT_COUNT = 4

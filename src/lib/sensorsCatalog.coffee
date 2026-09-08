@@ -15,8 +15,12 @@
 # performs no arbitration between them, so neither does this catalog.
 ###
 
-clampU8 = (value) ->
-  Math.max 0, Math.min 255, Math.round(value ? 0)
+clampInt = (lo, hi, value) ->
+  value = Math.round Number value
+  value = lo unless Number.isFinite value
+  Math.max lo, Math.min hi, value
+
+clampU8 = (value) -> clampInt 0, 255, value
 
 # accelerationSensor_e — order is the wire id.
 ACC_HARDWARE = Object.freeze [

@@ -22,11 +22,13 @@
 # USE_ESC_SENSOR, so only the onboard ADC meters exist on the wire.
 ###
 
-clampU8 = (value) ->
-  Math.max 0, Math.min 255, Math.round(value ? 0)
+clampInt = (lo, hi, value) ->
+  value = Math.round Number value
+  value = lo unless Number.isFinite value
+  Math.max lo, Math.min hi, value
 
-clampU16 = (value) ->
-  Math.max 0, Math.min 65535, Math.round(value ? 0)
+clampU8 = (value) -> clampInt 0, 255, value
+clampU16 = (value) -> clampInt 0, 65535, value
 
 # voltageMeterSource_e — order is the wire id. The ornithopter target
 # has no ESC sensor, so NONE/ADC are the supported sources.

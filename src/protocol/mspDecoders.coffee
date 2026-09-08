@@ -988,12 +988,24 @@ decodeBatteryConfig = (payload) ->
     reader.u8()
   else
     DEFAULT_BATTERY_CONFIG.currentMeterSource
-  minCellVoltage = if reader.remaining() >= 2 then reader.u16() else legacyMin * 10
-  maxCellVoltage = if reader.remaining() >= 2 then reader.u16() else legacyMax * 10
+  minCellVoltage = if reader.remaining() >= 2
+    reader.u16()
+  else if legacyMin?
+    legacyMin * 10
+  else
+    DEFAULT_BATTERY_CONFIG.minCellVoltage
+  maxCellVoltage = if reader.remaining() >= 2
+    reader.u16()
+  else if legacyMax?
+    legacyMax * 10
+  else
+    DEFAULT_BATTERY_CONFIG.maxCellVoltage
   warningCellVoltage = if reader.remaining() >= 2
     reader.u16()
-  else
+  else if legacyWarning?
     legacyWarning * 10
+  else
+    DEFAULT_BATTERY_CONFIG.warningCellVoltage
   {
     minCellVoltage, maxCellVoltage, warningCellVoltage, capacityMah
     voltageMeterSource, currentMeterSource
