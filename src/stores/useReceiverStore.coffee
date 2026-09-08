@@ -67,8 +67,14 @@ defaultDraft = ->
 
 RECEIVER_DEFAULTS = Object.freeze { draft: defaultDraft() }
 
+# Build a flat {field: value} document — CoffeeScript object
+# comprehensions with a literal key would emit an array of
+# single-key objects, so the keys are assigned explicitly.
 rxConfigFromDraft = (draft) ->
-  field: draft[field] for field in RX_FIELD_NAMES
+  result = {}
+  for field in RX_FIELD_NAMES
+    result[field] = draft[field]
+  result
 
 clampField = (field, value) ->
   if field == 'provider'

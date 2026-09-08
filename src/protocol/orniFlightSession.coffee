@@ -299,7 +299,7 @@ class OrniFlightSession
   writeRxMap: (rxMap) ->
     if @lastStatus?.armed
       throw new Error 'Cannot write configuration while armed'
-    unless Array.isArray(rxMap) and rxMap.length == RX_MAPPABLE_CHANNEL_COUNT
+    unless rxMap?.length == RX_MAPPABLE_CHANNEL_COUNT
       throw new Error 'RX map must carry 8 channel positions'
     await @client.request MSP_CODES.SET_RX_MAP, Uint8Array.from rxMap
     await @client.request MSP_CODES.EEPROM_WRITE

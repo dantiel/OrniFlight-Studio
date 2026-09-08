@@ -108,6 +108,28 @@ describe 'useReceiverStore', ->
     expect(writes.filter((w) -> w[0] == 'rxFail')).toHaveLength 18
     expect(state().dirty).toBe false
 
+    # Regression: rxConfigFromDraft must emit a flat {field: value}
+    # document, never a CoffeeScript object-comprehension array.
+    rxConfig = writes.find((w) -> w[0] == 'rxConfig')[1]
+    expect(rxConfig).toEqual {
+      provider: 7
+      maxcheck: 1900
+      midrc: 1490
+      mincheck: 1050
+      spektrumSatBind: 0
+      rxMinUsec: 885
+      rxMaxUsec: 2115
+      rcInterpolation: 0
+      rcInterpolationInterval: 0
+      airModeActivateThreshold: 0
+    }
+
+    # Regression: the map handed to the session must be length-8 and
+    # carry the inverted wire assignment.
+    rxMap = writes.find((w) -> w[0] == 'rxMap')[1]
+    expect(rxMap.length).toBe 8
+    expect(Array.from rxMap).toEqual [0, 1, 3, 2, 4, 5, 6, 7]
+
   it 'throws when saving in device mode without a session', ->
     state().setMode 'device'
     await expect(state().save()).rejects.toThrow 'No device session'
