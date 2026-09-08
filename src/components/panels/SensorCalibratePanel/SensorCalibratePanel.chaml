@@ -1,0 +1,23 @@
+- import './SensorCalibratePanel.sass'
+- import { useState } from 'react'
+- import useSensorsStore from '../../../stores/useSensorsStore.coffee'
+- import useDeviceStore from '../../../stores/useDeviceStore.coffee'
+- store = useSensorsStore()
+- status = useDeviceStore (state) -> state.status
+- [feedback, setFeedback] = useState null
+- deviceReady = store.mode == 'device' and store.session?
+- armed = Boolean(status?.armed)
+- ok = (label) -> -> setFeedback { kind: 'ok', text: label + ' accepted' }
+- fail = (label) -> (error) -> setFeedback { kind: 'error', text: error?.message or label + ' failed' }
+- run = (action, label) -> -> setFeedback { kind: 'running', text: label + '…' }; action().then(ok label).catch(fail label)
+%Section{ heading: 'Calibration', subheading: 'One-shot MSP 205/206 requests — the firmware refuses them while armed.' }
+  .sensors-calibrate.panel-sensor-calibrate
+    %button.sensors-cal-button{ type: 'button', onClick: run((-> store.calibrateAccel()), 'Accelerometer calibration'), disabled: !deviceReady or armed }
+      Calibrate Accelerometer
+    %button.sensors-cal-button{ type: 'button', onClick: run((-> store.calibrateMag()), 'Magnetometer calibration'), disabled: !deviceReady or armed }
+      Calibrate Magnetometer
+    - if feedback
+      %span.sensors-feedback{ className: "sensors-feedback-#{feedback.kind}" }
+        = feedback.text
+  %p.sensors-note
+    = "#{if armed then 'Writes locked while armed.' else 'Place the craft level and still before accelerometer calibration; rotate it slowly through all axes for the magnetometer.'}"

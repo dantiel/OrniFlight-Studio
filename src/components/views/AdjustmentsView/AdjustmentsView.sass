@@ -1,0 +1,155 @@
+// AdjustmentsView — 30 in-flight adjustment slots
+// sidebar (mode, actions) + slot list viewport
+.view-layout.layout-adjustments
+  height: 100%
+  grid-template-columns: 260px 1fr
+  grid-template-rows: 1fr
+  grid-template-areas: "side vport"
+
+  .view-area-side
+    grid-area: side
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-right: none
+    border-top: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-vport
+    grid-area: vport
+    overflow-y: auto
+
+  .adjustments-side
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 12px
+
+  .adjustments-header
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 20px
+
+  .adjustments-mode-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 4px
+
+  .adjustments-mode-sim
+    background: var(--of-accent-dim)
+    color: var(--of-accent)
+
+  .adjustments-mode-device
+    background: var(--of-ok-dim)
+    color: var(--of-ok)
+
+  .adjustments-dirty-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 4px
+    background: var(--of-warn-dim)
+    color: var(--of-warn)
+
+  .adjustments-main
+    display: flex
+    flex-direction: column
+    gap: 10px
+    padding: 14px
+    max-width: 980px
+
+  .adjustments-actions
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  .adjustments-action
+    padding: 9px 12px
+    font-size: 12px
+    font-weight: 600
+    letter-spacing: 0.08em
+    text-transform: uppercase
+    border-radius: 6px
+    border: 1px solid var(--of-border-2)
+    background: var(--of-panel-bg)
+    color: var(--of-text)
+    cursor: pointer
+
+    &:hover:not(:disabled)
+      border-color: var(--of-accent)
+      color: var(--of-accent)
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed
+
+  .adjustments-action-read
+    border-color: var(--of-accent)
+    color: var(--of-accent)
+
+  .adjustments-action-save
+    border-color: var(--of-ok)
+    color: var(--of-ok)
+
+  .adjustments-error
+    padding: 8px 10px
+    font-size: 11px
+    border-radius: 6px
+    background: var(--of-error-dim)
+    color: var(--of-error)
+    border: 1px solid var(--of-error)
+
+  // Shared primitives used by the slot rows.
+  .adjustments-note
+    margin: 0
+    font-size: 11px
+    line-height: 1.5
+    color: var(--of-text-dim)
+
+  .adjustment-row
+    display: grid
+    grid-template-columns: 72px 200px 90px 110px 110px 110px 120px
+    gap: 8px
+    align-items: end
+    padding: 8px
+    border-radius: 6px
+    border: 1px solid var(--of-border-2)
+    background: var(--of-panel-bg)
+
+  .adjustment-field
+    display: flex
+    flex-direction: column
+    gap: 3px
+
+  .adjustment-field-label
+    font-size: 9px
+    font-weight: 600
+    letter-spacing: 0.08em
+    text-transform: uppercase
+    color: var(--of-text-dim)
+
+  .adjustment-slot-tag
+    align-self: center
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.08em
+    color: var(--of-text-dim)
+
+  .adjustment-select
+    padding: 6px 8px
+    font-size: 11px
+    font-family: var(--of-font-mono)
+    border-radius: 6px
+    border: 1px solid var(--of-border-2)
+    background: var(--of-input-bg)
+    color: var(--of-text)
+
+    &:focus
+      border-color: var(--of-accent)
+      outline: none

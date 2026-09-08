@@ -1,0 +1,142 @@
+// PowerView — battery | voltage meter | current meter
+// sidebar (mode, actions) + stacked panel viewport
+.view-layout.layout-power
+  height: 100%
+  grid-template-columns: 260px 1fr
+  grid-template-rows: 1fr
+  grid-template-areas: "side vport"
+
+  .view-area-side
+    grid-area: side
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-right: none
+    border-top: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-vport
+    grid-area: vport
+    overflow-y: auto
+
+  .power-side
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 12px
+
+  .power-header
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 20px
+
+  .power-mode-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 4px
+
+  .power-mode-sim
+    background: var(--of-accent-dim)
+    color: var(--of-accent)
+
+  .power-mode-device
+    background: var(--of-ok-dim)
+    color: var(--of-ok)
+
+  .power-dirty-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 4px
+    background: var(--of-warn-dim)
+    color: var(--of-warn)
+
+  .power-main
+    display: flex
+    flex-direction: column
+    gap: 14px
+    padding: 14px
+    max-width: 860px
+
+  .power-actions
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  .power-action
+    padding: 9px 12px
+    font-size: 12px
+    font-weight: 600
+    letter-spacing: 0.08em
+    text-transform: uppercase
+    border-radius: 6px
+    border: 1px solid var(--of-border-2)
+    background: var(--of-panel-bg)
+    color: var(--of-text)
+    cursor: pointer
+
+    &:hover:not(:disabled)
+      border-color: var(--of-accent)
+      color: var(--of-accent)
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed
+
+  .power-action-read
+    border-color: var(--of-accent)
+    color: var(--of-accent)
+
+  .power-action-save
+    border-color: var(--of-ok)
+    color: var(--of-ok)
+
+  .power-error
+    padding: 8px 10px
+    font-size: 11px
+    border-radius: 6px
+    background: var(--of-error-dim)
+    color: var(--of-error)
+    border: 1px solid var(--of-error)
+
+  // Shared primitives used by both power panels.
+  .power-grid
+    display: grid
+    gap: 10px
+
+  .power-field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  .power-field-label
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.1em
+    text-transform: uppercase
+    color: var(--of-text-dim)
+
+  .power-input
+    padding: 7px 9px
+    font-size: 12px
+    font-family: var(--of-font-mono)
+    border-radius: 6px
+    border: 1px solid var(--of-border-2)
+    background: var(--of-input-bg)
+    color: var(--of-text)
+
+    &:focus
+      border-color: var(--of-accent)
+      outline: none
+
+  .power-note
+    margin: 0
+    font-size: 11px
+    line-height: 1.5
+    color: var(--of-text-dim)

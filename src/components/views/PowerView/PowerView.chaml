@@ -1,0 +1,34 @@
+- import './PowerView.sass'
+- import usePowerStore from '../../../stores/usePowerStore.coffee'
+- store = usePowerStore()
+- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = store.mode != 'device' or !store.session
+- saveDisabled = store.mode == 'device' and !store.loadedSession
+- log = (label) -> (error) -> console.error label, error
+- readFromDevice = -> store.loadFromDevice().catch log 'Power read failed'
+- saveToDevice = -> store.save().catch log 'Power save failed'
+.view-layout.layout-power
+  %ViewArea{ area: 'side' }
+    .power-side
+      .power-header
+        %span.power-mode-badge{ className: "power-mode-#{store.mode}" }
+          = modeLabel
+        - if store.dirty
+          %span.power-dirty-badge DIRTY
+      %Section{ heading: 'Power', subheading: 'Battery thresholds, capacity and onboard meter calibration — MSP 32/33, 40/41, 56/57.' }
+        %p.power-note
+          = "All three documents ride the wire format exactly. Every save runs SET + EEPROM_WRITE and verifies the read-back; writes lock while armed."
+      - if store.lastError
+        %div.power-error{ role: 'alert' }
+          = store.lastError
+      .power-actions
+        %button.power-action.power-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
+          Read device
+        %button.power-action.power-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
+          Save
+        %button.power-action.power-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
+          Revert
+  %ViewArea{ area: 'vport' }
+    .power-main
+      %BatteryPanel
+      %PowerMeterPanel

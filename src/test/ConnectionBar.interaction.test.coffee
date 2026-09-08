@@ -28,16 +28,17 @@ describe 'ConnectionBar — Interaction', ->
     expect(screen.getByText 'Orni').toBeInTheDocument()
     expect(screen.getByText 'Studio').toBeInTheDocument()
 
-  it 'renders thirteen domain workspace links', ->
+  it 'renders fourteen domain workspace links', ->
     renderApp()
     links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 13
+    expect(links.length).toBe 14
     texts = Array.from(links).map (l) -> l.textContent
     expect(texts).toContain 'Device'
     expect(texts).toContain 'Airframe'
     expect(texts).toContain 'Flight Control'
     expect(texts).toContain 'Receiver'
     expect(texts).toContain 'Power'
+    expect(texts).toContain 'Adjustments'
     expect(texts).toContain 'Sensors'
     expect(texts).toContain 'Safety'
     expect(texts).toContain 'OSD'

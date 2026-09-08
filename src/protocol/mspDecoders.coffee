@@ -10,6 +10,16 @@ import {
   DEFAULT_FAILSAFE_CONFIG, DEFAULT_ARMING_CONFIG
   DEFAULT_FEATURE_MASK, DEFAULT_BEEPER_CONFIG
 } from '../lib/safetyCatalog.coffee'
+import {
+  DEFAULT_SENSOR_CONFIG, DEFAULT_SENSOR_ALIGNMENT
+} from '../lib/sensorsCatalog.coffee'
+import {
+  DEFAULT_BATTERY_CONFIG, DEFAULT_VOLTAGE_METER_CONFIG
+  DEFAULT_CURRENT_METER_CONFIG
+} from '../lib/powerCatalog.coffee'
+import {
+  MAX_ADJUSTMENT_RANGE_COUNT
+} from '../lib/adjustmentsCatalog.coffee'
 
 SIGNATURE_LENGTH = 32
 
@@ -862,6 +872,250 @@ TUNING_FALLBACKS = Object.freeze
     gyroNotchQ: 0
     dTermDlpfHz: 0
 
+# ── Sensors, power & adjustments (MSP 32/33, 40/41, 52/53, 56/57,
+#    96/97, 126/220, 205/206) ─
+# Wire layouts follow the OrniFlight/Betaflight msp.c serialisation.
+
+# MSP 96: u8 acc_hardware, u8 baro_hardware, u8 mag_hardware — 3 bytes.
+SENSOR_CONFIG_BYTES = 3
+
+decodeSensorConfig = (payload) ->
+  reader = new ByteReader payload
+  {
+    accHardware: if reader.remaining()
+      reader.u8()
+    else
+      DEFAULT_SENSOR_CONFIG.accHardware
+    baroHardware: if reader.remaining()
+      reader.u8()
+    else
+      DEFAULT_SENSOR_CONFIG.baroHardware
+    magHardware: if reader.remaining()
+      reader.u8()
+    else
+      DEFAULT_SENSOR_CONFIG.magHardware
+  }
+
+encodeSensorConfig = (config = {}) ->
+  out = new Uint8Array SENSOR_CONFIG_BYTES
+  view = new DataView out.buffer
+  view.setUint8 0,
+    clampU8 config.accHardware ? DEFAULT_SENSOR_CONFIG.accHardware
+  view.setUint8 1,
+    clampU8 config.baroHardware ? DEFAULT_SENSOR_CONFIG.baroHardware
+  view.setUint8 2,
+    clampU8 config.magHardware ? DEFAULT_SENSOR_CONFIG.magHardware
+  out
+
+# MSP 126: 7-byte read {gyroAlign, accAlign, magAlign,
+# gyroDetectionFlags, gyroToUse, gyro1Align, gyro2Align}. The SET
+# counterpart accepts 6 bytes — the deprecated acc byte is discarded
+# and the read-only detection flags never travel back.
+SENSOR_ALIGNMENT_BYTES = 6
+
+decodeSensorAlignment = (payload) ->
+  reader = new ByteReader payload
+  # The 7-byte read record carries the full set; the 6-byte SET record
+  # skips the deprecated acc byte and the read-only detection flags.
+  seven = reader.remaining() >= 7
+  gyroAlign = if reader.remaining()
+    reader.u8()
+  else
+    DEFAULT_SENSOR_ALIGNMENT.gyroAlign
+  accAlign = if reader.remaining() and seven
+    reader.u8()
+  else if reader.remaining()
+    reader.u8() # deprecated acc byte — discarded on the wire
+    DEFAULT_SENSOR_ALIGNMENT.accAlign
+  else
+    DEFAULT_SENSOR_ALIGNMENT.accAlign
+  magAlign = if reader.remaining()
+    reader.u8()
+  else
+    DEFAULT_SENSOR_ALIGNMENT.magAlign
+  gyroDetectionFlags = if seven
+    reader.u8()
+  else
+    DEFAULT_SENSOR_ALIGNMENT.gyroDetectionFlags
+  gyroToUse = if reader.remaining()
+    reader.u8()
+  else
+    DEFAULT_SENSOR_ALIGNMENT.gyroToUse
+  gyro1Align = if reader.remaining()
+    reader.u8()
+  else
+    DEFAULT_SENSOR_ALIGNMENT.gyro1Align
+  gyro2Align = if reader.remaining()
+    reader.u8()
+  else
+    DEFAULT_SENSOR_ALIGNMENT.gyro2Align
+  { gyroAlign, accAlign, magAlign, gyroDetectionFlags, gyroToUse, gyro1Align, gyro2Align }
+
+encodeSensorAlignment = (alignment = {}) ->
+  out = new Uint8Array SENSOR_ALIGNMENT_BYTES
+  view = new DataView out.buffer
+  view.setUint8 0,
+    clampU8 alignment.gyroAlign ? DEFAULT_SENSOR_ALIGNMENT.gyroAlign
+  view.setUint8 1, 0
+  view.setUint8 2,
+    clampU8 alignment.magAlign ? DEFAULT_SENSOR_ALIGNMENT.magAlign
+  view.setUint8 3,
+    clampU8 alignment.gyroToUse ? DEFAULT_SENSOR_ALIGNMENT.gyroToUse
+  view.setUint8 4,
+    clampU8 alignment.gyro1Align ? DEFAULT_SENSOR_ALIGNMENT.gyro1Align
+  view.setUint8 5,
+    clampU8 alignment.gyro2Align ? DEFAULT_SENSOR_ALIGNMENT.gyro2Align
+  out
+
+# MSP 32: legacy u8 trio ((value + 5) / 10), u16 capacity, u8 voltSrc,
+# u8 currSrc, then three full-precision u16 cell voltages — 13 bytes.
+BATTERY_CONFIG_BYTES = 13
+
+decodeBatteryConfig = (payload) ->
+  reader = new ByteReader payload
+  legacyMin = if reader.remaining() then reader.u8() else null
+  legacyMax = if reader.remaining() then reader.u8() else null
+  legacyWarning = if reader.remaining() then reader.u8() else null
+  capacityMah = if reader.remaining() >= 2
+    reader.u16()
+  else
+    DEFAULT_BATTERY_CONFIG.capacityMah
+  voltageMeterSource = if reader.remaining()
+    reader.u8()
+  else
+    DEFAULT_BATTERY_CONFIG.voltageMeterSource
+  currentMeterSource = if reader.remaining()
+    reader.u8()
+  else
+    DEFAULT_BATTERY_CONFIG.currentMeterSource
+  minCellVoltage = if reader.remaining() >= 2 then reader.u16() else legacyMin * 10
+  maxCellVoltage = if reader.remaining() >= 2 then reader.u16() else legacyMax * 10
+  warningCellVoltage = if reader.remaining() >= 2
+    reader.u16()
+  else
+    legacyWarning * 10
+  {
+    minCellVoltage, maxCellVoltage, warningCellVoltage, capacityMah
+    voltageMeterSource, currentMeterSource
+  }
+
+encodeBatteryConfig = (config = {}) ->
+  out = new Uint8Array BATTERY_CONFIG_BYTES
+  view = new DataView out.buffer
+  minCell = clampU16 config.minCellVoltage ? DEFAULT_BATTERY_CONFIG.minCellVoltage
+  maxCell = clampU16 config.maxCellVoltage ? DEFAULT_BATTERY_CONFIG.maxCellVoltage
+  warnCell = clampU16 config.warningCellVoltage ?
+    DEFAULT_BATTERY_CONFIG.warningCellVoltage
+  view.setUint8 0, Math.floor((minCell + 5) / 10)
+  view.setUint8 1, Math.floor((maxCell + 5) / 10)
+  view.setUint8 2, Math.floor((warnCell + 5) / 10)
+  view.setUint16 3,
+    clampU16(config.capacityMah ? DEFAULT_BATTERY_CONFIG.capacityMah), true
+  view.setUint8 5,
+    clampU8 config.voltageMeterSource ? DEFAULT_BATTERY_CONFIG.voltageMeterSource
+  view.setUint8 6,
+    clampU8 config.currentMeterSource ? DEFAULT_BATTERY_CONFIG.currentMeterSource
+  view.setUint16 7, minCell, true
+  view.setUint16 9, maxCell, true
+  view.setUint16 11, warnCell, true
+  out
+
+# MSP 56: variable frame — u8 count, then per meter {u8 subLen, u8 id,
+# u8 type, u8 scale, u8 divVal, u8 divMultiplier}. OrniFlight emits one
+# VBAT ADC frame (7 bytes). SET accepts the bare 4-byte record.
+VOLTAGE_METER_CONFIG_BYTES = 4
+
+decodeVoltageMeterConfig = (payload) ->
+  reader = new ByteReader payload
+  count = if reader.remaining() then reader.u8() else 0
+  meters = []
+  while meters.length < count and reader.remaining() >= 5
+    reader.u8() if reader.remaining() >= 6
+    meters.push {
+      id: reader.u8()
+      type: reader.u8()
+      scale: reader.u8()
+      dividerValue: reader.u8()
+      dividerMultiplier: reader.u8()
+    }
+  meters[0] ? DEFAULT_VOLTAGE_METER_CONFIG
+
+encodeVoltageMeterConfig = (config = {}) ->
+  out = new Uint8Array VOLTAGE_METER_CONFIG_BYTES
+  view = new DataView out.buffer
+  view.setUint8 0, clampU8 config.id ? DEFAULT_VOLTAGE_METER_CONFIG.id
+  view.setUint8 1, clampU8 config.scale ? DEFAULT_VOLTAGE_METER_CONFIG.scale
+  view.setUint8 2,
+    clampU8 config.dividerValue ? DEFAULT_VOLTAGE_METER_CONFIG.dividerValue
+  view.setUint8 3,
+    clampU8 config.dividerMultiplier ?
+      DEFAULT_VOLTAGE_METER_CONFIG.dividerMultiplier
+  out
+
+# MSP 40: variable frame — u8 count, then per meter {u8 subLen, u8 id,
+# u8 type, u16 scale, u16 offset}. OrniFlight emits one onboard ADC
+# frame (7 bytes). SET accepts the bare 5-byte record.
+CURRENT_METER_CONFIG_BYTES = 5
+
+decodeCurrentMeterConfig = (payload) ->
+  reader = new ByteReader payload
+  count = if reader.remaining() then reader.u8() else 0
+  meters = []
+  while meters.length < count and reader.remaining() >= 5
+    reader.u8() if reader.remaining() >= 6
+    meters.push {
+      id: reader.u8()
+      type: reader.u8()
+      scale: reader.u16()
+      offset: reader.u16()
+    }
+  meters[0] ? DEFAULT_CURRENT_METER_CONFIG
+
+encodeCurrentMeterConfig = (config = {}) ->
+  out = new Uint8Array CURRENT_METER_CONFIG_BYTES
+  view = new DataView out.buffer
+  view.setUint8 0, clampU8 config.id ? DEFAULT_CURRENT_METER_CONFIG.id
+  view.setUint16 1,
+    clampU16(config.scale ? DEFAULT_CURRENT_METER_CONFIG.scale), true
+  view.setUint16 3,
+    clampU16(config.offset ? DEFAULT_CURRENT_METER_CONFIG.offset), true
+  out
+
+# MSP 52: 30 fixed 6-byte slots {slot, aux, startStep, endStep,
+# adjustmentConfig, auxSwitch}; SET_ADJUSTMENT_RANGE consumes a 7-byte
+# record {slotIndex, …same fields}. The function lives in
+# adjustmentConfig (table index + 1, 0 = none).
+ADJUSTMENT_RANGE_BYTES = 6
+ADJUSTMENT_RANGE_WRITE_BYTES = 7
+
+decodeAdjustmentRanges = (payload) ->
+  reader = new ByteReader payload
+  ranges = []
+  while ranges.length < MAX_ADJUSTMENT_RANGE_COUNT and
+      reader.remaining() >= ADJUSTMENT_RANGE_BYTES
+    ranges.push {
+      index: ranges.length
+      adjustmentIndex: reader.u8()
+      auxChannelIndex: reader.u8()
+      startStep: reader.u8()
+      endStep: reader.u8()
+      adjustmentConfig: reader.u8()
+      auxSwitchChannelIndex: reader.u8()
+    }
+  ranges
+
+encodeAdjustmentRange = (index, range = {}) ->
+  out = new Uint8Array ADJUSTMENT_RANGE_WRITE_BYTES
+  view = new DataView out.buffer
+  view.setUint8 0, clampU8 index
+  view.setUint8 1, clampU8 range.adjustmentIndex ? 0
+  view.setUint8 2, clampU8 range.auxChannelIndex ? 0
+  view.setUint8 3, clampU8 range.startStep ? 0
+  view.setUint8 4, clampU8 range.endStep ? 0
+  view.setUint8 5, clampU8 range.adjustmentConfig ? 0
+  view.setUint8 6, clampU8 range.auxSwitchChannelIndex ? 0
+  out
+
 export {
   decodeApiVersion, decodeVariant, decodeVersion, decodeBuildInfo
   decodeBoardInfo, decodeUid, decodeName, decodeStatus, decodeRawImu
@@ -897,4 +1151,14 @@ export {
   MODE_RANGE_USEC_MIN, MODE_RANGE_USEC_MAX, MODE_RANGE_STEP_MAX
   decodeBoxIds, decodeBoxNames
   TUNING_FALLBACKS
+  decodeSensorConfig, encodeSensorConfig, SENSOR_CONFIG_BYTES
+  decodeSensorAlignment, encodeSensorAlignment, SENSOR_ALIGNMENT_BYTES
+  decodeBatteryConfig, encodeBatteryConfig, BATTERY_CONFIG_BYTES
+  decodeVoltageMeterConfig, encodeVoltageMeterConfig
+  VOLTAGE_METER_CONFIG_BYTES
+  decodeCurrentMeterConfig, encodeCurrentMeterConfig
+  CURRENT_METER_CONFIG_BYTES
+  decodeAdjustmentRanges, encodeAdjustmentRange
+  ADJUSTMENT_RANGE_BYTES, ADJUSTMENT_RANGE_WRITE_BYTES
+  MAX_ADJUSTMENT_RANGE_COUNT
 }

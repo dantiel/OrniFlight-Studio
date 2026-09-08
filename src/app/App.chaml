@@ -24,6 +24,9 @@ import PortsView from '../components/views/PortsView/PortsView.coffee'
 import FailsafeView from '../components/views/FailsafeView/FailsafeView.coffee'
 import CliTerminalView from '../components/views/CliTerminalView/CliTerminalView.coffee'
 import PerceptionView from '../components/views/PerceptionView/PerceptionView.chaml'
+import PowerView from '../components/views/PowerView/PowerView.coffee'
+import SensorsView from '../components/views/SensorsView/SensorsView.coffee'
+import AdjustmentsView from '../components/views/AdjustmentsView/AdjustmentsView.coffee'
 import VoiceView from '../components/views/VoiceView/VoiceView.chaml'
 import MemoryView from '../components/views/MemoryView/MemoryView.chaml'
 import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
@@ -41,8 +44,10 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - `const modesEl = h(AnimatedPage, null, h(ModesView, null))`
 - `const vtxEl = h(AnimatedPage, null, h(VtxView, null))`
 - `const portsEl = h(AnimatedPage, null, h(PortsView, null))`
-- `const powerEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'power'}))`
-- `const sensorsEl = h(AnimatedPage, null, h(PerceptionView, null))`
+- `const powerEl = h(AnimatedPage, null, h(PowerView, null))`
+- `const sensorsEl = h(AnimatedPage, null, h(SensorsView, null))`
+- `const adjustmentsEl = h(AnimatedPage, null, h(AdjustmentsView, null))`
+- `const perceptionEl = h(AnimatedPage, null, h(PerceptionView, null))`
 - `const safetyEl = h(AnimatedPage, null, h(FailsafeView, null))`
 - `const osdEl = h(AnimatedPage, null, h(OsdEditorView, null))`
 - `const dataEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'data'}))`
@@ -64,6 +69,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/receiver', element: receiverEl }
         %Route{ path: '/power', element: powerEl }
         %Route{ path: '/sensors', element: sensorsEl }
+        %Route{ path: '/adjustments', element: adjustmentsEl }
         %Route{ path: '/safety', element: safetyEl }
         %Route{ path: '/osd', element: osdEl }
         %Route{ path: '/data', element: dataEl }
@@ -73,10 +79,10 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/servos', element: servosEl }
         %Route{ path: '/pid', element: controlEl }
         %Route{ path: '/mixer', element: deckEl }
-        %Route{ path: '/gyro', element: sensorsEl }
+        %Route{ path: '/gyro', element: perceptionEl }
         %Route{ path: '/wings', element: airframeEl }
         %Route{ path: '/flight', element: deckEl }
-        %Route{ path: '/perception', element: sensorsEl }
+        %Route{ path: '/perception', element: perceptionEl }
         %Route{ path: '/voice', element: voiceEl }
         %Route{ path: '/modes', element: modesEl }
         %Route{ path: '/vtx', element: vtxEl }

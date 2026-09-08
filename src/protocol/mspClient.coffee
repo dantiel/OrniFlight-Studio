@@ -96,6 +96,14 @@ class MspClient
       return null if error instanceof MspUnsupportedError
       throw error
 
+  # Fire-and-forget write: one-shot commands (ACC_CALIBRATION,
+  # MAG_CALIBRATION) never produce a firmware answer, so no pending
+  # request is registered and no response is awaited.
+  send: (command, payload = []) ->
+    throw new MspDisconnectedError() unless @opened
+    frame = encodeMspV2 command, payload
+    @transport.write frame
+
   _request: (command, payload, options) ->
     throw new MspDisconnectedError() unless @opened
     timeoutMs = options.timeoutMs or @timeoutMs

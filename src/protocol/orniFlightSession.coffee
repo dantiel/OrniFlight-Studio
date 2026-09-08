@@ -26,8 +26,22 @@ import {
   decodeModeRanges, decodeModeRangesExtra, encodeModeRange
   MAX_MODE_ACTIVATION_CONDITION_COUNT
   decodeBoxIds, decodeBoxNames
+  decodeSensorConfig, encodeSensorConfig
+  decodeSensorAlignment, encodeSensorAlignment
+  decodeBatteryConfig, encodeBatteryConfig
+  decodeVoltageMeterConfig, encodeVoltageMeterConfig
+  decodeCurrentMeterConfig, encodeCurrentMeterConfig
+  decodeAdjustmentRanges, encodeAdjustmentRange
+  MAX_ADJUSTMENT_RANGE_COUNT
 } from './mspDecoders.coffee'
 import { OSD_ITEM_COUNT } from '../lib/osdCatalog.coffee'
+import {
+  DEFAULT_SENSOR_CONFIG, DEFAULT_SENSOR_ALIGNMENT
+} from '../lib/sensorsCatalog.coffee'
+import {
+  DEFAULT_BATTERY_CONFIG, DEFAULT_VOLTAGE_METER_CONFIG
+  DEFAULT_CURRENT_METER_CONFIG
+} from '../lib/powerCatalog.coffee'
 import {
   frequencyFor, clampFrequency, VTX_DEFAULT_POWER
 } from '../lib/vtxCatalog.coffee'
@@ -387,6 +401,108 @@ class OrniFlightSession
       throw new Error 'Beeper configuration read-back mismatch'
     readBack
 
+  readSensorConfig: ->
+    payload = await @client.requestOptional MSP_CODES.SENSOR_CONFIG
+    if payload?.length then decodeSensorConfig(payload) else null
+
+  writeSensorConfig: (config = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_SENSOR_CONFIG,
+      encodeSensorConfig config
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readSensorConfig()
+    unless readBack? and sensorConfigMatches config, readBack
+      throw new Error 'Sensor configuration read-back mismatch'
+    readBack
+
+  readSensorAlignment: ->
+    payload = await @client.requestOptional MSP_CODES.SENSOR_ALIGNMENT
+    if payload?.length then decodeSensorAlignment(payload) else null
+
+  # SET_SENSOR_ALIGNMENT consumes 6 bytes — the deprecated acc byte
+  # and the read-only detection flags never travel back.
+  writeSensorAlignment: (alignment = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_SENSOR_ALIGNMENT,
+      encodeSensorAlignment alignment
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readSensorAlignment()
+    unless readBack? and sensorAlignmentMatches alignment, readBack
+      throw new Error 'Sensor alignment read-back mismatch'
+    readBack
+
+  # One-shot calibration requests — the firmware ignores them while
+  # armed; nothing is staged, so no EEPROM write or read-back follows.
+  calibrateAccelerometer: ->
+    throw new Error 'Cannot calibrate while armed' if @lastStatus?.armed
+    await @client.send MSP_CODES.ACC_CALIBRATION
+    true
+
+  calibrateMagnetometer: ->
+    throw new Error 'Cannot calibrate while armed' if @lastStatus?.armed
+    await @client.send MSP_CODES.MAG_CALIBRATION
+    true
+
+  readBatteryConfig: ->
+    payload = await @client.requestOptional MSP_CODES.BATTERY_CONFIG
+    if payload?.length then decodeBatteryConfig(payload) else null
+
+  writeBatteryConfig: (config = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_BATTERY_CONFIG,
+      encodeBatteryConfig config
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readBatteryConfig()
+    unless readBack? and batteryConfigMatches config, readBack
+      throw new Error 'Battery configuration read-back mismatch'
+    readBack
+
+  readVoltageMeterConfig: ->
+    payload = await @client.requestOptional MSP_CODES.VOLTAGE_METER_CONFIG
+    if payload?.length then decodeVoltageMeterConfig(payload) else null
+
+  writeVoltageMeterConfig: (config = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_VOLTAGE_METER_CONFIG,
+      encodeVoltageMeterConfig config
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readVoltageMeterConfig()
+    unless readBack? and voltageMeterConfigMatches config, readBack
+      throw new Error 'Voltage meter configuration read-back mismatch'
+    readBack
+
+  readCurrentMeterConfig: ->
+    payload = await @client.requestOptional MSP_CODES.CURRENT_METER_CONFIG
+    if payload?.length then decodeCurrentMeterConfig(payload) else null
+
+  writeCurrentMeterConfig: (config = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    await @client.request MSP_CODES.SET_CURRENT_METER_CONFIG,
+      encodeCurrentMeterConfig config
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readCurrentMeterConfig()
+    unless readBack? and currentMeterConfigMatches config, readBack
+      throw new Error 'Current meter configuration read-back mismatch'
+    readBack
+
+  readAdjustmentRanges: ->
+    payload = await @client.requestOptional MSP_CODES.ADJUSTMENT_RANGES
+    if payload?.length then decodeAdjustmentRanges(payload) else []
+
+  # One SET + EEPROM_WRITE per slot; the read-back verifies the slot
+  # in place and returns the whole refreshed document.
+  writeAdjustmentRange: (index, range = {}) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
+    unless Number.isInteger(index) and 0 <= index < MAX_ADJUSTMENT_RANGE_COUNT
+      throw new Error "Adjustment slot out of range: #{index}"
+    await @client.request MSP_CODES.SET_ADJUSTMENT_RANGE,
+      encodeAdjustmentRange index, range
+    await @client.request MSP_CODES.EEPROM_WRITE
+    ranges = await @readAdjustmentRanges()
+    unless ranges[index]? and adjustmentRangeMatches range, ranges[index]
+      throw new Error "Adjustment range read-back mismatch in slot #{index}"
+    ranges
+
   readRxConfig: ->
     payload = await @client.requestOptional MSP_CODES.RX_CONFIG
     if payload then decodeRxConfig(payload) else null
@@ -602,6 +718,51 @@ armingConfigMatches = (expected = {}, actual = {}) ->
 beeperConfigMatches = (expected = {}, actual = {}) ->
   for key in ['offFlags', 'dshotBeaconTone', 'dshotBeaconOffFlags']
     unless actual[key] == (expected[key] ? DEFAULT_BEEPER_CONFIG[key])
+      return false
+  true
+
+# Field-wise comparisons for sensors, power and adjustments — omitted
+# fields fall back to the firmware defaults the encoder emitted.
+sensorConfigMatches = (expected = {}, actual = {}) ->
+  for key in ['accHardware', 'baroHardware', 'magHardware']
+    unless actual[key] == (expected[key] ? DEFAULT_SENSOR_CONFIG[key])
+      return false
+  true
+
+sensorAlignmentMatches = (expected = {}, actual = {}) ->
+  for key in ['gyroAlign', 'magAlign', 'gyroToUse', 'gyro1Align', 'gyro2Align']
+    unless actual[key] == (expected[key] ? DEFAULT_SENSOR_ALIGNMENT[key])
+      return false
+  true
+
+batteryConfigMatches = (expected = {}, actual = {}) ->
+  for key in [
+    'minCellVoltage', 'maxCellVoltage', 'warningCellVoltage'
+    'capacityMah', 'voltageMeterSource', 'currentMeterSource'
+  ]
+    unless actual[key] == (expected[key] ? DEFAULT_BATTERY_CONFIG[key])
+      return false
+  true
+
+# The meter type byte never travels on SET — the firmware pins it.
+voltageMeterConfigMatches = (expected = {}, actual = {}) ->
+  for key in ['id', 'scale', 'dividerValue', 'dividerMultiplier']
+    unless actual[key] == (expected[key] ? DEFAULT_VOLTAGE_METER_CONFIG[key])
+      return false
+  true
+
+currentMeterConfigMatches = (expected = {}, actual = {}) ->
+  for key in ['id', 'scale', 'offset']
+    unless actual[key] == (expected[key] ? DEFAULT_CURRENT_METER_CONFIG[key])
+      return false
+  true
+
+adjustmentRangeMatches = (expected = {}, actual = {}) ->
+  for key in [
+    'adjustmentIndex', 'auxChannelIndex', 'startStep', 'endStep'
+    'adjustmentConfig', 'auxSwitchChannelIndex'
+  ]
+    unless actual[key] == (expected[key] ? 0)
       return false
   true
 

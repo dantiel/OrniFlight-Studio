@@ -1,0 +1,53 @@
+- import './AdjustmentRow.sass'
+- import useAdjustmentsStore from '../../../stores/useAdjustmentsStore.coffee'
+- import { ADJUSTMENT_FUNCTIONS, ADJUSTMENT_SLOTS, AUX_CHANNEL_COUNT, ADJUSTMENT_CHANNEL_STEP_MAX, adjustmentStepToUsec } from '../../../lib/adjustmentsCatalog.coffee'
+- store = useAdjustmentsStore()
+- range = store.draft.ranges[props.slot]
+- valueFromEvent = (f) -> (event) -> f Number(event.target.value)
+- setConfig = (value) -> store.setRange props.slot, { adjustmentConfig: value }
+- setIndex = (value) -> store.setRange props.slot, { adjustmentIndex: value }
+- setAux = (value) -> store.setRange props.slot, { auxChannelIndex: value }
+- setStart = (value) -> store.setRange props.slot, { startStep: value }
+- setEnd = (value) -> store.setRange props.slot, { endStep: value }
+- setSwitch = (value) -> store.setRange props.slot, { auxSwitchChannelIndex: value }
+- steps = [0..ADJUSTMENT_CHANNEL_STEP_MAX]
+- auxChannels = [1..AUX_CHANNEL_COUNT]
+.adjustment-row
+  %span.adjustment-slot-tag
+    = "Slot #{props.slot + 1}"
+  %label.adjustment-field
+    %span.adjustment-field-label Function
+    %select.adjustment-select{ value: String(range.adjustmentConfig), onChange: valueFromEvent(setConfig) }
+      - for fn in ADJUSTMENT_FUNCTIONS
+        %option{ key: "fn-#{fn.id}", value: String(fn.id) }
+          = fn.label
+  %label.adjustment-field
+    %span.adjustment-field-label Adjustment slot
+    %select.adjustment-select{ value: String(range.adjustmentIndex), onChange: valueFromEvent(setIndex) }
+      - for slot in ADJUSTMENT_SLOTS
+        %option{ key: "aslot-#{slot.id}", value: String(slot.id) }
+          = slot.name
+  %label.adjustment-field
+    %span.adjustment-field-label Channel
+    %select.adjustment-select{ value: String(range.auxChannelIndex), onChange: valueFromEvent(setAux) }
+      - for channel in auxChannels
+        %option{ key: "aux-#{channel}", value: String(channel - 1) }
+          = "AUX#{channel}"
+  %label.adjustment-field
+    %span.adjustment-field-label Range start
+    %select.adjustment-select{ value: String(range.startStep), onChange: valueFromEvent(setStart) }
+      - for step in steps
+        %option{ key: "start-#{step}", value: String(step) }
+          = "#{adjustmentStepToUsec step} µs"
+  %label.adjustment-field
+    %span.adjustment-field-label Range end
+    %select.adjustment-select{ value: String(range.endStep), onChange: valueFromEvent(setEnd) }
+      - for step in steps
+        %option{ key: "end-#{step}", value: String(step) }
+          = "#{adjustmentStepToUsec step} µs"
+  %label.adjustment-field
+    %span.adjustment-field-label Switch channel
+    %select.adjustment-select{ value: String(range.auxSwitchChannelIndex), onChange: valueFromEvent(setSwitch) }
+      - for channel in auxChannels
+        %option{ key: "sw-#{channel}", value: String(channel - 1) }
+          = "AUX#{channel}"

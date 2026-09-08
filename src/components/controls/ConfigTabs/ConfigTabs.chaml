@@ -11,6 +11,8 @@ import { NavLink } from 'react-router-dom'
     %span.tab-label Receiver
   %NavLink{ to: '/power', end: true, className: 'config-view-btn', data-glyph: 'ϟ' }
     %span.tab-label Power
+  %NavLink{ to: '/adjustments', end: true, className: 'config-view-btn', data-glyph: '☷' }
+    %span.tab-label Adjustments
   %NavLink{ to: '/sensors', end: true, className: 'config-view-btn', data-glyph: '◎' }
     %span.tab-label Sensors
   %NavLink{ to: '/safety', end: true, className: 'config-view-btn', data-glyph: '◇' }

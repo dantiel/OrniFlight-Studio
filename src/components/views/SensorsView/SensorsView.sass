@@ -1,0 +1,177 @@
+// SensorsView — sensor hardware | board alignment | calibration
+// sidebar (mode, actions) + stacked panel viewport
+.view-layout.layout-sensors
+  height: 100%
+  grid-template-columns: 260px 1fr
+  grid-template-rows: 1fr
+  grid-template-areas: "side vport"
+
+  .view-area-side
+    grid-area: side
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid var(--of-border-1)
+    border-right: none
+    border-top: none
+    border-bottom: none
+    overflow-y: auto
+
+  .view-area-vport
+    grid-area: vport
+    overflow-y: auto
+
+  .sensors-side
+    display: flex
+    flex-direction: column
+    gap: 12px
+    padding: 12px
+
+  .sensors-header
+    display: flex
+    align-items: center
+    gap: 8px
+    min-height: 20px
+
+  .sensors-mode-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 4px
+
+  .sensors-mode-sim
+    background: var(--of-accent-dim)
+    color: var(--of-accent)
+
+  .sensors-mode-device
+    background: var(--of-ok-dim)
+    color: var(--of-ok)
+
+  .sensors-dirty-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 4px
+    background: var(--of-warn-dim)
+    color: var(--of-warn)
+
+  .sensors-main
+    display: flex
+    flex-direction: column
+    gap: 14px
+    padding: 14px
+    max-width: 860px
+
+  .sensors-actions
+    display: flex
+    flex-direction: column
+    gap: 8px
+
+  .sensors-action
+    padding: 9px 12px
+    font-size: 12px
+    font-weight: 600
+    letter-spacing: 0.08em
+    text-transform: uppercase
+    border-radius: 6px
+    border: 1px solid var(--of-border-2)
+    background: var(--of-panel-bg)
+    color: var(--of-text)
+    cursor: pointer
+
+    &:hover:not(:disabled)
+      border-color: var(--of-accent)
+      color: var(--of-accent)
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed
+
+  .sensors-action-read
+    border-color: var(--of-accent)
+    color: var(--of-accent)
+
+  .sensors-action-save
+    border-color: var(--of-ok)
+    color: var(--of-ok)
+
+  .sensors-error
+    padding: 8px 10px
+    font-size: 11px
+    border-radius: 6px
+    background: var(--of-error-dim)
+    color: var(--of-error)
+    border: 1px solid var(--of-error)
+
+  // Shared primitives used by all three sensor panels.
+  .sensors-grid
+    display: grid
+    gap: 10px
+
+  .sensors-field
+    display: flex
+    flex-direction: column
+    gap: 4px
+
+  .sensors-field-label
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.1em
+    text-transform: uppercase
+    color: var(--of-text-dim)
+
+  .sensors-select
+    padding: 7px 9px
+    font-size: 12px
+    font-family: var(--of-font-mono)
+    border-radius: 6px
+    border: 1px solid var(--of-border-2)
+    background: var(--of-input-bg)
+    color: var(--of-text)
+
+    &:focus
+      border-color: var(--of-accent)
+      outline: none
+
+  .sensors-note
+    margin: 0
+    font-size: 11px
+    line-height: 1.5
+    color: var(--of-text-dim)
+
+  .sensors-calibrate
+    display: flex
+    gap: 10px
+    flex-wrap: wrap
+
+  .sensors-cal-button
+    padding: 9px 14px
+    font-size: 12px
+    font-weight: 600
+    letter-spacing: 0.08em
+    text-transform: uppercase
+    border-radius: 6px
+    border: 1px solid var(--of-accent)
+    background: var(--of-panel-bg)
+    color: var(--of-accent)
+    cursor: pointer
+
+    &:hover:not(:disabled)
+      background: var(--of-accent-dim)
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed
+
+  .sensors-feedback
+    flex-basis: 100%
+    font-size: 11px
+    color: var(--of-text-dim)
+
+  .sensors-feedback-ok
+    color: var(--of-ok)
+
+  .sensors-feedback-error
+    color: var(--of-error)

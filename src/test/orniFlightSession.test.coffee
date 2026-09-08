@@ -137,6 +137,73 @@ openSession = (script, callbacks = {}) ->
   session = new OrniFlightSession client, callbacks
   { transport, client, session }
 
+# Echoes written sensor/power documents on read-back so the write
+# verification loop sees the stored values. The variable-frame meters
+# and the 7-byte alignment read are synthesized from their bare SET
+# records exactly like the firmware does; adjustment ranges live in a
+# full 30-slot document addressed by the SET payload's leading index.
+sensorPowerResponder = (script) ->
+  stored = { ranges: ([0, 0, 0, 0, 0, 0] for _ in [0...30]) }
+  fallback = scriptedResponder script
+  (bytes) ->
+    command = bytes[4] | bytes[5] << 8
+    length = bytes[6] | bytes[7] << 8
+    payload = Array.from bytes.subarray 8, 8 + length
+    if command == MSP_CODES.EEPROM_WRITE
+      return { command, direction: '>', payload: [] }
+    switch command
+      when MSP_CODES.SET_SENSOR_CONFIG
+        stored.sensor = payload
+        return { command, direction: '>', payload: [] }
+      when MSP_CODES.SENSOR_CONFIG
+        return { command, direction: '>', payload: stored.sensor or [] }
+      when MSP_CODES.SET_SENSOR_ALIGNMENT
+        stored.alignment = [
+          payload[0], payload[0], payload[2], 0
+          payload[3], payload[4], payload[5]
+        ]
+        return { command, direction: '>', payload: [] }
+      when MSP_CODES.SENSOR_ALIGNMENT
+        return { command, direction: '>', payload: stored.alignment or [] }
+      when MSP_CODES.SET_BATTERY_CONFIG
+        stored.battery = payload
+        return { command, direction: '>', payload: [] }
+      when MSP_CODES.BATTERY_CONFIG
+        return { command, direction: '>', payload: stored.battery or [] }
+      when MSP_CODES.SET_VOLTAGE_METER_CONFIG
+        stored.voltage = [1, 5, payload[0], 0, payload[1], payload[2], payload[3]]
+        return { command, direction: '>', payload: [] }
+      when MSP_CODES.VOLTAGE_METER_CONFIG
+        return { command, direction: '>', payload: stored.voltage or [] }
+      when MSP_CODES.SET_CURRENT_METER_CONFIG
+        stored.current = [
+          1, 6, payload[0], 1
+          payload[1], payload[2], payload[3], payload[4]
+        ]
+        return { command, direction: '>', payload: [] }
+      when MSP_CODES.CURRENT_METER_CONFIG
+        return { command, direction: '>', payload: stored.current or [] }
+      when MSP_CODES.SET_ADJUSTMENT_RANGE
+        stored.ranges[payload[0]] = payload.slice 1
+        return { command, direction: '>', payload: [] }
+      when MSP_CODES.ADJUSTMENT_RANGES
+        return {
+          command, direction: '>'
+          payload: stored.ranges.reduce(((out, slot) -> out.concat slot), [])
+        }
+    fallback bytes
+
+openSensorPowerSession = (script = handshakeScript) ->
+  transport = new MockMspTransport {
+    autoRespond: true
+    responder: sensorPowerResponder script
+  }
+  client = new MspClient transport, { timeoutMs: 500 }
+  await client.open()
+  session = new OrniFlightSession client
+  await session.handshake()
+  { transport, client, session }
+
 describe 'orniFlightSession', ->
   it 'completes a handshake and builds the craft identity', ->
     { session } = await openSession handshakeScript
@@ -1020,9 +1087,114 @@ describe 'receiver and modes session', ->
     await expect(session.writeModeRange 20, {}).rejects.toThrow(
       'Mode range index out of range'
     )
+    # The armed guard runs before the index guard, so it is exercised
+    # separately on a valid index.
+    session.lastStatus.armed = true
     await expect(session.writeModeRange 0, {
-      permanentId: 255
-    }).rejects.toThrow 'Mode range permanentId missing or invalid'
+      permanentId: 28
+    }).rejects.toThrow 'Cannot write configuration while armed'
+
+  it 'reads and writes sensor configuration with verification', ->
+    { transport, session } = await openSensorPowerSession()
+    expect(await session.readSensorConfig()).toBe null
+    written = await session.writeSensorConfig {
+      accHardware: 2, baroHardware: 4, magHardware: 4
+    }
+    expect(written).toEqual { accHardware: 2, baroHardware: 4, magHardware: 4 }
+    commands = transport.writes.map((bytes) -> bytes[4] | bytes[5] << 8)
+    expect(commands.slice(-3)).toEqual [
+      MSP_CODES.SET_SENSOR_CONFIG, MSP_CODES.EEPROM_WRITE
+      MSP_CODES.SENSOR_CONFIG
+    ]
+
+  it 'reads and writes sensor alignment (acc byte synthesized)', ->
+    { session } = await openSensorPowerSession()
+    written = await session.writeSensorAlignment {
+      gyroAlign: 2, magAlign: 4, gyroToUse: 0, gyro1Align: 2, gyro2Align: 0
+    }
+    expect(written.gyroAlign).toBe 2
+    expect(written.accAlign).toBe 2
+    expect(written.magAlign).toBe 4
+    expect(written.gyroDetectionFlags).toBe 0
+
+  it 'reads and writes battery configuration with verification', ->
+    { session } = await openSensorPowerSession()
+    written = await session.writeBatteryConfig {
+      minCellVoltage: 341, maxCellVoltage: 425, warningCellVoltage: 355
+      capacityMah: 4500, voltageMeterSource: 1, currentMeterSource: 0
+    }
+    expect(written.minCellVoltage).toBe 341
+    expect(written.capacityMah).toBe 4500
+    expect(written.voltageMeterSource).toBe 1
+
+  it 'reads and writes the voltage meter configuration', ->
+    { session } = await openSensorPowerSession()
+    written = await session.writeVoltageMeterConfig {
+      id: 10, scale: 200, dividerValue: 20, dividerMultiplier: 2
+    }
+    expect(written).toMatchObject {
+      id: 10, scale: 200, dividerValue: 20, dividerMultiplier: 2
+    }
+
+  it 'reads and writes the current meter configuration', ->
+    { session } = await openSensorPowerSession()
+    written = await session.writeCurrentMeterConfig {
+      id: 10, scale: 350, offset: 10
+    }
+    expect(written).toMatchObject { id: 10, scale: 350, offset: 10 }
+
+  it 'writes an adjustment range into the full 30-slot document', ->
+    { session } = await openSensorPowerSession()
+    ranges = await session.writeAdjustmentRange 4, {
+      adjustmentIndex: 1, auxChannelIndex: 2, startStep: 10, endStep: 20
+      adjustmentConfig: 7, auxSwitchChannelIndex: 3
+    }
+    expect(ranges).toHaveLength 30
+    expect(ranges[4]).toEqual {
+      index: 4, adjustmentIndex: 1, auxChannelIndex: 2, startStep: 10
+      endStep: 20, adjustmentConfig: 7, auxSwitchChannelIndex: 3
+    }
+
+  it 'sends one-shot calibration requests without payload or eeprom', ->
+    { transport, session } = await openSensorPowerSession()
+    expect(await session.calibrateAccelerometer()).toBe true
+    expect(await session.calibrateMagnetometer()).toBe true
+    accWrite = transport.writes.find (bytes) ->
+      (bytes[4] | bytes[5] << 8) == MSP_CODES.ACC_CALIBRATION
+    expect(accWrite[6] | accWrite[7] << 8).toBe 0
+    magWrite = transport.writes.find (bytes) ->
+      (bytes[4] | bytes[5] << 8) == MSP_CODES.MAG_CALIBRATION
+    expect(magWrite[6] | magWrite[7] << 8).toBe 0
+    commands = transport.writes.map((bytes) -> bytes[4] | bytes[5] << 8)
+    expect(commands).not.toContain MSP_CODES.EEPROM_WRITE
+
+  it 'refuses sensor and power writes and calibration while armed', ->
+    { session } = await openSensorPowerSession()
+    session.lastStatus.armed = true
+    await expect(session.writeSensorConfig {}).rejects.toThrow(
+      'Cannot write configuration while armed'
+    )
+    await expect(session.writeSensorAlignment {}).rejects.toThrow(
+      'Cannot write configuration while armed'
+    )
+    await expect(session.writeBatteryConfig {}).rejects.toThrow(
+      'Cannot write configuration while armed'
+    )
+    await expect(session.writeVoltageMeterConfig {}).rejects.toThrow(
+      'Cannot write configuration while armed'
+    )
+    await expect(session.writeCurrentMeterConfig {}).rejects.toThrow(
+      'Cannot write configuration while armed'
+    )
+    await expect(session.writeAdjustmentRange 0, {}).rejects.toThrow(
+      'Cannot write configuration while armed'
+    )
+    await expect(session.calibrateAccelerometer()).rejects.toThrow(
+      'Cannot calibrate while armed'
+    )
+    await expect(session.calibrateMagnetometer()).rejects.toThrow(
+      'Cannot calibrate while armed'
+    )
 
   it 'throws when a mode-range read-back diverges', ->
     state = receiverState()

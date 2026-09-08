@@ -7,6 +7,9 @@ import useModesStore from '../stores/useModesStore.coffee'
 import useVtxStore from '../stores/useVtxStore.coffee'
 import usePortsStore from '../stores/usePortsStore.coffee'
 import useSafetyStore from '../stores/useSafetyStore.coffee'
+import useSensorsStore from '../stores/useSensorsStore.coffee'
+import usePowerStore from '../stores/usePowerStore.coffee'
+import useAdjustmentsStore from '../stores/useAdjustmentsStore.coffee'
 import useTelemetryStore from '../stores/useTelemetryStore.coffee'
 import { pushTelemetry } from '../streams/telemetryStream.coffee'
 import WebSerialRuntimeTransport, {
@@ -50,6 +53,12 @@ cleanup = ->
   usePortsStore.getState().setMode 'sim'
   useSafetyStore.getState().attachSession null
   useSafetyStore.getState().setMode 'sim'
+  useSensorsStore.getState().attachSession null
+  useSensorsStore.getState().setMode 'sim'
+  usePowerStore.getState().attachSession null
+  usePowerStore.getState().setMode 'sim'
+  useAdjustmentsStore.getState().attachSession null
+  useAdjustmentsStore.getState().setMode 'sim'
   session?.stop()
   try
     if session then await session.close() else await client?.close()
@@ -102,6 +111,12 @@ connectFirmware = ->
     usePortsStore.getState().setMode 'device'
     useSafetyStore.getState().attachSession session
     useSafetyStore.getState().setMode 'device'
+    useSensorsStore.getState().attachSession session
+    useSensorsStore.getState().setMode 'device'
+    usePowerStore.getState().attachSession session
+    usePowerStore.getState().setMode 'device'
+    useAdjustmentsStore.getState().attachSession session
+    useAdjustmentsStore.getState().setMode 'device'
     true
   catch error
     # A cancelled browser picker is a normal return to offline mode.

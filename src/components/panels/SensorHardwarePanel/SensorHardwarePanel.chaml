@@ -1,0 +1,31 @@
+- import './SensorHardwarePanel.sass'
+- import useSensorsStore from '../../../stores/useSensorsStore.coffee'
+- import { ACC_HARDWARE, BARO_HARDWARE, MAG_HARDWARE } from '../../../lib/sensorsCatalog.coffee'
+- store = useSensorsStore()
+- config = store.draft.sensorConfig
+- valueFromEvent = (f) -> (event) -> f Number(event.target.value)
+- setAcc = (value) -> store.setSensorConfig { accHardware: value }
+- setBaro = (value) -> store.setSensorConfig { baroHardware: value }
+- setMag = (value) -> store.setSensorConfig { magHardware: value }
+%Section{ heading: 'Sensor Hardware', subheading: 'Chip selection for accelerometer, barometer and magnetometer — MSP 96/97, 3-byte wire record.' }
+  .sensors-grid.panel-sensor-hardware
+    %label.sensors-field
+      %span.sensors-field-label Accelerometer
+      %select.sensors-select{ value: String(config.accHardware), onChange: valueFromEvent(setAcc) }
+        - for item in ACC_HARDWARE
+          %option{ key: "acc-#{item.id}", value: String(item.id) }
+            = item.label
+    %label.sensors-field
+      %span.sensors-field-label Barometer
+      %select.sensors-select{ value: String(config.baroHardware), onChange: valueFromEvent(setBaro) }
+        - for item in BARO_HARDWARE
+          %option{ key: "baro-#{item.id}", value: String(item.id) }
+            = item.label
+    %label.sensors-field
+      %span.sensors-field-label Magnetometer
+      %select.sensors-select{ value: String(config.magHardware), onChange: valueFromEvent(setMag) }
+        - for item in MAG_HARDWARE
+          %option{ key: "mag-#{item.id}", value: String(item.id) }
+            = item.label
+  %p.sensors-note
+    = "The firmware honours these pins only when the matching sensor is compiled into the target — otherwise the bytes are consumed and discarded. DEFAULT lets the driver auto-detect."

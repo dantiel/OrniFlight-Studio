@@ -1,0 +1,30 @@
+- import './PowerMeterPanel.sass'
+- import usePowerStore from '../../../stores/usePowerStore.coffee'
+- store = usePowerStore()
+- voltageMeter = store.draft.voltageMeter
+- currentMeter = store.draft.currentMeter
+- valueFromEvent = (f) -> (event) -> f Number(event.target.value)
+- setVoltageScale = (value) -> store.setVoltageMeter { scale: value }
+- setDividerValue = (value) -> store.setVoltageMeter { dividerValue: value }
+- setDividerMult = (value) -> store.setVoltageMeter { dividerMultiplier: value }
+- setCurrentScale = (value) -> store.setCurrentMeter { scale: value }
+- setCurrentOffset = (value) -> store.setCurrentMeter { offset: value }
+%Section{ heading: 'Meters', subheading: 'Onboard ADC voltage divider and current sensor — MSP 40/41 and 56/57, variable frames.' }
+  .power-grid.panel-power-meter
+    %label.power-field
+      %span.power-field-label Voltage scale (u8)
+      %input.power-input{ type: 'number', min: '0', max: '255', step: '1', value: String(voltageMeter.scale), onChange: valueFromEvent(setVoltageScale) }
+    %label.power-field
+      %span.power-field-label Voltage divider value (u8)
+      %input.power-input{ type: 'number', min: '0', max: '255', step: '1', value: String(voltageMeter.dividerValue), onChange: valueFromEvent(setDividerValue) }
+    %label.power-field
+      %span.power-field-label Voltage divider multiplier (u8)
+      %input.power-input{ type: 'number', min: '0', max: '255', step: '1', value: String(voltageMeter.dividerMultiplier), onChange: valueFromEvent(setDividerMult) }
+    %label.power-field
+      %span.power-field-label Current scale (u16)
+      %input.power-input{ type: 'number', min: '0', max: '65535', step: '1', value: String(currentMeter.scale), onChange: valueFromEvent(setCurrentScale) }
+    %label.power-field
+      %span.power-field-label Current offset (u16)
+      %input.power-input{ type: 'number', min: '0', max: '65535', step: '1', value: String(currentMeter.offset), onChange: valueFromEvent(setCurrentOffset) }
+  %p.power-note
+    = "Ornithopter-only: the firmware compiles one VBAT ADC meter (id 10, resistor divider) and one onboard ADC current meter — virtual and ESC meters are undefined in the target. The meter type byte never travels on SET; the firmware pins it."

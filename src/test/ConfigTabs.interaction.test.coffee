@@ -17,14 +17,14 @@ describe 'ConfigTabs — Interaction', ->
   getTabLink = (text) ->
     document.querySelector "a.config-view-btn[href=\"/#{text.toLowerCase()}\"]"
 
-  it 'renders all thirteen domain workspaces with full labels', ->
+  it 'renders all fourteen domain workspaces with full labels', ->
     renderApp()
     links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 13
+    expect(links.length).toBe 14
     labels = [
       'Device', 'Airframe', 'Flight Control', 'Receiver', 'Power',
-      'Sensors', 'Safety', 'OSD', 'VTX', 'Ports', 'Data'
-      'Flash Firmware', 'CLI'
+      'Adjustments', 'Sensors', 'Safety', 'OSD', 'VTX', 'Ports',
+      'Data', 'Flash Firmware', 'CLI'
     ]
     expect(Array.from(links).map((link) -> link.textContent)).toEqual labels
 
@@ -35,7 +35,7 @@ describe 'ConfigTabs — Interaction', ->
     expect(link).toBeTruthy()
     await user.click link
     await waitFor ->
-      el = document.querySelector '.layout-perception'
+      el = document.querySelector '.layout-sensors'
       expect(el).toBeInTheDocument()
 
   it 'navigates to Flight Control', ->

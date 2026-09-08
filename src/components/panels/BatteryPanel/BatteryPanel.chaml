@@ -1,0 +1,42 @@
+- import './BatteryPanel.sass'
+- import usePowerStore from '../../../stores/usePowerStore.coffee'
+- import { VOLTAGE_METER_SOURCES, CURRENT_METER_SOURCES } from '../../../lib/powerCatalog.coffee'
+- store = usePowerStore()
+- battery = store.draft.battery
+- valueFromEvent = (f) -> (event) -> f Number(event.target.value)
+- setMinCell = (value) -> store.setBattery { minCellVoltage: value }
+- setMaxCell = (value) -> store.setBattery { maxCellVoltage: value }
+- setWarnCell = (value) -> store.setBattery { warningCellVoltage: value }
+- setCapacity = (value) -> store.setBattery { capacityMah: value }
+- setVoltSource = (value) -> store.setBattery { voltageMeterSource: value }
+- setCurrSource = (value) -> store.setBattery { currentMeterSource: value }
+- voltSources = VOLTAGE_METER_SOURCES.filter (source) -> source.supported
+- currSources = CURRENT_METER_SOURCES.filter (source) -> source.supported
+%Section{ heading: 'Battery', subheading: 'Cell voltage thresholds in centivolts and capacity — MSP 32/33, 13-byte wire record.' }
+  .power-grid.panel-battery
+    %label.power-field
+      %span.power-field-label Minimum cell voltage (0.01 V)
+      %input.power-input{ type: 'number', min: '0', max: '500', step: '1', value: String(battery.minCellVoltage), onChange: valueFromEvent(setMinCell) }
+    %label.power-field
+      %span.power-field-label Maximum cell voltage (0.01 V)
+      %input.power-input{ type: 'number', min: '0', max: '500', step: '1', value: String(battery.maxCellVoltage), onChange: valueFromEvent(setMaxCell) }
+    %label.power-field
+      %span.power-field-label Warning cell voltage (0.01 V)
+      %input.power-input{ type: 'number', min: '0', max: '500', step: '1', value: String(battery.warningCellVoltage), onChange: valueFromEvent(setWarnCell) }
+    %label.power-field
+      %span.power-field-label Capacity (mAh)
+      %input.power-input{ type: 'number', min: '0', max: '65535', step: '1', value: String(battery.capacityMah), onChange: valueFromEvent(setCapacity) }
+    %label.power-field
+      %span.power-field-label Voltage meter source
+      %select.power-input{ value: String(battery.voltageMeterSource), onChange: valueFromEvent(setVoltSource) }
+        - for source in voltSources
+          %option{ key: "volt-src-#{source.id}", value: String(source.id) }
+            = source.label
+    %label.power-field
+      %span.power-field-label Current meter source
+      %select.power-input{ value: String(battery.currentMeterSource), onChange: valueFromEvent(setCurrSource) }
+        - for source in currSources
+          %option{ key: "curr-src-#{source.id}", value: String(source.id) }
+            = source.label
+  %p.power-note
+    = "Values ride the wire in centivolts — 330 is 3.30 V. The legacy (value + 5) / 10 bytes travel first, the full-precision u16s close the record; the firmware prefers the precise tail."

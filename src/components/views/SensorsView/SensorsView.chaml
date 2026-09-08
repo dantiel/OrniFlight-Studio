@@ -1,0 +1,35 @@
+- import './SensorsView.sass'
+- import useSensorsStore from '../../../stores/useSensorsStore.coffee'
+- store = useSensorsStore()
+- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = store.mode != 'device' or !store.session
+- saveDisabled = store.mode == 'device' and !store.loadedSession
+- log = (label) -> (error) -> console.error label, error
+- readFromDevice = -> store.loadFromDevice().catch log 'Sensor read failed'
+- saveToDevice = -> store.save().catch log 'Sensor save failed'
+.view-layout.layout-sensors
+  %ViewArea{ area: 'side' }
+    .sensors-side
+      .sensors-header
+        %span.sensors-mode-badge{ className: "sensors-mode-#{store.mode}" }
+          = modeLabel
+        - if store.dirty
+          %span.sensors-dirty-badge DIRTY
+      %Section{ heading: 'Sensors', subheading: 'Chip selection, board alignment and calibration — MSP 96/97, 126/220, 205/206.' }
+        %p.sensors-note
+          = "Hardware and alignment ride the wire format exactly. Every save runs SET + EEPROM_WRITE and verifies the read-back; calibration is a one-shot request the firmware refuses while armed."
+      - if store.lastError
+        %div.sensors-error{ role: 'alert' }
+          = store.lastError
+      .sensors-actions
+        %button.sensors-action.sensors-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
+          Read device
+        %button.sensors-action.sensors-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
+          Save
+        %button.sensors-action.sensors-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
+          Revert
+  %ViewArea{ area: 'vport' }
+    .sensors-main
+      %SensorHardwarePanel
+      %SensorAlignmentPanel
+      %SensorCalibratePanel
