@@ -6,9 +6,10 @@
   height: 180px
   flex-shrink: 0
   background: var(--of-glass-bg)
-  backdrop-filter: blur(12px)
-  -webkit-backdrop-filter: blur(12px)
-  border-top: 1px solid var(--of-border-1)
+  backdrop-filter: blur(var(--of-glass-blur-strong)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur-strong)) saturate(var(--of-glass-saturate))
+  border-top: 1px solid var(--of-glass-rim-soft)
+  box-shadow: inset 0 1px 0 var(--of-glass-rim)
   display: flex
   position: relative
   z-index: 2

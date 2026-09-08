@@ -5,10 +5,12 @@
   min-width: 92px
   height: 25px
   padding: 0 var(--of-space-4)
-  border: 1px solid var(--of-border-2)
+  border: 1px solid var(--of-glass-rim-soft)
   border-radius: 999px
   background: rgba(10,10,12,.42)
-  box-shadow: inset 0 1px rgba(255,255,255,.05), var(--of-shadow-panel)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
   overflow: hidden
 
 .status-island-dot

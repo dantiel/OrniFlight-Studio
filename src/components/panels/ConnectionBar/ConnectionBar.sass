@@ -10,13 +10,20 @@
   contain: layout style
   height: var(--of-toolbar-height)
   background: rgba(var(--of-header-rgb), var(--of-header-opacity))
-  backdrop-filter: blur(20px) saturate(1.6)
-  -webkit-backdrop-filter: blur(20px) saturate(1.6)
+  backdrop-filter: blur(var(--of-glass-blur-strong)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur-strong)) saturate(var(--of-glass-saturate))
   border-bottom: 1px solid rgba(255,255,255,0.06)
   flex-shrink: 0
   user-select: none
   z-index: 10
   position: relative
+
+  &::before
+    content: ''
+    position: absolute
+    inset: 0
+    pointer-events: none
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), transparent 55%)
 
 .toolbar-primary
   display: flex

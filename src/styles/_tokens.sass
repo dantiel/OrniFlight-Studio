@@ -48,10 +48,11 @@
   --of-accent-amber-rgb: 240, 160, 64
   --of-surface-2-rgb: 38, 38, 42
   --of-body-rgb: 26, 26, 28
-  // Glass
-  --of-glass-bg: rgba(28, 28, 34, 0.28)
-  --of-glass-card: rgba(38, 38, 48, 0.18)
-  --of-glass-card-hover: rgba(38, 38, 48, 0.32)
+  // Glass — specular gradient baked in for a water-surface sheen
+  --of-glass-sheen: linear-gradient(#FFFFFF0D, transparent 42%)
+  --of-glass-bg: var(--of-glass-sheen), rgba(28, 28, 34, 0.28)
+  --of-glass-card: var(--of-glass-sheen), rgba(38, 38, 48, 0.18)
+  --of-glass-card-hover: var(--of-glass-sheen), rgba(38, 38, 48, 0.32)
   --of-glass-edge: rgba(137, 152, 254, 0.06)
   --of-glass-edge-hover: rgba(137, 152, 254, 0.20)
   // Glows
@@ -61,6 +62,19 @@
   // Feathers
   --of-feathers: url('/feathers_dark.png')
   --of-feather-opacity: 0.22
+
+  // Liquid Glass — water-surface refraction
+  --of-glass-blur: 20px
+  --of-glass-blur-strong: 32px
+  --of-glass-saturate: 1.7
+  --of-glass-specular: rgba(255, 255, 255, 0.09)
+  --of-glass-specular-strong: rgba(255, 255, 255, 0.16)
+  --of-glass-rim: rgba(255, 255, 255, 0.14)
+  --of-glass-rim-soft: rgba(255, 255, 255, 0.06)
+  --of-glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 2px 10px rgba(0, 0, 0, 0.25)
+  --of-glass-radius: 18px
+  --of-glass-radius-lg: 24px
+  --of-dock-height: 66px
 
   // ── Typography ──────────────────────────
   --of-font-heading: 'SF TransRobotics', 'Outfit', sans-serif
@@ -146,10 +160,11 @@
   --of-accent-amber-rgb: 192, 112, 32
   --of-surface-2-rgb: 249, 249, 249
   --of-body-rgb: 240, 240, 240
-  // Glass
-  --of-glass-bg: rgba(248, 248, 250, 0.28)
-  --of-glass-card: rgba(255, 255, 255, 0.22)
-  --of-glass-card-hover: rgba(255, 255, 255, 0.42)
+  // Glass — specular gradient baked in for a water-surface sheen
+  --of-glass-sheen: linear-gradient(#FFFFFF99, transparent 42%)
+  --of-glass-bg: var(--of-glass-sheen), rgba(248, 248, 250, 0.28)
+  --of-glass-card: var(--of-glass-sheen), rgba(255, 255, 255, 0.22)
+  --of-glass-card-hover: var(--of-glass-sheen), rgba(255, 255, 255, 0.42)
   --of-glass-edge: rgba(74, 81, 176, 0.08)
   --of-glass-edge-hover: rgba(74, 81, 176, 0.20)
   // Glows
@@ -159,6 +174,12 @@
   // Feathers
   --of-feathers: url('/feathers_white.png')
   --of-feather-opacity: 0.15
+  // Liquid Glass — light water surface
+  --of-glass-specular: rgba(255, 255, 255, 0.55)
+  --of-glass-specular-strong: rgba(255, 255, 255, 0.78)
+  --of-glass-rim: rgba(255, 255, 255, 0.72)
+  --of-glass-rim-soft: rgba(255, 255, 255, 0.4)
+  --of-glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.16), 0 2px 10px rgba(0, 0, 0, 0.1)
   // Shadows
   --of-shadow-panel: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)
   --of-shadow-elevated: 0 4px 12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05)

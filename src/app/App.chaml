@@ -7,6 +7,7 @@ import useBridge from '../integration/useBridge.coffee'
 import AnimatedPage from './AnimatedPage.coffee'
 import ConnectionBar from '../components/panels/ConnectionBar/ConnectionBar.chaml'
 import ProgressiveBlur from '../components/overlays/ProgressiveBlur/ProgressiveBlur.coffee'
+import Dock from '../components/overlays/Dock/Dock.coffee'
 import CommandPalette from '../components/overlays/CommandPalette/CommandPalette.coffee'
 import DebugPanel from '../components/debug/DebugPanel/DebugPanel.coffee'
 import BreakpointIndicator from '../components/debug/BreakpointIndicator/BreakpointIndicator.coffee'
@@ -60,6 +61,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
   %ConnectionBar
   %div#main-content{ role: 'main' }
     %ProgressiveBlur{ position: 'top' }
+    %ProgressiveBlur{ position: 'bottom' }
     %AnimatePresence{ mode: 'wait' }
       %Routes{ location: location, key: location.pathname }
         %Route{ path: '/', element: welcomeEl }
@@ -90,6 +92,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/memory', element: deckEl }
         %Route{ path: '/profiles', element: deckEl }
         %Route{ path: '/firmware', element: flashEl }
+  %Dock
   %CommandPalette
   %DebugPanel
   %BreakpointIndicator

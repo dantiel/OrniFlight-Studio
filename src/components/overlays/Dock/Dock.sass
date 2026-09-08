@@ -1,0 +1,88 @@
+// ═══════════════════════════════════════════
+// Dock — the iPod-way launcher.
+// A floating glass shelf with magnification and
+// a mirrored reflection, touched like still water.
+// ═══════════════════════════════════════════
+
+.dock-shell
+  position: absolute
+  left: 0
+  right: 0
+  bottom: 14px
+  display: flex
+  justify-content: center
+  z-index: 40
+  pointer-events: none
+
+.dock
+  display: flex
+  align-items: flex-end
+  gap: 6px
+  padding: 10px 14px
+  background: var(--of-glass-bg)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: 22px
+  backdrop-filter: blur(var(--of-glass-blur-strong)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur-strong)) saturate(var(--of-glass-saturate))
+  box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
+  pointer-events: auto
+
+.dock-item
+  position: relative
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 5px
+  min-width: 44px
+  padding: 4px 6px
+  text-decoration: none
+  color: rgba(255, 255, 255, 0.6)
+  border-radius: 12px
+  transition: color var(--of-dur-fast), background var(--of-dur-fast)
+
+  &:hover
+    color: #fff
+    background: rgba(255, 255, 255, 0.06)
+
+  &.active
+    color: var(--of-accent-alt)
+
+.dock-icon
+  display: flex
+  align-items: center
+  justify-content: center
+  width: 34px
+  height: 34px
+  font-size: 19px
+  font-family: var(--of-font-mono)
+  border-radius: 10px
+  background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02) 60%)
+  will-change: transform
+  -webkit-box-reflect: below 4px linear-gradient(transparent 62%, rgba(255, 255, 255, 0.16))
+
+.dock-item.active .dock-icon
+  color: var(--of-accent-alt)
+  box-shadow: inset 0 0 0 1px var(--of-accent-dim), 0 0 12px rgba(var(--of-accent-rgb), 0.3)
+
+.dock-label
+  position: absolute
+  top: -28px
+  left: 50%
+  transform: translateX(-50%)
+  padding: 3px 8px
+  font: 600 9px/1 var(--of-font-heading)
+  letter-spacing: .05em
+  white-space: nowrap
+  color: var(--of-text-primary)
+  background: var(--of-glass-card)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: 999px
+  backdrop-filter: blur(10px)
+  -webkit-backdrop-filter: blur(10px)
+  opacity: 0
+  pointer-events: none
+  transition: opacity var(--of-dur-fast) var(--of-ease-out)
+
+.dock-item:hover .dock-label,
+.dock-item.active .dock-label
+  opacity: 1

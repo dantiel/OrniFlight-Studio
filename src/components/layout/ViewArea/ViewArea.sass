@@ -29,16 +29,18 @@
 
 .view-area-glass
   background: var(--of-glass-bg)
-  backdrop-filter: blur(12px)
-  -webkit-backdrop-filter: blur(12px)
-  border: 1px solid var(--of-border-1)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  border: 1px solid var(--of-glass-rim-soft)
+  box-shadow: inset 0 1px 0 var(--of-glass-rim)
   overflow-y: auto
 
 .view-area-card
   background: var(--of-glass-card)
-  backdrop-filter: blur(8px)
-  -webkit-backdrop-filter: blur(8px)
-  border: 1px solid var(--of-border-1)
-  border-radius: var(--of-radius-lg)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-glass-radius)
+  box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
   padding: var(--of-space-6)
   overflow-y: auto

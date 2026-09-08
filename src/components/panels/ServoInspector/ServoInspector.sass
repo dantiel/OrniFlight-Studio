@@ -6,9 +6,10 @@
   width: var(--of-inspector-width)
   flex-shrink: 0
   background: var(--of-glass-bg)
-  backdrop-filter: blur(12px)
-  -webkit-backdrop-filter: blur(12px)
-  border-left: 1px solid var(--of-border-1)
+  backdrop-filter: blur(var(--of-glass-blur-strong)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur-strong)) saturate(var(--of-glass-saturate))
+  border-left: 1px solid var(--of-glass-rim-soft)
+  box-shadow: inset 1px 0 0 var(--of-glass-rim-soft)
   display: flex
   flex-direction: column
   overflow-y: auto
