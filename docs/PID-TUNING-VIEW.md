@@ -13,6 +13,8 @@ Companion documents:
   session boundary described here.
 - [`CONFIGURATION-VIEW.md`](CONFIGURATION-VIEW.md) — the sibling polymorphic
   store; the draft/saved/mode pattern and security invariants are shared.
+- [`SERVOS-VIEW.md`](SERVOS-VIEW.md) — the servo & wing-mapping surface; shares
+  the draft/saved/mode pattern and the wing-mapping appendix codec.
 
 ---
 

@@ -12,6 +12,8 @@ Companion documents:
   workspaces, availability states, legacy-tab mapping.
 - [`MSP-PROTOCOL.md`](MSP-PROTOCOL.md) — the byte-level MSPv2 layer beneath the
   session boundary described here.
+- [`SERVOS-VIEW.md`](SERVOS-VIEW.md) — the dedicated servo & wing-mapping
+  surface; the legacy `servos` slice here shares its wire codec.
 
 ---
 
