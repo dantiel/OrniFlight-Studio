@@ -141,6 +141,8 @@ OrnithopterView = ->
   modeLabel = if orni.mode is 'sim' then 'SIMULATION' else 'DEVICE'
   saveDisabled = orni.mode is 'device' and not orni.loadedSession
   deviceChannels = if orni.mode is 'device' then tele.rcChannels else null
+  activeWave = draft.profiles[draft.activeProfile].waveform
+  liveWave = tele.liveWaveform ? activeWave
 
   h 'div', { className: 'ornithopter-view' },
     # ── Page head ──────────────────────────────────────
@@ -193,8 +195,8 @@ OrnithopterView = ->
           h 'div', { className: 'orni-segments' },
             kernelOptions k for k in KERNELS
         h Field,
-            { label: 'Körperplan',
-              hermes: 'Die Firmware spannt die GPIOs danach.' },
+          { label: 'Körperplan',
+            hermes: 'Die Firmware spannt die GPIOs danach.' },
           h 'select',
             className: 'orni-input'
             value: draft.profileId
@@ -238,14 +240,15 @@ OrnithopterView = ->
             'kein Wille ihn bewegt.'
           h 'div', { className: 'orni-grid' },
             for t in trims
-              h Field, { key: t.prop, label: t.label },
-                h 'input',
-                  className: 'orni-slider'
-                  type: 'range'
-                  min: -50
-                  max: 50
-                  value: draft.trims[t.prop]
-                  onChange: (e) -> orni.setTrim t.prop, Number e.target.value
+              do (t) ->
+                h Field, { key: t.prop, label: t.label },
+                  h 'input',
+                    className: 'orni-slider'
+                    type: 'range'
+                    min: -50
+                    max: 50
+                    value: draft.trims[t.prop]
+                    onChange: (e) -> orni.setTrim t.prop, Number e.target.value
 
     # ── Die Drei Gesichter ─────────────────────────────
     h Section,
@@ -263,55 +266,54 @@ OrnithopterView = ->
           "Gesicht #{draft.activeProfile + 1}"
       h 'div', { className: 'orni-faces' },
         for i in [0...3]
-          active = i is draft.activeProfile
-          h 'div',
-            key: i
-            className: "orni-face#{if active then ' orni-face-on' else ''}"
-            onClick: -> orni.setActiveProfile i
-          ,
-            h 'div', { className: 'orni-face-head' },
-              h 'span', { className: 'orni-face-n' }, "Gesicht #{i + 1}"
-              if active
-                h 'span', { className: 'orni-face-live' }, 'FLIEGT'
-            h 'div', { className: 'orni-face-body' },
-              h 'div', { className: 'orni-face-label' },
-                'Gleitwinkel'
-              h 'input',
-                className: 'orni-slider'
-                type: 'range'
-                min: -15
-                max: 15
-                value: draft.profiles[i].glideAngle
-                onChange: (e) -> orni.setGlideAngle i, Number e.target.value
-              h 'span', { className: 'orni-value' },
-                "#{if draft.profiles[i].glideAngle > 0 then '+' else ''}" +
-                "#{draft.profiles[i].glideAngle}°"
-              h 'div', { className: 'orni-face-label' },
-                'Schlag-Mitte'
-              h 'input',
-                className: 'orni-slider'
-                type: 'range'
-                min: -15
-                max: 15
-                value: draft.profiles[i].flappingAngle
-                onChange: (e) ->
-                  orni.setFlappingAngle i, Number e.target.value
-              h 'span', { className: 'orni-value' },
-                "#{if draft.profiles[i].flappingAngle > 0 then '+' else ''}" +
-                "#{draft.profiles[i].flappingAngle}°"
-              h 'div', { className: 'orni-face-wave' },
-                "Schlag #{draft.profiles[i].waveform.strokeFerocity} · " +
-                "Rück #{draft.profiles[i].waveform.returnFerocity} · " +
-                "Mix #{draft.profiles[i].waveform.ferocityShapeMix}"
-            h 'p', { className: 'orni-hermes' },
-              if i is draft.activeProfile
-                'Die Ruhe zwischen zwei Schlägen, die trägt.'
-              else
-                'Schlummernd — CH7 weckt dieses Gesicht.'
+          do (i) ->
+            active = i is draft.activeProfile
+            h 'div',
+              key: i
+              className: "orni-face#{if active then ' orni-face-on' else ''}"
+              onClick: -> orni.setActiveProfile i
+            ,
+              h 'div', { className: 'orni-face-head' },
+                h 'span', { className: 'orni-face-n' }, "Gesicht #{i + 1}"
+                if active
+                  h 'span', { className: 'orni-face-live' }, 'FLIEGT'
+              h 'div', { className: 'orni-face-body' },
+                h 'div', { className: 'orni-face-label' },
+                  'Gleitwinkel'
+                h 'input',
+                  className: 'orni-slider'
+                  type: 'range'
+                  min: -15
+                  max: 15
+                  value: draft.profiles[i].glideAngle
+                  onChange: (e) -> orni.setGlideAngle i, Number e.target.value
+                h 'span', { className: 'orni-value' },
+                  "#{if draft.profiles[i].glideAngle > 0 then '+' else ''}" +
+                  "#{draft.profiles[i].glideAngle}°"
+                h 'div', { className: 'orni-face-label' },
+                  'Schlag-Mitte'
+                h 'input',
+                  className: 'orni-slider'
+                  type: 'range'
+                  min: -15
+                  max: 15
+                  value: draft.profiles[i].flappingAngle
+                  onChange: (e) ->
+                    orni.setFlappingAngle i, Number e.target.value
+                h 'span', { className: 'orni-value' },
+                  "#{if draft.profiles[i].flappingAngle > 0 then '+' else ''}" +
+                  "#{draft.profiles[i].flappingAngle}°"
+                h 'div', { className: 'orni-face-wave' },
+                  "Schlag #{draft.profiles[i].waveform.strokeFerocity} · " +
+                  "Rück #{draft.profiles[i].waveform.returnFerocity} · " +
+                  "Mix #{draft.profiles[i].waveform.ferocityShapeMix}"
+              h 'p', { className: 'orni-hermes' },
+                if i is draft.activeProfile
+                  'Die Ruhe zwischen zwei Schlägen, die trägt.'
+                else
+                  'Schlummernd — CH7 weckt dieses Gesicht.'
 
     # ── Die Welle ─────────────────────────────────────
-    activeWave = draft.profiles[draft.activeProfile].waveform
-    liveWave = tele.liveWaveform ? activeWave
     h Section,
       glyph: '🌊'
       title: 'Die Welle'
@@ -332,26 +334,27 @@ OrnithopterView = ->
               'Aufwärts'
       h 'div', { className: 'orni-grid' },
         for field in WAVEFORM_FIELDS
-          limits = WAVEFORM_LIMITS[field.id]
-          value = activeWave[field.id]
-          h Field,
-            key: field.id
-            label: field.label
-            hermes: field.hermes
-          ,
-            h 'div', { className: 'orni-slider-row' },
-              h 'input',
-                className: 'orni-slider'
-                type: 'range'
-                min: limits.min
-                max: limits.max
-                value: value
-                onChange: (e) ->
-                  orni.setWaveformParam(
-                    draft.activeProfile, field.id, Number e.target.value
-                  )
-              h 'span', { className: 'orni-value' },
-                "#{if limits.min < 0 and value > 0 then '+' else ''}#{value}"
+          do (field) ->
+            limits = WAVEFORM_LIMITS[field.id]
+            value = activeWave[field.id]
+            h Field,
+              key: field.id
+              label: field.label
+              hermes: field.hermes
+            ,
+              h 'div', { className: 'orni-slider-row' },
+                h 'input',
+                  className: 'orni-slider'
+                  type: 'range'
+                  min: limits.min
+                  max: limits.max
+                  value: value
+                  onChange: (e) ->
+                    orni.setWaveformParam(
+                      draft.activeProfile, field.id, Number e.target.value
+                    )
+                h 'span', { className: 'orni-value' },
+                  "#{if limits.min < 0 and value > 0 then '+' else ''}#{value}"
 
     # ── Der Virtuelle Puls ─────────────────────────────
     h Section,
@@ -364,16 +367,17 @@ OrnithopterView = ->
       h 'div', { className: 'orni-grid orni-pulse-grid' },
         if orni.mode is 'sim'
           for [ch, label] in STICK_CHANNELS
-            h Field, { key: ch, label },
-              h 'div', { className: 'orni-slider-row' },
-                h 'input',
-                  className: 'orni-slider'
-                  type: 'range'
-                  min: 1000
-                  max: 2000
-                  value: sim.sticks[ch]
-                  onChange: (e) -> sim.setStick ch, Number e.target.value
-                h 'span', { className: 'orni-value' }, "#{sim.sticks[ch]}"
+            do (ch, label) ->
+              h Field, { key: ch, label },
+                h 'div', { className: 'orni-slider-row' },
+                  h 'input',
+                    className: 'orni-slider'
+                    type: 'range'
+                    min: 1000
+                    max: 2000
+                    value: sim.sticks[ch]
+                    onChange: (e) -> sim.setStick ch, Number e.target.value
+                  h 'span', { className: 'orni-value' }, "#{sim.sticks[ch]}"
         else
           for ch, i in (deviceChannels ? [])
             h Field, { key: i, label: "CH#{i + 1}" },
