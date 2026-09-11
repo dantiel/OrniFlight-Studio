@@ -27,6 +27,9 @@ useEngineStore = create (set) ->
   arrangement:        engine.arrangement
   pairCount:          engine.pairCount
   servoMounts:        engine.servoMounts
+  waveform:           engine.waveform
+  flightProfiles:     engine.flightProfiles
+  activeFlightProfile: engine.activeFlightProfile
   simParams:
     selfLevelGain:              engine.selfLevelGain
     yawAmpMix:                  engine.yawAmpMix
@@ -40,6 +43,26 @@ useEngineStore = create (set) ->
   setOndasParam: action 'setOndasParam', 'ondasParams'
   setPidGain:    action 'setPidGain',    'pidGains'
   setServoParam: action 'setServoParam', 'servos'
+
+  setWaveformParam: (name, value) ->
+    engine.setWaveformParam name, value
+    set
+      waveform:           { engine.waveform... }
+      flightProfiles:     engine.flightProfiles.map (p) ->
+        { p..., waveform: { p.waveform... } }
+
+  setFlightProfileParam: (index, name, value) ->
+    engine.setFlightProfileParam index, name, value
+    set
+      waveform:           { engine.waveform... }
+      flightProfiles:     engine.flightProfiles.map (p) ->
+        { p..., waveform: { p.waveform... } }
+
+  applyFlightProfile: (index) ->
+    engine.applyFlightProfile index
+    set
+      activeFlightProfile: engine.activeFlightProfile
+      waveform:           { engine.waveform... }
 
   applyPreset: (name) ->
     engine.applyPreset name

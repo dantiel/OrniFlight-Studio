@@ -18,6 +18,9 @@ import {
   KERNELS, profilesForKernel, profileById
   SERVO_SPEED_PRESETS, trimsForProfile
 } from '../../../lib/mixerCatalog.coffee'
+import {
+  sampleWave, WAVEFORM_FIELDS, WAVEFORM_LIMITS
+} from '../../../simulation/waveform.coffee'
 
 STICK_CHANNELS = [
   ['throttle', 'THR']
@@ -42,6 +45,51 @@ Field = (props) ->
       if props.hermes?
         h 'small', { className: 'orni-hermes' }, props.hermes
     h 'div', { className: 'orni-field-control' }, props.children
+
+# ── Waveform widget — the stroke's shape drawn live ──────────
+WAVE_W = 340
+WAVE_H = 140
+WAVE_PAD = 14
+
+WaveformWidget = (props) ->
+  { points, limiarFraction } = sampleWave props.params, 128
+  plotX = (x) -> WAVE_PAD + x * (WAVE_W - 2 * WAVE_PAD)
+  plotY = (y) -> WAVE_H / 2 - y * (WAVE_H / 2 - WAVE_PAD)
+  pathFor = (half) ->
+    pts = points.filter (p) -> p.half is half
+    pts.map (p, i) ->
+      cmd = if i is 0 then 'M' else 'L'
+      "#{cmd}#{plotX(p.x).toFixed 1} #{plotY(p.y).toFixed 1}"
+    .join ' '
+  divX = plotX limiarFraction
+  h 'svg',
+    className: 'orni-wave-svg'
+    viewBox: "0 0 #{WAVE_W} #{WAVE_H}"
+    preserveAspectRatio: 'none'
+  ,
+    h 'line',
+      className: 'orni-wave-axis'
+      x1: WAVE_PAD
+      x2: WAVE_W - WAVE_PAD
+      y1: WAVE_H / 2
+      y2: WAVE_H / 2
+    h 'line',
+      className: 'orni-wave-limi'
+      x1: divX
+      x2: divX
+      y1: WAVE_PAD
+      y2: WAVE_H - WAVE_PAD
+    h 'path',
+      className: 'orni-wave-path orni-wave-stroke'
+      d: pathFor 'stroke'
+    h 'path',
+      className: 'orni-wave-path orni-wave-return'
+      d: pathFor 'return'
+    h 'circle',
+      className: 'orni-wave-dot'
+      cx: plotX 0
+      cy: plotY (points[0]?.y ? 0)
+      r: 3
 
 OrnithopterView = ->
   orni = useOrnithopterStore()
@@ -233,16 +281,77 @@ OrnithopterView = ->
                 type: 'range'
                 min: -15
                 max: 15
-                value: draft.glideAngle[i]
+                value: draft.profiles[i].glideAngle
                 onChange: (e) -> orni.setGlideAngle i, Number e.target.value
               h 'span', { className: 'orni-value' },
-                "#{if draft.glideAngle[i] > 0 then '+' else ''}" +
-                "#{draft.glideAngle[i]}°"
+                "#{if draft.profiles[i].glideAngle > 0 then '+' else ''}" +
+                "#{draft.profiles[i].glideAngle}°"
+              h 'div', { className: 'orni-face-label' },
+                'Schlag-Mitte'
+              h 'input',
+                className: 'orni-slider'
+                type: 'range'
+                min: -15
+                max: 15
+                value: draft.profiles[i].flappingAngle
+                onChange: (e) ->
+                  orni.setFlappingAngle i, Number e.target.value
+              h 'span', { className: 'orni-value' },
+                "#{if draft.profiles[i].flappingAngle > 0 then '+' else ''}" +
+                "#{draft.profiles[i].flappingAngle}°"
+              h 'div', { className: 'orni-face-wave' },
+                "Schlag #{draft.profiles[i].waveform.strokeFerocity} · " +
+                "Rück #{draft.profiles[i].waveform.returnFerocity} · " +
+                "Mix #{draft.profiles[i].waveform.ferocityShapeMix}"
             h 'p', { className: 'orni-hermes' },
               if i is draft.activeProfile
                 'Die Ruhe zwischen zwei Schlägen, die trägt.'
               else
                 'Schlummernd — CH7 weckt dieses Gesicht.'
+
+    # ── Die Welle ─────────────────────────────────────
+    activeWave = draft.profiles[draft.activeProfile].waveform
+    liveWave = tele.liveWaveform ? activeWave
+    h Section,
+      glyph: '🌊'
+      title: 'Die Welle'
+      hermes:
+        'Die Seele des Schlags. Zwei Hälften — Abwärts und Aufwärts — ' +
+        'jede mit eigener Härte, eigener Mitte. Die Kurve ist der Wille, ' +
+        'bevor er ins Gelenk fährt.'
+    ,
+      h 'div', { className: 'orni-wave-stage' },
+        h WaveformWidget, { params: liveWave }
+        h 'div', { className: 'orni-wave-caption' },
+          h 'span', { className: 'orni-hermes' },
+            "Gesicht #{draft.activeProfile + 1} — live geformt"
+          h 'div', { className: 'orni-wave-legend' },
+            h 'span', { className: 'orni-legend-dot orni-legend-stroke' },
+              'Abwärts'
+            h 'span', { className: 'orni-legend-dot orni-legend-return' },
+              'Aufwärts'
+      h 'div', { className: 'orni-grid' },
+        for field in WAVEFORM_FIELDS
+          limits = WAVEFORM_LIMITS[field.id]
+          value = activeWave[field.id]
+          h Field,
+            key: field.id
+            label: field.label
+            hermes: field.hermes
+          ,
+            h 'div', { className: 'orni-slider-row' },
+              h 'input',
+                className: 'orni-slider'
+                type: 'range'
+                min: limits.min
+                max: limits.max
+                value: value
+                onChange: (e) ->
+                  orni.setWaveformParam(
+                    draft.activeProfile, field.id, Number e.target.value
+                  )
+              h 'span', { className: 'orni-value' },
+                "#{if limits.min < 0 and value > 0 then '+' else ''}#{value}"
 
     # ── Der Virtuelle Puls ─────────────────────────────
     h Section,

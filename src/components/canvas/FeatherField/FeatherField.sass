@@ -2,14 +2,14 @@
 // FeatherField — the æther beneath the glass
 // ═══════════════════════════════════════════
 
-// Sticky, height-zero anchor: pinned to the scroll viewport,
-// occupies no layout space — the field is pure backdrop.
+// Full-shell anchor: the æther now breathes behind EVERYTHING —
+// the transparent toolbar, the scroll content, the floating dock.
+// It is pure backdrop, painted once beneath all glass.
 .feather-field-anchor
-  position: sticky
-  top: 0
-  height: 0
+  position: absolute
+  inset: 0
   z-index: 0
-  overflow: visible
+  overflow: hidden
   pointer-events: none
 
 .feather-field-defs
@@ -21,8 +21,8 @@
   position: absolute
   top: 0
   left: 0
-  width: 100vw
-  height: 100vh
+  width: 100%
+  height: 100%
   background-image: var(--of-feathers)
   background-repeat: repeat
   background-size: clamp(300px, 26vw, 840px)

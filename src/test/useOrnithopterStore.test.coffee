@@ -14,7 +14,7 @@ describe 'useOrnithopterStore', ->
     expect(state().draft.kernel).toBe 'servo'
     expect(state().draft.profileId).toBe 1
     expect(state().draft.servoSpeed).toBe 220
-    expect(state().draft.glideAngle).toHaveLength 3
+    expect(state().draft.profiles).toHaveLength 3
     expect(state().draft.activeProfile).toBe 0
 
   it 'switching kernel jumps to the first profile of that kernel', ->
@@ -49,9 +49,19 @@ describe 'useOrnithopterStore', ->
 
   it 'clamps glide angles per face with index bounds', ->
     state().setGlideAngle 0, 90
-    expect(state().draft.glideAngle[0]).toBe 15
+    expect(state().draft.profiles[0].glideAngle).toBe 15
     state().setGlideAngle 5, 90
-    expect(state().draft.glideAngle[5]).toBeUndefined()
+    expect(state().draft.profiles[5]).toBeUndefined()
+
+  it 'clamps waveform params and mirrors them into the engine', ->
+    state().setWaveformParam 0, 'strokeSkew', 400
+    expect(state().draft.profiles[0].waveform.strokeSkew).toBe 100
+    expect(engine.waveform.strokeSkew).toBe 100
+    state().setWaveformParam 1, 'ferocityShapeMix', -20
+    expect(state().draft.profiles[1].waveform.ferocityShapeMix).toBe 0
+    state().setActiveProfile 1
+    expect(engine.activeFlightProfile).toBe 1
+    expect(engine.waveform.ferocityShapeMix).toBe 0
 
   it 'save in sim mode mirrors stroke time into the engine', ->
     state().setServoSpeed 150

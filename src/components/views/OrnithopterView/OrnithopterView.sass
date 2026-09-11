@@ -368,3 +368,85 @@ $white-rim: inset 0 1px 0 rgba(255, 255, 255, 0.18)
 .orni-foot
   text-align: center
   padding: var(--of-space-8) 0 var(--of-space-4)
+
+// ── Die Welle — waveform editor ────────────────────────
+.orni-face-wave
+  font-family: var(--of-font-mono)
+  font-size: 10px
+  letter-spacing: 0.02em
+  color: var(--of-text-muted)
+  padding-top: var(--of-space-2)
+
+.orni-wave-stage
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-3)
+
+.orni-wave-svg
+  width: 100%
+  height: 160px
+  background: rgba(0, 0, 0, 0.14)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-radius-md)
+  overflow: visible
+
+.orni-wave-axis
+  stroke: rgba(255, 255, 255, 0.14)
+  stroke-width: 1
+  vector-effect: non-scaling-stroke
+
+.orni-wave-limi
+  stroke: rgba(255, 255, 255, 0.24)
+  stroke-width: 1
+  stroke-dasharray: 3 4
+  vector-effect: non-scaling-stroke
+
+.orni-wave-path
+  fill: none
+  stroke-width: 2.5
+  stroke-linejoin: round
+  stroke-linecap: round
+  vector-effect: non-scaling-stroke
+
+.orni-wave-stroke
+  stroke: var(--of-accent)
+
+.orni-wave-return
+  stroke: #4cd0b3
+
+.orni-wave-dot
+  fill: var(--of-accent)
+  stroke: rgba(0, 0, 0, 0.4)
+  stroke-width: 1
+  vector-effect: non-scaling-stroke
+
+.orni-wave-caption
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: var(--of-space-4)
+  flex-wrap: wrap
+
+.orni-wave-legend
+  display: flex
+  align-items: center
+  gap: var(--of-space-4)
+  font-size: var(--of-text-xs)
+  color: var(--of-text-muted)
+
+.orni-legend-dot
+  display: inline-flex
+  align-items: center
+  gap: 5px
+
+  &::before
+    content: ''
+    width: 14px
+    height: 3px
+    border-radius: 999px
+
+.orni-legend-stroke::before
+  background: var(--of-accent)
+
+.orni-legend-return::before
+  background: #4cd0b3

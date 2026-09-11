@@ -9,6 +9,11 @@
 # level. Methods mutate @ state and return @ for fluent chaining.
 # ═══════════════════════════════════════════════════════════════
 
+import {
+  shapeWave, ferocityUnits, WAVEFORM_DEFAULTS, WAVEFORM_LIMITS
+  modulateWaveform
+} from './waveform.coffee'
+
 TWO_PI = 2 * Math.PI
 PI     = Math.PI
 
@@ -223,6 +228,22 @@ export class OrnithopterModel
     @aeroelasticGlideCoefficient = 4.0
     @servoTravelTimeMs = 300
 
+    # Waveform — the stroke's shape soul. Runtime params mirror the
+    # PteronautOS FlightProfileParams: ferocity (dwell), form mix
+    # (square↔triangle), centre skew per half, and the throttle/
+    # aileron skew+slew couplings. Three flight profiles carry their
+    # own waveform + glide/flap centres; CH7 selects the active one.
+    @waveform = { WAVEFORM_DEFAULTS... }
+    @flightProfiles = for i in [0...3]
+      {
+        index: i
+        glideAngle: 0
+        flappingAngle: 0
+        waveform: { WAVEFORM_DEFAULTS... }
+      }
+    @activeFlightProfile = 0
+    @liveWaveform = { WAVEFORM_DEFAULTS... }
+
     @connected        = false
     @disturbancePulse = 0.0
 
@@ -273,6 +294,43 @@ export class OrnithopterModel
 
   setOndasParam: (name, value) ->
     @ondas[name] = clamp 0, 100, value
+    @
+
+  # ── Waveform / flight-profile setters ─────────────────────
+
+  setWaveformParam: (name, value) ->
+    limits = WAVEFORM_LIMITS[name]
+    return @ unless limits?
+    v = clamp limits.min, limits.max, value
+    @waveform[name] = v
+    @flightProfiles[@activeFlightProfile].waveform[name] = v
+    @
+
+  setFlightProfileParam: (index, name, value) ->
+    profile = @flightProfiles[index]
+    return @ unless profile?
+    limits = WAVEFORM_LIMITS[name]
+    return @ unless limits?
+    profile.waveform[name] = clamp limits.min, limits.max, value
+    @waveform[name] = profile.waveform[name] if index is @activeFlightProfile
+    @
+
+  setGlideAngle: (index, value) ->
+    profile = @flightProfiles[index]
+    return @ unless profile?
+    profile.glideAngle = clamp -15, 15, value
+    @
+
+  setFlappingAngle: (index, value) ->
+    profile = @flightProfiles[index]
+    return @ unless profile?
+    profile.flappingAngle = clamp -15, 15, value
+    @
+
+  applyFlightProfile: (index) ->
+    return @ unless @flightProfiles[index]?
+    @activeFlightProfile = index
+    @waveform = { @flightProfiles[index].waveform... }
     @
 
   setPidGain: (name, value) ->
@@ -470,6 +528,15 @@ export class OrnithopterModel
 
     sinPhi = Math.sin @flapPhase
     cosPhi = Math.cos @flapPhase
+    live = modulateWaveform @waveform, g, rateError
+    @liveWaveform = live
+    pulse  = shapeWave @flapPhase,
+      ferocityUnits(live.strokeFerocity),
+      ferocityUnits(live.returnFerocity),
+      -1,
+      live.ferocityShapeMix,
+      @waveform.strokeSkew,
+      @waveform.returnSkew
     amp    = @baseAmplitude * (PI / 180)
 
     rollDiff  = rateError.roll * g.warp_gain * 0.3
@@ -497,14 +564,14 @@ export class OrnithopterModel
     ampL += rollDiff
     ampL += yawDiff
     ampL += balanceMod * (if sinPhi < 0 then 1.0 else 0.0)
-    @wingAngleL = sinPhi * ampL
+    @wingAngleL = pulse * ampL
 
     # Right wing
     ampR  = amp * (1.0 + pitchMod + resonanceMod) * anchorMod
     ampR -= rollDiff
     ampR += yawDiff * 0.3
     ampR += balanceMod * (if sinPhi < 0 then 1.0 else 0.0)
-    @wingAngleR = sinPhi * ampR
+    @wingAngleR = pulse * ampR
 
     # Wing velocities
     @wingVelocityL = cosPhi * ampL * cadenceFreq * TWO_PI
@@ -551,6 +618,7 @@ export class OrnithopterModel
     tel.pairCount      = @pairCount
     tel.servoMounts    = @servoMounts.map (m) -> { m... }
     tel.flapFrequency  = @flapFrequency
+    tel.liveWaveform   = { @liveWaveform... }
     tel.amplitude      =
       Math.max(Math.abs(@wingAngleL), Math.abs(@wingAngleR)) *
         180 / PI

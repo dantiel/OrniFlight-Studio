@@ -13,16 +13,16 @@
     top: 0
 
   &-bottom
-    top: calc(100vh - 64px)
+    top: calc(100vh - 96px)
 
 .progressive-blur-layer
   position: absolute
   left: 0
   right: 0
-  height: 64px
-  backdrop-filter: blur(var(--pb-blur)) saturate(1.6)
-  -webkit-backdrop-filter: blur(var(--pb-blur)) saturate(1.6)
-  mask-image: linear-gradient(to bottom, #000 0%, transparent var(--pb-reach))
+  height: 96px
+  backdrop-filter: blur(var(--pb-blur)) saturate(1.7)
+  -webkit-backdrop-filter: blur(var(--pb-blur)) saturate(1.7)
+  mask-image: linear-gradient(to bottom, #000 0%, #000 52%, rgba(0, 0, 0, 0.55) 74%, transparent var(--pb-reach))
 
 .progressive-blur-top .progressive-blur-layer
   top: 0
@@ -30,3 +30,6 @@
 .progressive-blur-bottom .progressive-blur-layer
   bottom: 0
   transform: rotate(180deg)
+  // The dock rides a touch lower — let the water hold it longer.
+  backdrop-filter: blur(calc(var(--pb-blur) * 1.25)) saturate(1.8)
+  -webkit-backdrop-filter: blur(calc(var(--pb-blur) * 1.25)) saturate(1.8)

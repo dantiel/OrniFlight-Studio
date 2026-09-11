@@ -20,11 +20,15 @@ import { engine } from '../simulation/engine.coffee'
 import {
   KERNELS, MIXER_PROFILES, profilesForKernel, firstForKernel
 } from '../lib/mixerCatalog.coffee'
+import {
+  WAVEFORM_DEFAULTS, WAVEFORM_LIMITS
+} from '../simulation/waveform.coffee'
 
 SPEED_LIMITS = [40, 400]
 TRIM_LIMITS = [-50, 50]
 GLIDE_LIMITS = [-15, 15]
 PROFILE_IDS = [0..7]
+WAVEFORM_KEYS = Object.keys WAVEFORM_DEFAULTS
 
 TRIM_FIELDS = [
   'leftWing', 'rightWing', 'rudder', 'backLeftWing'
@@ -45,6 +49,11 @@ finiteOr = (fallback, value) ->
 clampInt = (lo, hi, value) ->
   Math.max lo, Math.min hi, Math.round finiteOr lo, value
 
+defaultProfile = ->
+  glideAngle: 0
+  flappingAngle: 0
+  waveform: { WAVEFORM_DEFAULTS... }
+
 defaultDraft = ->
   modelName: 'Orni I'
   kernel: 'servo'
@@ -58,7 +67,7 @@ defaultDraft = ->
     vtailLeft: 0
     vtailRight: 0
     elevator: 0
-  glideAngle: [0, 0, 0]
+  profiles: [defaultProfile(), defaultProfile(), defaultProfile()]
   activeProfile: 0
 
 # Body plan → 3D arrangement: the mixer profile chooses which
@@ -80,6 +89,13 @@ mirrorToEngine = (draft) ->
     servoTravelTimeMs: draft.servoSpeed
   name = ARRANGEMENT_FOR_PROFILE[draft.profileId]
   engine.applyArrangement name if name
+  # Waveform + flight profiles — the stroke's shape soul mirrors live.
+  for i in [0...3]
+    engine.setGlideAngle i, draft.profiles[i].glideAngle
+    engine.setFlappingAngle i, draft.profiles[i].flappingAngle
+    for k in WAVEFORM_KEYS
+      engine.setFlightProfileParam i, k, draft.profiles[i].waveform[k]
+  engine.applyFlightProfile draft.activeProfile
 
 useOrnithopterStore = create (set, get) ->
   defaults = defaultDraft()
@@ -139,16 +155,41 @@ useOrnithopterStore = create (set, get) ->
 
   setGlideAngle: (index, value) ->
     return unless 0 <= index < 3
-    glideAngle = clone get().draft.glideAngle
-    glideAngle[index] = clampInt GLIDE_LIMITS..., value
+    profiles = clone get().draft.profiles
+    profiles[index].glideAngle = clampInt GLIDE_LIMITS..., value
     set
-      draft: { get().draft..., glideAngle }
+      draft: { get().draft..., profiles }
       dirty: true
+    engine.setGlideAngle index, profiles[index].glideAngle
+
+  setFlappingAngle: (index, value) ->
+    return unless 0 <= index < 3
+    profiles = clone get().draft.profiles
+    profiles[index].flappingAngle = clampInt GLIDE_LIMITS..., value
+    set
+      draft: { get().draft..., profiles }
+      dirty: true
+    engine.setFlappingAngle index, profiles[index].flappingAngle
+
+  setWaveformParam: (index, key, value) ->
+    return unless 0 <= index < 3
+    return unless key in WAVEFORM_KEYS
+    limits = WAVEFORM_LIMITS[key]
+    profiles = clone get().draft.profiles
+    profiles[index].waveform[key] =
+      clampInt limits.min, limits.max, value
+    set
+      draft: { get().draft..., profiles }
+      dirty: true
+    engine.setFlightProfileParam index, key, profiles[index].waveform[key]
+    engine.applyFlightProfile index if index is get().draft.activeProfile
 
   setActiveProfile: (index) ->
+    index = clampInt 0, 2, index
     set
-      draft: { get().draft..., activeProfile: clampInt 0, 2, index }
+      draft: { get().draft..., activeProfile: index }
       dirty: true
+    engine.applyFlightProfile index
 
   save: ->
     { mode, session, draft, loadedSession } = get()
@@ -165,7 +206,7 @@ useOrnithopterStore = create (set, get) ->
       for i in [0...profile.servos]
         await session.writeServoConfiguration i, { rate }
       await session.writeGlideDegree(
-        draft.glideAngle[draft.activeProfile]
+        draft.profiles[draft.activeProfile].glideAngle
       )
     else
       mirrorToEngine draft
@@ -194,7 +235,7 @@ useOrnithopterStore = create (set, get) ->
       rate = finiteOr 220, configs[0]?.rate
       msPer60 = if rate > 0 then Math.round 60000 / rate else 220
       draft.servoSpeed = clampInt SPEED_LIMITS..., msPer60
-    draft.glideAngle[draft.activeProfile] =
+    draft.profiles[draft.activeProfile].glideAngle =
       clampInt GLIDE_LIMITS..., tuning?.glide ? 0
     set {
       mode: 'device'

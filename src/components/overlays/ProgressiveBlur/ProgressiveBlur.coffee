@@ -13,13 +13,16 @@ import './ProgressiveBlur.sass'
 import h from '../../../app/h.coffee'
 
 LAYERS = [
-  { blur: 24, reach: '100%' }
-  { blur: 16, reach: '78%' }
-  { blur: 10, reach: '56%' }
-  { blur: 6, reach: '36%' }
+  { blur: 30, reach: '100%' }
+  { blur: 24, reach: '86%' }
+  { blur: 18, reach: '72%' }
+  { blur: 13, reach: '58%' }
+  { blur: 9,  reach: '44%' }
+  { blur: 5,  reach: '30%' }
+  { blur: 2,  reach: '16%' }
 ]
 
-CURTAIN = 64
+CURTAIN = 96
 
 ProgressiveBlur = (props) ->
   position = props.position or 'top'

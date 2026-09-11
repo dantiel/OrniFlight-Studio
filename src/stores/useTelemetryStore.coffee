@@ -33,6 +33,7 @@ useTelemetryStore = create(
       waveformHistory: []
       batteryVoltage:  0
       flapFrequency:   0
+      liveWaveform:    null
       rssi:            0
       linkQuality:     0
       rcChannels:      []
@@ -55,6 +56,7 @@ useTelemetryStore = create(
           flapPhase = 0, pairCount = 2, servoMounts = []
           servos = [], waveformHistory = []
           batteryVoltage = 0, flapFrequency = 0
+          liveWaveform = null
           rssi = 0, linkQuality = 0
           rcChannels = []
           accelX = 0, accelY = 0, accelZ = 0
@@ -91,6 +93,7 @@ useTelemetryStore = create(
           waveformHistory: history
           batteryVoltage
           flapFrequency
+          liveWaveform
           rssi
           linkQuality
           rcChannels

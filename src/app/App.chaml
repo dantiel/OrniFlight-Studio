@@ -59,11 +59,11 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - `const welcomeEl = h(AnimatedPage, null, h(WelcomeView, null))`
 - `const orniEl = h(AnimatedPage, null, h(OrnithopterView, null))`
 .studio-shell{ role: 'application', aria-label: 'OrniFlight Studio' }
+  %FeatherField
   %a.skip-link{ href: '#main-content' }
     Skip to content
   %ConnectionBar
   %div#main-content{ role: 'main' }
-    %FeatherField
     %ProgressiveBlur{ position: 'top' }
     %ProgressiveBlur{ position: 'bottom' }
     %AnimatePresence{ mode: 'wait' }

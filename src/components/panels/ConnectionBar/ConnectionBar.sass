@@ -9,10 +9,10 @@
   grid-template-rows: 39px 31px
   contain: layout style
   height: var(--of-toolbar-height)
-  background: rgba(var(--of-header-rgb), var(--of-header-opacity))
+  background: linear-gradient(180deg, rgba(var(--of-header-rgb), calc(var(--of-header-opacity) * 2.4)), rgba(var(--of-header-rgb), var(--of-header-opacity)))
   backdrop-filter: blur(var(--of-glass-blur-strong)) saturate(var(--of-glass-saturate))
   -webkit-backdrop-filter: blur(var(--of-glass-blur-strong)) saturate(var(--of-glass-saturate))
-  border-bottom: 1px solid rgba(255,255,255,0.06)
+  border-bottom: 1px solid rgba(255,255,255,0.05)
   flex-shrink: 0
   user-select: none
   z-index: 10
@@ -23,7 +23,7 @@
     position: absolute
     inset: 0
     pointer-events: none
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), transparent 55%)
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 55%)
 
 .toolbar-primary
   display: flex
@@ -72,8 +72,8 @@
   align-items: center
   min-width: 0
   padding: 2px var(--of-space-5) 4px
-  border-top: 1px solid rgba(255,255,255,.045)
-  background: rgba(6,6,12,.12)
+  border-top: 1px solid rgba(255,255,255,.04)
+  background: rgba(6,6,12,.06)
 
   .toolbar-status
     display: flex
