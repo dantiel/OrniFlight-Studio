@@ -14,7 +14,7 @@
   // ── Brand Logo Colors ──────────────────
   --of-brand-orni: #8a99fe
   --of-brand-flight: #e1e2f8
-  --of-header-opacity: 0.12
+  --of-header-opacity: 0.04
 
   // ── Palette (Dark) ──────────────────────
   --of-body-bg: #1a1a1c
@@ -49,10 +49,10 @@
   --of-surface-2-rgb: 38, 38, 42
   --of-body-rgb: 26, 26, 28
   // Glass — specular gradient baked in for a water-surface sheen
-  --of-glass-sheen: linear-gradient(#FFFFFF0D, transparent 42%)
-  --of-glass-bg: var(--of-glass-sheen), rgba(28, 28, 34, 0.28)
-  --of-glass-card: var(--of-glass-sheen), rgba(38, 38, 48, 0.18)
-  --of-glass-card-hover: var(--of-glass-sheen), rgba(38, 38, 48, 0.32)
+  --of-glass-sheen: linear-gradient(#FFFFFF14, transparent 40%)
+  --of-glass-bg: var(--of-glass-sheen), rgba(22, 22, 30, 0.14)
+  --of-glass-card: var(--of-glass-sheen), rgba(30, 30, 44, 0.10)
+  --of-glass-card-hover: var(--of-glass-sheen), rgba(30, 30, 44, 0.20)
   --of-glass-edge: rgba(137, 152, 254, 0.06)
   --of-glass-edge-hover: rgba(137, 152, 254, 0.20)
   // Glows
@@ -63,14 +63,16 @@
   --of-feathers: url('/feathers_dark.png')
   --of-feather-opacity: 0.22
 
-  // Liquid Glass — water-surface refraction
-  --of-glass-blur: 20px
-  --of-glass-blur-strong: 32px
-  --of-glass-saturate: 1.7
-  --of-glass-specular: rgba(255, 255, 255, 0.09)
-  --of-glass-specular-strong: rgba(255, 255, 255, 0.16)
-  --of-glass-rim: rgba(255, 255, 255, 0.14)
-  --of-glass-rim-soft: rgba(255, 255, 255, 0.06)
+  // Liquid Glass — real glass shader: transparency + specular + rim,
+  // not a heavy frost. The feather refraction is the shader; panels
+  // stay transparent so it reads through.
+  --of-glass-blur: 2px
+  --of-glass-blur-strong: 6px
+  --of-glass-saturate: 1
+  --of-glass-specular: rgba(255, 255, 255, 0.12)
+  --of-glass-specular-strong: rgba(255, 255, 255, 0.2)
+  --of-glass-rim: rgba(255, 255, 255, 0.16)
+  --of-glass-rim-soft: rgba(255, 255, 255, 0.07)
   --of-glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 2px 10px rgba(0, 0, 0, 0.25)
   --of-glass-radius: 18px
   --of-glass-radius-lg: 24px
@@ -128,7 +130,7 @@
 
 // ── Light Theme ────────────────────────────
 [data-theme="light"]
-  --of-header-opacity: 0.16
+  --of-header-opacity: 0.06
   --of-body-bg: #f0f0f0
   --of-surface-0: #f0f0f0
   --of-surface-1: #ffffff
@@ -161,10 +163,10 @@
   --of-surface-2-rgb: 249, 249, 249
   --of-body-rgb: 240, 240, 240
   // Glass — specular gradient baked in for a water-surface sheen
-  --of-glass-sheen: linear-gradient(#FFFFFF99, transparent 42%)
-  --of-glass-bg: var(--of-glass-sheen), rgba(248, 248, 250, 0.28)
-  --of-glass-card: var(--of-glass-sheen), rgba(255, 255, 255, 0.22)
-  --of-glass-card-hover: var(--of-glass-sheen), rgba(255, 255, 255, 0.42)
+  --of-glass-sheen: linear-gradient(#FFFFFFCC, transparent 40%)
+  --of-glass-bg: var(--of-glass-sheen), rgba(248, 248, 250, 0.16)
+  --of-glass-card: var(--of-glass-sheen), rgba(255, 255, 255, 0.12)
+  --of-glass-card-hover: var(--of-glass-sheen), rgba(255, 255, 255, 0.30)
   --of-glass-edge: rgba(74, 81, 176, 0.08)
   --of-glass-edge-hover: rgba(74, 81, 176, 0.20)
   // Glows

@@ -8,8 +8,8 @@
 # servo count, its morphological flags and the GPIO map string.
 ###
 export KERNELS = [
-  { id: 'servo', label: 'Muskelflügel', glyph: '🪽' }
-  { id: 'gearbox', label: 'Getriebeherz', glyph: '⚙️' }
+  { id: 'servo', label: 'Direktantrieb', glyph: '🪽' }
+  { id: 'gearbox', label: 'Getriebe', glyph: '⚙️' }
 ]
 
 # Hermetic: each profile is a body plan, not a setting.
@@ -42,11 +42,11 @@ export MIXER_PROFILES = [
 
 # Servo speed presets — speed + pulse pairs (µs pulsewidth).
 export SERVO_SPEED_PRESETS = [
-  { id: 'smooth', label: 'Sanft — 0.28 s/60°', speed: 280 }
-  { id: 'tuned', label: 'Gestimmt — 0.22 s/60°', speed: 220 }
-  { id: 'direct', label: 'Direkt — 0.15 s/60°', speed: 150 }
-  { id: 'swift', label: 'Flink — 0.10 s/60°', speed: 100 }
-  { id: 'violent', label: 'Gewaltig — 0.06 s/60°', speed: 60 }
+  { id: 'smooth', label: '0.28 s/60°', speed: 280 }
+  { id: 'tuned', label: '0.22 s/60°', speed: 220 }
+  { id: 'direct', label: '0.15 s/60°', speed: 150 }
+  { id: 'swift', label: '0.10 s/60°', speed: 100 }
+  { id: 'violent', label: '0.06 s/60°', speed: 60 }
 ]
 
 export profilesForKernel = (kernel) ->
@@ -62,16 +62,16 @@ export firstForKernel = (kernel) ->
 export trimsForProfile = (profile) ->
   out = []
   if profile.kernel is 'servo'
-    out.push { prop: 'leftWing', label: 'Linker Flügel' }
-    out.push { prop: 'rightWing', label: 'Rechter Flügel' }
-    out.push { prop: 'rudder', label: 'Ruder' } if profile.rudder
+    out.push { prop: 'leftWing', label: 'Flügel L' }
+    out.push { prop: 'rightWing', label: 'Flügel R' }
+    out.push { prop: 'rudder', label: 'Seitenruder' } if profile.rudder
     if profile.servos >= 4
-      out.push { prop: 'backLeftWing', label: 'Hinterer Flügel L' }
+      out.push { prop: 'backLeftWing', label: 'Flügel L hinten' }
   else
-    out.push { prop: 'rudder', label: 'Ruder' } if profile.rudder
+    out.push { prop: 'rudder', label: 'Seitenruder' } if profile.rudder
     if profile.vtail
       out.push { prop: 'vtailLeft', label: 'V-Leitwerk L' }
       out.push { prop: 'vtailRight', label: 'V-Leitwerk R' }
     else
-      out.push { prop: 'elevator', label: 'Elevator' } if profile.servos <= 3
+      out.push { prop: 'elevator', label: 'Höhenruder' } if profile.servos <= 3
   out

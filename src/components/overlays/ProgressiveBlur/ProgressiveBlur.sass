@@ -13,16 +13,25 @@
     top: 0
 
   &-bottom
-    top: calc(100vh - 96px)
+    top: calc(100vh - 88px)
+
+// Each tier blurs only what it overlaps; the mask fades the blur to
+// nothing in a smooth, continuous ramp (not a hard 52% plate), so the
+// text crossing beneath dissolves progressively — masked in sync with
+// the blur, never a slab of frost.
+$pb-fade: rgba(0,0,0,0.6) 55%, transparent var(--pb-reach)
+$pb-mask: linear-gradient(to bottom, #000 0%, $pb-fade)
 
 .progressive-blur-layer
   position: absolute
   left: 0
   right: 0
-  height: 96px
-  backdrop-filter: blur(var(--pb-blur)) saturate(1.7)
-  -webkit-backdrop-filter: blur(var(--pb-blur)) saturate(1.7)
-  mask-image: linear-gradient(to bottom, #000 0%, #000 52%, rgba(0, 0, 0, 0.55) 74%, transparent var(--pb-reach))
+  height: 88px
+  // Neutral blur — no saturate() here, that was the blue overdrive.
+  backdrop-filter: blur(var(--pb-blur))
+  -webkit-backdrop-filter: blur(var(--pb-blur))
+  mask-image: $pb-mask
+  -webkit-mask-image: $pb-mask
 
 .progressive-blur-top .progressive-blur-layer
   top: 0
@@ -30,6 +39,26 @@
 .progressive-blur-bottom .progressive-blur-layer
   bottom: 0
   transform: rotate(180deg)
-  // The dock rides a touch lower — let the water hold it longer.
-  backdrop-filter: blur(calc(var(--pb-blur) * 1.25)) saturate(1.8)
-  -webkit-backdrop-filter: blur(calc(var(--pb-blur) * 1.25)) saturate(1.8)
+
+// Iridescent periwinkle wash — a faint magical tint that rides the same
+// mask as the blur, so it breathes out progressively instead of tinting
+// the whole edge. Pure garnish, never obscures content.
+.progressive-blur-tint
+  position: absolute
+  left: 0
+  right: 0
+  height: 88px
+  background: linear-gradient(to bottom,
+    rgba(var(--of-accent-rgb), 0.10),
+    rgba(var(--of-accent-rgb), 0.04) 60%,
+    rgba(var(--of-accent-rgb), 0) 100%)
+  mix-blend-mode: screen
+  mask-image: $pb-mask
+  -webkit-mask-image: $pb-mask
+
+.progressive-blur-top .progressive-blur-tint
+  top: 0
+
+.progressive-blur-bottom .progressive-blur-tint
+  bottom: 0
+  transform: rotate(180deg)

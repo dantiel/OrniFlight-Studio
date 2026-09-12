@@ -2,11 +2,10 @@
 # ORNIFLIGHT STUDIO — OrnithopterView (unified body plan)
 #
 # One scrollable page, no subpages — the whole bird reveals
-# itself as the æther scrolls: Der Kern (kernel + mixer body
-# plan), Die Drei Gesichter (flight profiles, CH7), and Der
-# Virtuelle Puls (channel test). Polymorphic: in sim mode the
-# sticks drive the engine directly; on a device the live RC
-# channels answer instead.
+# itself as the æther scrolls: Körperplan (kernel + mixer
+# body plan), Flugprofile (CH7), Schlagkurve, and Kanal-Test.
+# Polymorphic: in sim mode the sticks drive the engine
+# directly; on a device the live RC channels answer instead.
 ###
 import './OrnithopterView.sass'
 import h from '../../../app/h.coffee'
@@ -150,16 +149,15 @@ OrnithopterView = ->
       h 'div', null,
         h 'h1', null, 'ORNITHOPTER'
         h 'p', { className: 'orni-hermes' },
-          'Der Vogel ist ein Dokument. Diese Seite trägt seinen ' +
-          'Körperplan, seine drei Gesichter und seinen Puls — ' +
-          'kein Unterspiel, nur Offenbarung beim Scrollen.'
+          'Körperplan · Flugprofile · Schlagkurve · Kanal-Test. ' +
+          'Ein Dokument, eine Seite — kein Unterspiel.'
       h 'div', { className: 'orni-toolbar' },
         h 'span', { className: "orni-mode-badge orni-mode-#{orni.mode}" },
           modeLabel
         h 'span',
           className:
             "orni-dirty#{if orni.dirty then ' orni-dirty-on' else ''}"
-        , if orni.dirty then 'DIRTY' else 'REIN'
+        , if orni.dirty then 'UNGESPEICHERT' else 'GESPEICHERT'
         h 'button',
           className: 'orni-action orni-action-save'
           type: 'button'
@@ -173,30 +171,29 @@ OrnithopterView = ->
           onClick: -> orni.revert()
         , 'Verwerfen'
 
-    # ── Der Kern ───────────────────────────────────────
+    # ── Körperplan ─────────────────────────────────────
     h Section,
       glyph: '🪽'
-      title: 'Der Kern'
+      title: 'Körperplan'
       hermes:
-        'Der Kern entscheidet, ob der Flügel Muskel ist oder ' +
-        'Gestänge — ob der Wille direkt ins Gelenk fährt oder ' +
-        'durch ein Getriebe übersetzt wird.'
+        'Kernel und Mixer: wie der Antrieb den Flügel spannt — ' +
+        'direkt ins Gelenk oder über ein Getriebe.'
     ,
       h 'div', { className: 'orni-grid' },
         h Field,
-          { label: 'Name des Vogels', hermes: 'Wie die Lüfte ihn rufen.' },
+          { label: 'Modellname', hermes: 'Freitext, 32 Zeichen.' },
           h 'input',
             className: 'orni-input'
             type: 'text'
             maxLength: 32
             value: draft.modelName
             onChange: (e) -> orni.setModelName e.target.value
-        h Field, { label: 'Kern', hermes: 'Muskel oder Übersetzung.' },
+        h Field, { label: 'Kernel', hermes: 'Direktantrieb oder Getriebe.' },
           h 'div', { className: 'orni-segments' },
             kernelOptions k for k in KERNELS
         h Field,
-          { label: 'Körperplan',
-            hermes: 'Die Firmware spannt die GPIOs danach.' },
+          { label: 'Mixer-Profil',
+            hermes: 'GPIO-Belegung laut Firmware.' },
           h 'select',
             className: 'orni-input'
             value: draft.profileId
@@ -205,13 +202,11 @@ OrnithopterView = ->
             for p in profilesForKernel draft.kernel
               h 'option', { key: p.id, value: p.id },
                 "#{p.name} — #{p.servos} Servos"
-        h Field, { label: 'Servo-Karte' },
+        h Field, { label: 'GPIO-Map' },
           h 'div', { className: 'orni-map' }, profile.map
         h Field,
           label: 'Schlagzeit'
-          hermes:
-            'Die Zeit eines 60°-Schlags — langsam ist Gebet, ' +
-            'schnell ist Instinkt.'
+          hermes: 'Zeit eines 60°-Schlags.'
         ,
           h 'div', { className: 'orni-slider-row' },
             h 'input',
@@ -229,15 +224,14 @@ OrnithopterView = ->
             onChange: (e) ->
               orni.applySpeedPreset e.target.value if e.target.value
           ,
-            h 'option', { value: '' }, '— Tempo-Presets —'
+            h 'option', { value: '' }, '— Tempo —'
             for p in SERVO_SPEED_PRESETS
               h 'option', { key: p.id, value: p.id }, p.label
       if trims.length
         h 'div', { className: 'orni-trims' },
-          h 'h3', null, 'Gelenk-Ruhe'
+          h 'h3', null, 'Trims'
           h 'p', { className: 'orni-hermes' },
-            'Die Mitte jedes Glieds — wie der Vogel ruht, wenn ' +
-            'kein Wille ihn bewegt.'
+            'Ruhelage jedes Gelenks bei neutralem Input.'
           h 'div', { className: 'orni-grid' },
             for t in trims
               do (t) ->
@@ -250,20 +244,20 @@ OrnithopterView = ->
                     value: draft.trims[t.prop]
                     onChange: (e) -> orni.setTrim t.prop, Number e.target.value
 
-    # ── Die Drei Gesichter ─────────────────────────────
+    # ── Flugprofile ───────────────────────────────────
     h Section,
       glyph: '🎭'
-      title: 'Die Drei Gesichter'
+      title: 'Flugprofile'
       hermes:
-        'Drei Stimmungen desselben Vogels — CH7 am Empfänger wählt, ' +
-        'welches Gesicht fliegt. Jedes trägt seinen eigenen Gleitwinkel.'
+        'Drei Profile, gewählt über CH7. Jedes trägt Gleitwinkel ' +
+        'und Schlagmitte.'
     ,
       h 'div', { className: 'orni-profile-strip' },
         h 'span', { className: 'orni-ch7' }, 'CH7'
         h 'span', { className: 'orni-hermes' },
-          'trägt gerade'
+          'aktiv'
         h 'span', { className: 'orni-active-face' },
-          "Gesicht #{draft.activeProfile + 1}"
+          "Profil #{draft.activeProfile + 1}"
       h 'div', { className: 'orni-faces' },
         for i in [0...3]
           do (i) ->
@@ -274,9 +268,9 @@ OrnithopterView = ->
               onClick: -> orni.setActiveProfile i
             ,
               h 'div', { className: 'orni-face-head' },
-                h 'span', { className: 'orni-face-n' }, "Gesicht #{i + 1}"
+                h 'span', { className: 'orni-face-n' }, "Profil #{i + 1}"
                 if active
-                  h 'span', { className: 'orni-face-live' }, 'FLIEGT'
+                  h 'span', { className: 'orni-face-live' }, 'AKTIV'
               h 'div', { className: 'orni-face-body' },
                 h 'div', { className: 'orni-face-label' },
                   'Gleitwinkel'
@@ -309,24 +303,23 @@ OrnithopterView = ->
                   "Mix #{draft.profiles[i].waveform.ferocityShapeMix}"
               h 'p', { className: 'orni-hermes' },
                 if i is draft.activeProfile
-                  'Die Ruhe zwischen zwei Schlägen, die trägt.'
+                  'Aktives Profil, gewählt über CH7.'
                 else
-                  'Schlummernd — CH7 weckt dieses Gesicht.'
+                  'Inaktiv — CH7 wählt dieses Profil.'
 
-    # ── Die Welle ─────────────────────────────────────
+    # ── Schlagkurve ───────────────────────────────────
     h Section,
       glyph: '🌊'
-      title: 'Die Welle'
+      title: 'Schlagkurve'
       hermes:
-        'Die Seele des Schlags. Zwei Hälften — Abwärts und Aufwärts — ' +
-        'jede mit eigener Härte, eigener Mitte. Die Kurve ist der Wille, ' +
-        'bevor er ins Gelenk fährt.'
+        'Abwärts und Aufwärts — je eigene Ferocity, je eigene ' +
+        'Mitte. Die Kurve ist das Kommando, bevor es ins Gelenk fährt.'
     ,
       h 'div', { className: 'orni-wave-stage' },
         h WaveformWidget, { params: liveWave }
         h 'div', { className: 'orni-wave-caption' },
           h 'span', { className: 'orni-hermes' },
-            "Gesicht #{draft.activeProfile + 1} — live geformt"
+            "Profil #{draft.activeProfile + 1} — live geformt"
           h 'div', { className: 'orni-wave-legend' },
             h 'span', { className: 'orni-legend-dot orni-legend-stroke' },
               'Abwärts'
@@ -356,13 +349,13 @@ OrnithopterView = ->
                 h 'span', { className: 'orni-value' },
                   "#{if limits.min < 0 and value > 0 then '+' else ''}#{value}"
 
-    # ── Der Virtuelle Puls ─────────────────────────────
+    # ── Kanal-Test ────────────────────────────────────
     h Section,
       glyph: '⚡'
-      title: 'Der Virtuelle Puls'
+      title: 'Kanal-Test'
       hermes:
-        'Beweg die Sticks — die Servos antworten, bevor der Himmel ' +
-        'es tut. Auf einem Gerät spricht der Empfänger selbst.'
+        'RC-Kanäle treiben die Servos, bevor der Himmel es tut. ' +
+        'Auf einem Gerät spricht der Empfänger.'
     ,
       h 'div', { className: 'orni-grid orni-pulse-grid' },
         if orni.mode is 'sim'
@@ -407,15 +400,15 @@ OrnithopterView = ->
               className: "orni-action #{sweepClass}"
               type: 'button'
               onClick: runSweep
-            , if sweeping then 'Stoppe Atemzug' else 'Atemzug — alle Kanäle'
+            , if sweeping then 'Sweep stoppen' else 'Alle Kanäle — Sweep'
           else
             h 'p', { className: 'orni-hermes' },
-              'Device-Modus: Der Atemzug ist sim-only — ' +
+              'Device-Modus: Sweep ist sim-only — ' +
               'die Kanäle gehören dem Empfänger.'
 
     h 'footer', { className: 'orni-foot' },
       h 'span', { className: 'orni-hermes' },
-        'Wie oben, so unten — der Körperplan im Studio, die GPIOs ' +
-        'in der Firmware, der Flügel im Himmel.'
+        'Körperplan im Studio · GPIOs in der Firmware · ' +
+        'Flügel im Himmel.'
 
 export default OrnithopterView

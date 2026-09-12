@@ -13,17 +13,17 @@ describe 'OrnithopterView', ->
   it 'renders the unified body plan without object-child crash', ->
     render h(OrnithopterView, null)
     expect(screen.getByText 'ORNITHOPTER').toBeInTheDocument()
-    expect(screen.getByText 'Der Kern').toBeInTheDocument()
-    expect(screen.getByText 'Die Drei Gesichter').toBeInTheDocument()
-    expect(screen.getByText 'Die Welle').toBeInTheDocument()
-    expect(screen.getByText 'Der Virtuelle Puls').toBeInTheDocument()
+    expect(screen.getByText 'Körperplan').toBeInTheDocument()
+    expect(screen.getByText 'Flugprofile').toBeInTheDocument()
+    expect(screen.getByText 'Schlagkurve').toBeInTheDocument()
+    expect(screen.getByText 'Kanal-Test').toBeInTheDocument()
 
   it 'renders all nine waveform fields as slider controls', ->
     render h(OrnithopterView, null)
-    expect(screen.getByText 'Schlag-Härte').toBeInTheDocument()
-    expect(screen.getByText 'Rückzug-Härte').toBeInTheDocument()
-    expect(screen.getByText 'Form-Mix').toBeInTheDocument()
-    expect(screen.getByText 'Gas→Skew').toBeInTheDocument()
+    expect(screen.getByText 'Abwärts-Ferocity').toBeInTheDocument()
+    expect(screen.getByText 'Aufwärts-Ferocity').toBeInTheDocument()
+    expect(screen.getByText 'Shape-Mix').toBeInTheDocument()
+    expect(screen.getByText 'Gas → Skew').toBeInTheDocument()
     expect(screen.getByText 'Quer-Slew').toBeInTheDocument()
 
   it 'switches the active face on click', ->

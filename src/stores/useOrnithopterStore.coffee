@@ -1,8 +1,8 @@
 ###
 # ORNIFLIGHT STUDIO — Ornithopter Store (Zustand)
 #
-# The unified body-plan document: kernel (Muskelflügel /
-# Getriebeherz), mixer profile (firmware MixerProfile enum
+# The unified body-plan document: kernel (Direktantrieb /
+# Getriebe), mixer profile (firmware MixerProfile enum
 # 0…7), servo speed, per-servo trims, the three flight
 # profiles (CH7 → active index) with their glide degrees.
 #

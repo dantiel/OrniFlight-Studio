@@ -12,17 +12,17 @@
 import './ProgressiveBlur.sass'
 import h from '../../../app/h.coffee'
 
+# Gentle falloff — four tiers instead of seven. Each tier blurs less
+# and reaches less far from the edge, so the edge dissolves to nothing
+# progressively instead of slamming shut in a blue wall.
 LAYERS = [
-  { blur: 30, reach: '100%' }
-  { blur: 24, reach: '86%' }
-  { blur: 18, reach: '72%' }
-  { blur: 13, reach: '58%' }
-  { blur: 9,  reach: '44%' }
-  { blur: 5,  reach: '30%' }
-  { blur: 2,  reach: '16%' }
+  { blur: 16, reach: '100%' }
+  { blur: 10, reach: '70%' }
+  { blur: 5,  reach: '44%' }
+  { blur: 2,  reach: '22%' }
 ]
 
-CURTAIN = 96
+CURTAIN = 88
 
 ProgressiveBlur = (props) ->
   position = props.position or 'top'
@@ -37,5 +37,6 @@ ProgressiveBlur = (props) ->
         style:
           '--pb-blur': "#{layer.blur}px"
           '--pb-reach': layer.reach
+    h 'div', { className: 'progressive-blur-tint' }
 
 export default ProgressiveBlur

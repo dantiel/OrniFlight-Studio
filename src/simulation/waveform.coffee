@@ -170,40 +170,40 @@ export WAVEFORM_LIMITS =
 # Hermetic: each field is a facet of the stroke, not a setting.
 export WAVEFORM_FIELDS = [
   {
-    id: 'strokeFerocity', label: 'Schlag-Härte'
-    hermes: 'Wie kantig der Abwärtsschlag — Dwell gegen Sinus.'
+    id: 'strokeFerocity', label: 'Abwärts-Ferocity'
+    hermes: 'Dwell des Abwärtsschlags.'
   }
   {
-    id: 'returnFerocity', label: 'Rückzug-Härte'
-    hermes: 'Wie kantig der Aufwärtsschlag — die Erholung.'
+    id: 'returnFerocity', label: 'Aufwärts-Ferocity'
+    hermes: 'Dwell des Aufwärtsschlags.'
   }
   {
-    id: 'ferocityShapeMix', label: 'Form-Mix'
-    hermes: 'Platte (Quadrat) wird Spitze (Pyramide).'
+    id: 'ferocityShapeMix', label: 'Shape-Mix'
+    hermes: 'Platte (Rechteck) → Spitze (Dreieck).'
   }
   {
-    id: 'strokeSkew', label: 'Schlag-Skew'
+    id: 'strokeSkew', label: 'Abwärts-Skew'
     hermes: 'Schwerpunkt vorziehen (+) oder verzögern (−).'
   }
   {
-    id: 'returnSkew', label: 'Rückzug-Skew'
+    id: 'returnSkew', label: 'Aufwärts-Skew'
     hermes: 'Dasselbe für den Aufwärtsschlag.'
   }
   {
-    id: 'throttleSkewMix', label: 'Gas→Skew'
-    hermes: 'Gas verlagert den Schwerpunkt asymmetrisch.'
+    id: 'throttleSkewMix', label: 'Gas → Skew'
+    hermes: 'Gas verlagert den Schwerpunkt.'
   }
   {
-    id: 'aileronSkewMix', label: 'Quer→Skew'
+    id: 'aileronSkewMix', label: 'Quer → Skew'
     hermes: 'Roll verlagert links/rechts gegenläufig.'
   }
   {
     id: 'throttleSkewRateMix', label: 'Gas-Slew'
-    hermes: 'Gaswechsel kickt kurz den Schwerpunkt.'
+    hermes: 'Gasänderung kickt den Schwerpunkt.'
   }
   {
     id: 'aileronSkewRateMix', label: 'Quer-Slew'
-    hermes: 'Rollwechsel kickt kurz gegenläufig.'
+    hermes: 'Rolländerung kickt gegenläufig.'
   }
 ]
 
