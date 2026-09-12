@@ -159,3 +159,29 @@ describe 'OrnithopterModel', ->
     expect(geometry.wingArea).toBe 300000
     expect(geometry.aspectRatio).toBe 7.5
     expect(deriveGeometry({}).aspectRatio).toBeGreaterThan 0
+
+  it 'leaves skew at zero when throttle coupling is off', ->
+    model.setStick 'throttle', 2000
+    model.step 0.016
+    expect(model.liveWaveform.strokeSkew).toBeCloseTo 0
+    expect(model.liveWaveform.returnSkew).toBeCloseTo 0
+
+  it 'applies throttle skew coupling into liveWaveform', ->
+    model.setStick 'throttle', 2000
+    model.setWaveformParam 'throttleSkewMix', 100
+    model.step 0.016
+    # Full throttle (signedThrottle = +1) at 100% mix → +100 stroke skew,
+    # mirrored to −100 return skew (front-load downstroke, per PteronautOS).
+    expect(model.liveWaveform.strokeSkew).toBeCloseTo 100
+    expect(model.liveWaveform.returnSkew).toBeCloseTo -100
+
+  it 'applies aileron skew coupling as per-wing differential', ->
+    model.setStick 'roll', 2000
+    model.setWaveformParam 'aileronSkewMix', 100
+    model.step 0.016
+    # Aileron is differential (per-wing), so the symmetric liveWaveform
+    # skew stays at the throttle/centre baseline — the roll torque lives
+    # in the left/right pulse divergence, not the shared wave centre.
+    expect(model.liveWaveform.strokeSkew).toBeCloseTo 0
+    expect(model.liveWaveform.returnSkew).toBeCloseTo 0
+    expect(model.wingAngleL).not.toBeCloseTo model.wingAngleR, 3

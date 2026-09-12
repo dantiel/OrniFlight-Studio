@@ -136,6 +136,7 @@ export aileronSkewShift = (aileronNorm, couplingPercent) ->
 # A full stick slam (≈5/s) at 100% mix yields ±50 skew units;
 # the caller's LPF τ decays the kick once the stick rests.
 SKEW_RATE_GAIN = 10
+export SKEW_RATE_LPF_TAU = 0.10
 
 skewRateShift = (ratePerSec, rateMixPercent) ->
   mix = clamp01 rateMixPercent * 0.01

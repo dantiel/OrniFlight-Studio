@@ -1,11 +1,13 @@
 // ═══════════════════════════════════════════
-// ProgressiveBlur — sticky safe-area curtains
+// ProgressiveBlur — absolute safe-area curtains
 // ═══════════════════════════════════════════
 
 .progressive-blur
-  position: sticky
+  position: absolute
+  left: 0
+  right: 0
   height: 0
-  z-index: 40
+  z-index: 20
   pointer-events: none
   overflow: visible
 
@@ -13,7 +15,7 @@
     top: 0
 
   &-bottom
-    top: calc(100vh - 88px)
+    bottom: 0
 
 // Each tier blurs only what it overlaps; the mask fades the blur to
 // nothing in a smooth, continuous ramp (not a hard 52% plate), so the

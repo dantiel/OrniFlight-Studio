@@ -12,6 +12,9 @@
 import {
   shapeWave, ferocityUnits, WAVEFORM_DEFAULTS, WAVEFORM_LIMITS
   modulateWaveform
+  throttleSkewShift, aileronSkewShift
+  throttleSkewRateShift, aileronSkewRateShift
+  SKEW_RATE_LPF_TAU
 } from './waveform.coffee'
 
 TWO_PI = 2 * Math.PI
@@ -249,6 +252,13 @@ export class OrnithopterModel
 
     @_servoAngles = [0, 0, 0, 0]
     @_servoPwm    = [1500, 1500, 1500, 1500]
+
+    # Skew/slew transient state — mirror of PteronautOS Ornithopter.cpp.
+    # Sentinels seed the rate LPF without a stale kick on first flap tick.
+    @_prevThrottlePct = -1.0
+    @_throttleRateLPF = 0.0
+    @_prevAileronNorm = -2.0
+    @_aileronRateLPF  = 0.0
 
     @telemetry =
       attitude:        { roll: 0, pitch: 0, yaw: 0 }
@@ -529,14 +539,61 @@ export class OrnithopterModel
     sinPhi = Math.sin @flapPhase
     cosPhi = Math.cos @flapPhase
     live = modulateWaveform @waveform, g, rateError
-    @liveWaveform = live
-    pulse  = shapeWave @flapPhase,
-      ferocityUnits(live.strokeFerocity),
-      ferocityUnits(live.returnFerocity),
-      -1,
-      live.ferocityShapeMix,
-      @waveform.strokeSkew,
-      @waveform.returnSkew
+
+    # ── Skew + slew coupling (PteronautOS Ornithopter.cpp) ──
+    # Throttle → symmetric skew: gas front-loads the downstroke, idle
+    # front-loads the upstroke. Aileron → differential skew: one wing
+    # front-loads while the other late-loads (roll torque). Rate slew
+    # adds a transient kick, decayed by LPF τ once the stick rests.
+    throttle01  = @throttle
+    aileronNorm = (@sticks.roll - 1500) / 500
+
+    thrSkewShift = throttleSkewShift throttle01, @waveform.throttleSkewMix
+    ailSkewShift = aileronSkewShift  aileronNorm, @waveform.aileronSkewMix
+
+    thrRateBoost = 0.0
+    if @_prevThrottlePct < 0
+      @_prevThrottlePct = throttle01
+    else if subDt > 0
+      throttleRate = (throttle01 - @_prevThrottlePct) / subDt
+      @_prevThrottlePct = throttle01
+      alpha = subDt / (SKEW_RATE_LPF_TAU + subDt)
+      @_throttleRateLPF += (throttleRate - @_throttleRateLPF) * alpha
+      thrRateBoost =
+        throttleSkewRateShift @_throttleRateLPF, @waveform.throttleSkewRateMix
+
+    ailRateBoost = 0.0
+    if @_prevAileronNorm < -1.5
+      @_prevAileronNorm = aileronNorm
+    else if subDt > 0
+      aileronRate = (aileronNorm - @_prevAileronNorm) / subDt
+      @_prevAileronNorm = aileronNorm
+      alpha = subDt / (SKEW_RATE_LPF_TAU + subDt)
+      @_aileronRateLPF += (aileronRate - @_aileronRateLPF) * alpha
+      ailRateBoost =
+        aileronSkewRateShift @_aileronRateLPF, @waveform.aileronSkewRateMix
+
+    strokeSkewEff =
+      @waveform.strokeSkew + thrSkewShift + thrRateBoost
+    returnSkewEff =
+      @waveform.returnSkew - thrSkewShift - thrRateBoost
+
+    strokeSkewL = strokeSkewEff + ailSkewShift + ailRateBoost
+    strokeSkewR = strokeSkewEff - ailSkewShift - ailRateBoost
+    returnSkewL = returnSkewEff + ailSkewShift + ailRateBoost
+    returnSkewR = returnSkewEff - ailSkewShift - ailRateBoost
+
+    @liveWaveform =
+      { live..., strokeSkew: strokeSkewEff, returnSkew: returnSkewEff }
+
+    fLiveStroke = ferocityUnits live.strokeFerocity
+    fLiveReturn = ferocityUnits live.returnFerocity
+    pulseL = shapeWave @flapPhase,
+      fLiveStroke, fLiveReturn, -1, live.ferocityShapeMix,
+      strokeSkewL, returnSkewL
+    pulseR = shapeWave @flapPhase,
+      fLiveStroke, fLiveReturn, -1, live.ferocityShapeMix,
+      strokeSkewR, returnSkewR
     amp    = @baseAmplitude * (PI / 180)
 
     rollDiff  = rateError.roll * g.warp_gain * 0.3
@@ -564,14 +621,14 @@ export class OrnithopterModel
     ampL += rollDiff
     ampL += yawDiff
     ampL += balanceMod * (if sinPhi < 0 then 1.0 else 0.0)
-    @wingAngleL = pulse * ampL
+    @wingAngleL = pulseL * ampL
 
     # Right wing
     ampR  = amp * (1.0 + pitchMod + resonanceMod) * anchorMod
     ampR -= rollDiff
     ampR += yawDiff * 0.3
     ampR += balanceMod * (if sinPhi < 0 then 1.0 else 0.0)
-    @wingAngleR = pulse * ampR
+    @wingAngleR = pulseR * ampR
 
     # Wing velocities
     @wingVelocityL = cosPhi * ampL * cadenceFreq * TWO_PI

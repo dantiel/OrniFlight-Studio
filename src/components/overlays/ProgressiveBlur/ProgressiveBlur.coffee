@@ -2,10 +2,12 @@
 # ORNIFLIGHT STUDIO — ProgressiveBlur
 #
 # A soft blur curtain for the virtual safe-area under transparent
-# toolbars. Two sticky, height-zero anchors pin to the top and
-# bottom edges of the #main-content scroll viewport; stacked
-# backdrop-filter layers with shrinking mask reaches produce a
-# genuine progressive falloff — strongest at the edge, dissolving
+# toolbars. Two absolute, height-zero overlays pin to the top and
+# bottom edges of the window (not the scroll viewport), so the blur
+# reaches the very top of the frame — under the title toolbar —
+# rather than hovering below the scroll content's top padding.
+# Stacked backdrop-filter layers with shrinking mask reaches produce
+# a genuine progressive falloff — strongest at the edge, dissolving
 # to nothing by `reach`. Content scrolling beneath is blurred in
 # graded steps, like water losing its memory.
 ###
