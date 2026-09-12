@@ -1,5 +1,6 @@
 - import { fmt0, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
 - import useServoStore from '../../../stores/useServoStore.coffee'
+- import { SERVO_PRESETS } from '../../../lib/servoCatalog.coffee'
 - store = useServoStore()
 - draft = store.draft
 - wing = draft.wing
@@ -7,6 +8,7 @@
 - readDisabled = store.mode != 'device' or !store.session
 - saveDisabled = store.mode == 'device' and !store.loadedSession
 - servoLabel = (i) -> "#{if i % 2 == 0 then 'L' else 'R'}#{Math.floor(i / 2) + 1}"
+- presetChange = (i) -> (e) -> if e.target.value then store.applyServoPreset i, e.target.value
 .view-layout.layout-servos
   %ViewArea{ area: 'side' }
     .servos-side
@@ -42,6 +44,12 @@
       %Section{ heading: 'Servo Channels', subheading: 'Per-servo PWM envelope (MSP 120/212).' }
       - for servo, i in draft.servos
         %StudioAccordion{ title: "Servo #{i + 1} — #{servoLabel(i)} wing", defaultOpen: i == 0 }
+          %label.servos-preset
+            %span.servos-preset-label Servo preset
+            %select.servos-preset-select{ value: '', onChange: presetChange(i) }
+              %option{ value: '' } Load pulse envelope…
+              - for preset in SERVO_PRESETS
+                %option{ key: "preset-#{preset.id}", value: preset.id }= "#{preset.name} · #{preset.efficiency}%"
           %ParamRow{ key: "servo-min-#{i}", label: 'Min pulse', value: servo.min, min: '500', max: '2500', step: '5', display: "#{fmt0(servo.min)} µs", onInput: floatFromEvent((value) -> store.setServoField i, 'min', value) }
           %ParamRow{ key: "servo-max-#{i}", label: 'Max pulse', value: servo.max, min: '500', max: '2500', step: '5', display: "#{fmt0(servo.max)} µs", onInput: floatFromEvent((value) -> store.setServoField i, 'max', value) }
           %ParamRow{ key: "servo-middle-#{i}", label: 'Middle pulse', value: servo.middle, min: '500', max: '2500', step: '5', display: "#{fmt0(servo.middle)} µs", onInput: floatFromEvent((value) -> store.setServoField i, 'middle', value) }

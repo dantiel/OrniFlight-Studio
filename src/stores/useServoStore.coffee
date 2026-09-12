@@ -14,6 +14,7 @@ import { engine } from '../simulation/engine.coffee'
 import {
   MAX_SERVO_CONFIGS, MAX_SERVO_MIX_RULES, ORNITHOPTER_PAIR_COUNT
 } from '../protocol/mspDecoders.coffee'
+import { servoPresetById } from '../lib/servoCatalog.coffee'
 
 PWM_LIMITS = [500, 2500]
 RATE_LIMITS = [-125, 125]
@@ -180,6 +181,21 @@ useServoStore = create (set, get) ->
       servo[field] = finiteOr 0, value
     else
       return
+    mirrorServoToEngine servo
+    set { draft: { get().draft..., servos }, dirty: true }
+
+  # Loads a preset's physical pulse envelope into one slot. Names are
+  # never written — the firmware stays servo-agnostic, only values move.
+  applyServoPreset: (index, presetId) ->
+    return unless 0 <= index < MAX_SERVO_CONFIGS
+    preset = servoPresetById presetId
+    return unless preset?
+    servos = clone get().draft.servos
+    servo = servos[index]
+    return unless servo?
+    servo.min = preset.min
+    servo.max = preset.max
+    servo.middle = preset.middle
     mirrorServoToEngine servo
     set { draft: { get().draft..., servos }, dirty: true }
 

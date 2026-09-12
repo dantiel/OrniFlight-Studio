@@ -103,3 +103,6 @@
   position: relative
   z-index: 1
   background: transparent
+  // The transparent toolbar floats over the scroll surface; pad the
+  // top so content starts below it, then scrolls beneath its glass.
+  padding-top: var(--of-toolbar-height)

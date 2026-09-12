@@ -47,9 +47,9 @@
   letter-spacing: 0.12em
   padding: var(--of-space-2) var(--of-space-4)
   border-radius: var(--of-radius-sm)
-  border: 1px solid var(--of-border-2)
+  border: 1px solid var(--of-glass-rim-soft)
   color: var(--of-text-soft)
-  background: var(--of-surface-2)
+  background: var(--of-glass-bg)
 
 .cli-badge-live
   color: var(--of-accent-green)
@@ -61,9 +61,9 @@
   font-size: var(--of-text-sm)
   padding: var(--of-space-2) var(--of-space-4)
   border-radius: var(--of-radius-sm)
-  border: 1px solid var(--of-border-2)
+  border: 1px solid var(--of-glass-rim-soft)
   color: var(--of-text-secondary)
-  background: var(--of-surface-2)
+  background: var(--of-glass-card)
   cursor: pointer
   transition-property: border-color, color
   transition-duration: var(--of-dur-fast)
@@ -85,10 +85,12 @@
   min-height: 0
   overflow-y: auto
   padding: var(--of-space-4) var(--of-space-5)
-  border: 1px solid var(--of-border-1)
-  border-radius: var(--of-radius-lg)
-  background: var(--of-surface-1)
-  box-shadow: var(--of-shadow-panel)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-glass-radius)
+  background: var(--of-glass-card)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
   font-family: var(--of-font-mono)
   font-size: var(--of-text-base)
   line-height: 1.55
@@ -126,9 +128,12 @@
   align-items: center
   gap: var(--of-space-3)
   padding: var(--of-space-2) var(--of-space-5)
-  border: 1px solid var(--of-border-2)
-  border-radius: var(--of-radius-lg)
-  background: var(--of-surface-1)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-glass-radius)
+  background: var(--of-glass-card)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
   font-family: var(--of-font-mono)
 
   &:focus-within

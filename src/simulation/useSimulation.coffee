@@ -32,7 +32,7 @@ snapshot = (engine) ->
   amplitude:       tel.amplitude
   batteryVoltage:  tel.batteryVoltage
   flapFrequency:   tel.flapFrequency
-  liveWaveform:    tel.liveWaveform[...]
+  liveWaveform:    { tel.liveWaveform... }
   servos:          tel.servoPositions[...]
   waveformHistory: tel.waveformHistory[...]
   rssi:            0

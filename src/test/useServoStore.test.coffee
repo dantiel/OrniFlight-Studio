@@ -31,6 +31,22 @@ describe 'useServoStore', ->
     expect(engine.servos[0].midpoint).toBe 1520
     expect(engine.servos[0].rate).toBe 90
 
+  it 'loads a servo preset pulse envelope into one slot', ->
+    state().applyServoPreset 0, 'kst-x06'
+    servo = state().draft.servos[0]
+    expect(servo.min).toBe 880
+    expect(servo.max).toBe 2160
+    expect(servo.middle).toBe 1520
+    expect(servo.rate).toBe 100
+    expect(state().dirty).toBe true
+    expect(engine.servos[0].min).toBe 880
+
+  it 'ignores unknown or out-of-range servo presets', ->
+    state().applyServoPreset 0, 'astral'
+    state().applyServoPreset 8, 'kst-x06'
+    state().applyServoPreset -1, 'kst-x06'
+    expect(state().dirty).toBe false
+
   it 'clamps the glide degree', ->
     state().setGlide 200
     expect(state().draft.glide).toBe 90
