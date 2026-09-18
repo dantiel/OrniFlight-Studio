@@ -8,6 +8,7 @@ import AnimatedPage from './AnimatedPage.coffee'
 import ConnectionBar from '../components/panels/ConnectionBar/ConnectionBar.chaml'
 import FeatherField from '../components/canvas/FeatherField/FeatherField.coffee'
 import Dock from '../components/overlays/Dock/Dock.coffee'
+import ProgressiveBlur from '../components/overlays/ProgressiveBlur/ProgressiveBlur.coffee'
 import CommandPalette from '../components/overlays/CommandPalette/CommandPalette.coffee'
 import DebugPanel from '../components/debug/DebugPanel/DebugPanel.coffee'
 import BreakpointIndicator from '../components/debug/BreakpointIndicator/BreakpointIndicator.coffee'
@@ -64,8 +65,9 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
   %FeatherField
   %a.skip-link{ href: '#main-content' }
     Skip to content
-  %ConnectionBar
-  %div#main-content{ role: 'main' }
+    %ConnectionBar
+    %ProgressiveBlur{ position: 'top' }
+    %div#main-content{ role: 'main' }
     %AnimatePresence{ mode: 'wait' }
       %Routes{ location: location, key: location.pathname }
         %Route{ path: '/', element: welcomeEl }
