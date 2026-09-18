@@ -1,0 +1,26 @@
+// ═══════════════════════════════════════════
+// ORNIFLIGHT STUDIO — Liquid-Glass Refraction
+// ═══════════════════════════════════════════
+//
+// There is no SVG displacement filter. `backdrop-filter` cannot
+// reference an SVG url() in any shipping engine, so a true
+// feDisplacementMap behind the panel is impossible. The refraction
+// is therefore simulated as a *caustic rim*: a specular light-catch
+// at the top-left edge and an indigo caustic at the bottom-right,
+// bending the æther where the glass thins.
+//
+// Apply with `+of-glass-refract` to any floating glass surface that
+// already carries backdrop-filter + border-radius.
+
+=of-glass-refract
+  position: relative
+  isolation: isolate
+  &::after
+    content: ''
+    position: absolute
+    inset: 0
+    border-radius: inherit
+    pointer-events: none
+    z-index: 1
+    background: linear-gradient(135deg, var(--of-glass-refract-hi) 0%, rgba(255, 255, 255, 0) 26%, rgba(255, 255, 255, 0) 60%, var(--of-glass-refract-lo) 100%)
+    box-shadow: inset 1px 1px 0 var(--of-glass-refract-hi), inset -1px -1px 0 var(--of-glass-refract-lo), inset 0 0 0 1px var(--of-glass-rim-soft)

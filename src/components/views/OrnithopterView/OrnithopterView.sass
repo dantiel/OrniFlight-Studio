@@ -1,6 +1,9 @@
 // ═══════════════════════════════════════════
 // OrnithopterView — one page, the whole bird
 // ═══════════════════════════════════════════
+
+@use '../../../styles/glass' as *
+
 $acc: rgba(var(--of-accent-rgb), 0.26)
 $acc-soft: rgba(var(--of-accent-rgb), 0.1)
 $acc-rim: rgba(var(--of-accent-rgb), 0.5)
@@ -111,6 +114,7 @@ $white-rim: inset 0 1px 0 rgba(255, 255, 255, 0.18)
   display: flex
   flex-direction: column
   gap: var(--of-space-5)
+  +of-glass-refract
 
 .orni-panel-head
   display: flex
