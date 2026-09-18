@@ -17,7 +17,7 @@ describe 'FlashingView', ->
   afterEach ->
     vi.unstubAllGlobals()
 
-  renderApp = (route = '/flash') ->
+  renderApp = (route = '/system/flash') ->
     render h(MemoryRouter, { initialEntries: [route] }, h(App, null))
 
   it 'renders the flashing layout', ->

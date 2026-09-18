@@ -1,0 +1,141 @@
+// ═══════════════════════════════════════════
+// FlightProfilesView — CH7 flight profiles
+// ═══════════════════════════════════════════
+$acc: rgba(var(--of-accent-rgb), 0.26)
+$acc-soft: rgba(var(--of-accent-rgb), 0.1)
+
+.flight-profiles-view
+  position: relative
+  z-index: 1
+  flex: 1
+  width: 100%
+  max-width: 1080px
+  margin: 0 auto
+  padding: var(--of-space-6) var(--of-space-6) var(--of-space-10)
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-6)
+
+.fp-head
+  display: flex
+  justify-content: space-between
+  align-items: flex-end
+  gap: var(--of-space-6)
+  padding: var(--of-space-2) var(--of-space-1)
+  flex-wrap: wrap
+
+  h1
+    font-family: var(--of-font-heading)
+    font-size: 42px
+    letter-spacing: 0.14em
+    margin: 0
+    font-weight: 400
+
+  p
+    margin: var(--of-space-2) 0 0
+    max-width: 46ch
+
+.fp-hermes
+  color: var(--of-text-muted)
+  font-size: var(--of-text-sm)
+  line-height: 1.55
+  margin: 0
+
+.fp-ch7-badge
+  padding: 4px 10px
+  border-radius: 999px
+  border: 1px solid var(--of-glass-rim-soft)
+  background: var(--of-glass-bg)
+  color: var(--of-accent)
+  font-size: 10px
+  letter-spacing: 0.14em
+
+.fp-active-strip
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  padding: var(--of-space-2) var(--of-space-1)
+
+.fp-active-face
+  color: var(--of-accent-alt)
+  font-size: var(--of-text-sm)
+  letter-spacing: 0.06em
+
+.fp-faces
+  display: grid
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))
+  gap: var(--of-space-4)
+
+.fp-face
+  padding: var(--of-space-5)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-glass-radius)
+  background: var(--of-glass-card)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur))
+  box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
+  cursor: pointer
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-4)
+  transition: border-color var(--of-dur-fast), background var(--of-dur-fast)
+
+  &:hover
+    background: var(--of-glass-card-hover)
+
+.fp-face-on
+  border-color: rgba(var(--of-accent-rgb), 0.4)
+  background: linear-gradient(180deg, $acc, $acc-soft)
+
+.fp-face-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+
+.fp-face-n
+  font-family: var(--of-font-heading)
+  font-weight: 400
+  letter-spacing: 0.08em
+  font-size: 18px
+
+.fp-face-live
+  padding: 2px 7px
+  border-radius: 999px
+  background: rgba(var(--of-accent-rgb), 0.16)
+  color: var(--of-accent-alt)
+  font-size: 9px
+  letter-spacing: 0.12em
+
+.fp-face-body
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-3)
+
+.fp-slider-row
+  display: grid
+  grid-template-columns: auto 1fr auto
+  align-items: center
+  gap: var(--of-space-3)
+
+.fp-label
+  font-size: var(--of-text-sm)
+  letter-spacing: 0.05em
+  font-weight: 500
+  min-width: 86px
+
+.fp-slider
+  width: 100%
+
+.fp-value
+  min-width: 40px
+  text-align: right
+  font-size: var(--of-text-sm)
+  color: var(--of-text-soft)
+  font-family: var(--of-font-mono)
+
+.fp-face-wave
+  padding-top: var(--of-space-3)
+  border-top: 1px solid var(--of-border-1)
+  color: var(--of-text-soft)
+  font-size: 10px
+  font-family: var(--of-font-mono)

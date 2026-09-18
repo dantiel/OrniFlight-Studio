@@ -57,4 +57,4 @@
     %Tooltip{ label: 'Change workspace layout' }
       %ViewModeToggle.toolbar-theme{ mode: viewMode || 'split', onModeChange: onViewModeChange || (->) }
   .toolbar-nav-row
-    %ConfigTabs{ activeTab: props.activeTab, onTabChange: props.onTabChange }
+    %ConfigTabs

@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { HashRouter } from 'react-router-dom'
 import h from './app/h.coffee'
 import App from './app/App.chaml'
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary.coffee'
@@ -14,6 +14,6 @@ if import.meta.env.DEV
 
 rootEl = document.getElementById 'root'
 root = createRoot rootEl
-root.render h BrowserRouter, null,
+root.render h HashRouter, null,
   h ErrorBoundary, null,
     h App, null

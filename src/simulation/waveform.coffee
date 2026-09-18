@@ -115,6 +115,39 @@ export modulateWaveform = (base = {}, gains = {}, rateError = {}) ->
   returnFerocity: returnFer
   ferocityShapeMix: shapeMix
 
+# ── Phase-quantized harmonizer (Josephson washboard pendulum) ──
+# Mutates `state` (a plain object holding basePhase / phaseOffset /
+# debtVel) in place and returns { phase, cadence }. cadenceTarget (rad/s)
+# is the nominal beat-grid rate; kGainMod > 1 demands a brief faster flap.
+# Weak demand nudges the phase and rings back onto the SAME beat; a strong
+# demand (extraTarget > ω₀/2ζ) whips the debt over the π barrier — a
+# quantized whole-stroke slip (2π) — never a fractional beat. ζ<1 keeps the
+# return inertial (pendulum momentum), mirroring the C++ FlappingOscillator.
+export advanceHarmonizedPhase = (
+  state
+  cadenceTarget
+  kGainMod
+  dt
+  omega0 = 10.0
+  zeta   = 0.7
+) ->
+  state.basePhase += cadenceTarget * dt
+  state.basePhase %= TWO_PI
+
+  extraTarget = (kGainMod - 1.0) * cadenceTarget
+  sinOffset = Math.sin state.phaseOffset
+  restore = -omega0 * omega0 * sinOffset
+  damping = -2.0 * zeta * omega0 * (state.debtVel - extraTarget)
+  state.debtVel += (restore + damping) * dt
+  state.phaseOffset += state.debtVel * dt
+
+  cadence = cadenceTarget + state.debtVel
+  phase = state.basePhase + state.phaseOffset
+  phase %= TWO_PI
+  phase += TWO_PI if phase < 0
+
+  { phase, cadence }
+
 # ── Skew coupling (asymmetric steering) ─────────────────────
 # Throttle steers the thrust vector between the two half-strokes.
 # Returns a signed shift (±100) to ADD to strokeSkew and SUBTRACT

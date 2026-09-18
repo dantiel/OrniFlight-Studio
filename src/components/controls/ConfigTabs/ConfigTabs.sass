@@ -1,18 +1,47 @@
 // ═══════════════════════════════════════════
-// ConfigTabs — View selector tabs
+// ConfigTabs — contextual header for the active module.
+// Shows the module identity (glyph + name) on the left and the
+// module's sub-views on the right. Single-view modules show only
+// the identity — no redundant self-tab.
 // ═══════════════════════════════════════════
 
 .config-view-selector
   display: flex
   align-items: center
-  gap: var(--of-space-2)
+  gap: var(--of-space-4)
   width: 100%
+  min-width: 0
   overflow-x: auto
   scrollbar-width: none
   -webkit-app-region: no-drag
 
   &::-webkit-scrollbar
     display: none
+
+.config-module
+  display: inline-flex
+  align-items: center
+  gap: var(--of-space-2)
+  flex-shrink: 0
+  padding-right: var(--of-space-4)
+  border-right: 1px solid rgba(255,255,255,.08)
+
+  .config-module-glyph
+    font-size: 13px
+    line-height: 1
+    filter: drop-shadow(0 0 6px rgba(137,152,254,.35))
+
+  .config-module-name
+    color: rgba(255,255,255,.86)
+    font: 650 11px/1 var(--of-font-heading)
+    letter-spacing: .06em
+    white-space: nowrap
+
+.config-view-tabs
+  display: flex
+  align-items: center
+  gap: var(--of-space-1)
+  min-width: 0
 
   .config-view-btn
     display: inline-flex
@@ -21,7 +50,7 @@
     gap: var(--of-space-3)
     width: auto
     min-width: max-content
-    padding: 4px 9px
+    padding: 4px 10px
     border: none
     border-radius: var(--of-radius-sm)
     background: transparent
@@ -33,13 +62,6 @@
     cursor: pointer
     text-decoration: none
     transition: background var(--of-dur-fast), color var(--of-dur-fast)
-
-    &::before
-      content: attr(data-glyph)
-      flex: 0 0 13px
-      color: currentColor
-      text-align: center
-      font-family: var(--of-font-mono)
 
     .tab-label
       white-space: nowrap

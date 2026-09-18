@@ -144,6 +144,7 @@ function prePlugin() {
 }
 
 export default defineConfig({
+  base: '/OrniFlight-Studio/',
   plugins: [
     prePlugin(),
     react(),
@@ -154,14 +155,14 @@ export default defineConfig({
         name: 'OrniFlight Studio',
         short_name: 'OrniFlight',
         description: 'Integrated engineering environment for ornithopter flight control',
-        start_url: '/',
+        start_url: './',
         display: 'standalone',
         background_color: '#1a1a1c',
         theme_color: '#3a4192',
         orientation: 'landscape-primary',
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
         ],
       },
       workbox: {

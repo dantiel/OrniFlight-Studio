@@ -17,7 +17,7 @@ describe 'ReceiverView', { timeout: 20000 }, ->
   afterEach -> vi.restoreAllMocks()
 
   renderView = ->
-    render h(MemoryRouter, { initialEntries: ['/receiver'] }, h(App, null))
+    render h(MemoryRouter, { initialEntries: ['/control/receiver'] }, h(App, null))
 
   view = -> within document.querySelector '.layout-receiver'
   modes = -> within document.querySelector '.layout-modes'

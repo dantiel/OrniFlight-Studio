@@ -1,17 +1,16 @@
 ###
-# ORNIFLIGHT STUDIO — OrnithopterView (unified body plan)
+# ORNIFLIGHT STUDIO — OrnithopterView (Grundkonfiguration)
 #
-# One scrollable page, no subpages — the whole bird reveals
-# itself as the æther scrolls: Körperplan (kernel + mixer
-# body plan), Flugprofile (CH7), Schlagkurve, and Kanal-Test.
-# Polymorphic: in sim mode the sticks drive the engine
-# directly; on a device the live RC channels answer instead.
+# The drive-side body plan, split into three sub-views reached from
+# the top menu: Körperplan (kernel + mixer + servo timing + trims),
+# Flugwerk (airframe geometry + servo mounting), Schlagkurve (the
+# stroke waveform). Flight profiles live in their own module; the
+# RC channel test has been removed from here.
 ###
 import './OrnithopterView.sass'
 import h from '../../../app/h.coffee'
-import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import useOrnithopterStore from '../../../stores/useOrnithopterStore.coffee'
-import useEngineStore from '../../../stores/useEngineStore.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import {
   KERNELS, profilesForKernel, profileById
@@ -20,13 +19,11 @@ import {
 import {
   sampleWave, WAVEFORM_FIELDS, WAVEFORM_LIMITS
 } from '../../../simulation/waveform.coffee'
-
-STICK_CHANNELS = [
-  ['throttle', 'THR']
-  ['roll', 'ROL']
-  ['pitch', 'PIT']
-  ['yaw', 'YAW']
-]
+import {
+  AIRFRAME_FIELDS, AIRFRAME_LIMITS, MOUNT_FIELDS, MOUNT_LIMITS
+  airframeDerived
+} from '../../../lib/airframeCatalog.coffee'
+import { getArrangement } from '../../../simulation/OrnithopterModel.coffee'
 
 Section = (props) ->
   h 'section', { className: 'orni-panel' },
@@ -44,6 +41,10 @@ Field = (props) ->
       if props.hermes?
         h 'small', { className: 'orni-hermes' }, props.hermes
     h 'div', { className: 'orni-field-control' }, props.children
+
+# Signed number — a + prefix only when the axis crosses zero.
+signedValue = (value, limits) ->
+  "#{if limits.min < 0 and value > 0 then '+' else ''}#{value}"
 
 # ── Waveform widget — the stroke's shape drawn live ──────────
 WAVE_W = 340
@@ -92,39 +93,19 @@ WaveformWidget = (props) ->
 
 OrnithopterView = ->
   orni = useOrnithopterStore()
-  sim = useEngineStore()
   tele = useTelemetryStore()
   draft = orni.draft
   profile = profileById draft.profileId
   trims = trimsForProfile profile
-  [sweeping, setSweeping] = useState false
-  sweepRef = useRef null
-
-  # Der Atemzug — one full sweep of every virtual channel.
-  stopSweep = ->
-    clearInterval sweepRef.current if sweepRef.current
-    sweepRef.current = null
-    setSweeping false
-    sim.setStick ch, 1500 for [ch] in STICK_CHANNELS
-
-  useEffect (-> stopSweep), []
-
-  runSweep = ->
-    return stopSweep() if sweeping
-    setSweeping true
-    t0 = performance.now()
-    sweepRef.current = setInterval ->
-      t = (performance.now() - t0) / 1000
-      if t > 2.4
-        return stopSweep()
-      for [ch], i in STICK_CHANNELS
-        phase = (t / 2.4) + i * 0.25
-        value = Math.round 1500 + 480 * Math.sin 2 * Math.PI * phase
-        sim.setStick ch, value
-    , 33
-
-  sweepClass =
-    "orni-sweep#{if sweeping then ' orni-sweep-on' else ''}"
+  pairCount = getArrangement(profile.arrangement).pairs
+  location = useLocation()
+  path = location.pathname
+  subtab = if path.includes('/airframe')
+    'airframe'
+  else if path.includes('/wave')
+    'wave'
+  else
+    'body'
 
   kernelOptions = (k) ->
     h 'button',
@@ -139,18 +120,18 @@ OrnithopterView = ->
 
   modeLabel = if orni.mode is 'sim' then 'SIMULATION' else 'DEVICE'
   saveDisabled = orni.mode is 'device' and not orni.loadedSession
-  deviceChannels = if orni.mode is 'device' then tele.rcChannels else null
   activeWave = draft.profiles[draft.activeProfile].waveform
   liveWave = tele.liveWaveform ? activeWave
+  airDerived = airframeDerived draft.airframe
 
   h 'div', { className: 'ornithopter-view' },
     # ── Page head ──────────────────────────────────────
     h 'header', { className: 'orni-page-head' },
       h 'div', null,
-        h 'h1', null, 'ORNITHOPTER'
+        h 'h1', null, 'GRUNDKONFIGURATION'
         h 'p', { className: 'orni-hermes' },
-          'Körperplan · Flugprofile · Schlagkurve · Kanal-Test. ' +
-          'Ein Dokument, eine Seite — kein Unterspiel.'
+          'Körperplan · Flugwerk · Schlagkurve. ' +
+          'Die Antriebsseite des Vogels, eine Sicht pro Gelenk.'
       h 'div', { className: 'orni-toolbar' },
         h 'span', { className: "orni-mode-badge orni-mode-#{orni.mode}" },
           modeLabel
@@ -172,239 +153,184 @@ OrnithopterView = ->
         , 'Verwerfen'
 
     # ── Körperplan ─────────────────────────────────────
-    h Section,
-      glyph: '🪽'
-      title: 'Körperplan'
-      hermes:
-        'Kernel und Mixer: wie der Antrieb den Flügel spannt — ' +
-        'direkt ins Gelenk oder über ein Getriebe.'
-    ,
-      h 'div', { className: 'orni-grid' },
-        h Field,
-          { label: 'Modellname', hermes: 'Freitext, 32 Zeichen.' },
-          h 'input',
-            className: 'orni-input'
-            type: 'text'
-            maxLength: 32
-            value: draft.modelName
-            onChange: (e) -> orni.setModelName e.target.value
-        h Field, { label: 'Kernel', hermes: 'Direktantrieb oder Getriebe.' },
-          h 'div', { className: 'orni-segments' },
-            kernelOptions k for k in KERNELS
-        h Field,
-          { label: 'Mixer-Profil',
-            hermes: 'GPIO-Belegung laut Firmware.' },
-          h 'select',
-            className: 'orni-input'
-            value: draft.profileId
-            onChange: (e) -> orni.setProfileId Number e.target.value
-          ,
-            for p in profilesForKernel draft.kernel
-              h 'option', { key: p.id, value: p.id },
-                "#{p.name} — #{p.servos} Servos"
-        h Field, { label: 'GPIO-Map' },
-          h 'div', { className: 'orni-map' }, profile.map
-        h Field,
-          label: 'Schlagzeit'
-          hermes: 'Zeit eines 60°-Schlags.'
-        ,
-          h 'div', { className: 'orni-slider-row' },
+    if subtab is 'body'
+      h Section,
+        glyph: '🪽'
+        title: 'Körperplan'
+        hermes:
+          'Kernel und Mixer: wie der Antrieb den Flügel spannt — ' +
+          'direkt ins Gelenk oder über ein Getriebe.'
+      ,
+        h 'div', { className: 'orni-grid' },
+          h Field,
+            { label: 'Modellname', hermes: 'Freitext, 32 Zeichen.' },
             h 'input',
-              className: 'orni-slider'
-              type: 'range'
-              min: 40
-              max: 400
-              value: draft.servoSpeed
-              onChange: (e) -> orni.setServoSpeed Number e.target.value
-            h 'span', { className: 'orni-value' },
-              "#{(draft.servoSpeed / 1000).toFixed 2} s/60°"
-          h 'select',
-            className: 'orni-input orni-presets'
-            value: ''
-            onChange: (e) ->
-              orni.applySpeedPreset e.target.value if e.target.value
+              className: 'orni-input'
+              type: 'text'
+              maxLength: 32
+              value: draft.modelName
+              onChange: (e) -> orni.setModelName e.target.value
+          h Field, { label: 'Kernel', hermes: 'Direktantrieb oder Getriebe.' },
+            h 'div', { className: 'orni-segments' },
+              kernelOptions k for k in KERNELS
+          h Field,
+            { label: 'Mixer-Profil',
+              hermes: 'GPIO-Belegung laut Firmware.' },
+            h 'select',
+              className: 'orni-input'
+              value: draft.profileId
+              onChange: (e) -> orni.setProfileId Number e.target.value
+            ,
+              for p in profilesForKernel draft.kernel
+                h 'option', { key: p.id, value: p.id },
+                  "#{p.name} — #{p.servos} Servos"
+          h Field, { label: 'GPIO-Map' },
+            h 'div', { className: 'orni-map' }, profile.map
+          h Field,
+            label: 'Schlagzeit'
+            hermes: 'Zeit eines 60°-Schlags.'
           ,
-            h 'option', { value: '' }, '— Tempo —'
-            for p in SERVO_SPEED_PRESETS
-              h 'option', { key: p.id, value: p.id }, p.label
-      if trims.length
-        h 'div', { className: 'orni-trims' },
-          h 'h3', null, 'Trims'
-          h 'p', { className: 'orni-hermes' },
-            'Ruhelage jedes Gelenks bei neutralem Input.'
-          h 'div', { className: 'orni-grid' },
-            for t in trims
-              do (t) ->
-                h Field, { key: t.prop, label: t.label },
-                  h 'input',
-                    className: 'orni-slider'
-                    type: 'range'
-                    min: -50
-                    max: 50
-                    value: draft.trims[t.prop]
-                    onChange: (e) -> orni.setTrim t.prop, Number e.target.value
-
-    # ── Flugprofile ───────────────────────────────────
-    h Section,
-      glyph: '🎭'
-      title: 'Flugprofile'
-      hermes:
-        'Drei Profile, gewählt über CH7. Jedes trägt Gleitwinkel ' +
-        'und Schlagmitte.'
-    ,
-      h 'div', { className: 'orni-profile-strip' },
-        h 'span', { className: 'orni-ch7' }, 'CH7'
-        h 'span', { className: 'orni-hermes' },
-          'aktiv'
-        h 'span', { className: 'orni-active-face' },
-          "Profil #{draft.activeProfile + 1}"
-      h 'div', { className: 'orni-faces' },
-        for i in [0...3]
-          do (i) ->
-            active = i is draft.activeProfile
-            h 'div',
-              key: i
-              className: "orni-face#{if active then ' orni-face-on' else ''}"
-              onClick: -> orni.setActiveProfile i
+            h 'div', { className: 'orni-slider-row' },
+              h 'input',
+                className: 'orni-slider'
+                type: 'range'
+                min: 40
+                max: 400
+                value: draft.servoSpeed
+                onChange: (e) -> orni.setServoSpeed Number e.target.value
+              h 'span', { className: 'orni-value' },
+                "#{(draft.servoSpeed / 1000).toFixed 2} s/60°"
+            h 'select',
+              className: 'orni-input orni-presets'
+              value: ''
+              onChange: (e) ->
+                orni.applySpeedPreset e.target.value if e.target.value
             ,
-              h 'div', { className: 'orni-face-head' },
-                h 'span', { className: 'orni-face-n' }, "Profil #{i + 1}"
-                if active
-                  h 'span', { className: 'orni-face-live' }, 'AKTIV'
-              h 'div', { className: 'orni-face-body' },
-                h 'div', { className: 'orni-face-label' },
-                  'Gleitwinkel'
-                h 'input',
-                  className: 'orni-slider'
-                  type: 'range'
-                  min: -15
-                  max: 15
-                  value: draft.profiles[i].glideAngle
-                  onChange: (e) -> orni.setGlideAngle i, Number e.target.value
-                h 'span', { className: 'orni-value' },
-                  "#{if draft.profiles[i].glideAngle > 0 then '+' else ''}" +
-                  "#{draft.profiles[i].glideAngle}°"
-                h 'div', { className: 'orni-face-label' },
-                  'Schlag-Mitte'
-                h 'input',
-                  className: 'orni-slider'
-                  type: 'range'
-                  min: -15
-                  max: 15
-                  value: draft.profiles[i].flappingAngle
-                  onChange: (e) ->
-                    orni.setFlappingAngle i, Number e.target.value
-                h 'span', { className: 'orni-value' },
-                  "#{if draft.profiles[i].flappingAngle > 0 then '+' else ''}" +
-                  "#{draft.profiles[i].flappingAngle}°"
-                h 'div', { className: 'orni-face-wave' },
-                  "Schlag #{draft.profiles[i].waveform.strokeFerocity} · " +
-                  "Rück #{draft.profiles[i].waveform.returnFerocity} · " +
-                  "Mix #{draft.profiles[i].waveform.ferocityShapeMix}"
-              h 'p', { className: 'orni-hermes' },
-                if i is draft.activeProfile
-                  'Aktives Profil, gewählt über CH7.'
-                else
-                  'Inaktiv — CH7 wählt dieses Profil.'
+              h 'option', { value: '' }, '— Tempo —'
+              for p in SERVO_SPEED_PRESETS
+                h 'option', { key: p.id, value: p.id }, p.label
+        if trims.length
+          h 'div', { className: 'orni-trims' },
+            h 'h3', null, 'Trims'
+            h 'p', { className: 'orni-hermes' },
+              'Ruhelage jedes Gelenks bei neutralem Input.'
+            h 'div', { className: 'orni-grid' },
+              for t in trims
+                do (t) ->
+                  h Field, { key: t.prop, label: t.label },
+                    h 'input',
+                      className: 'orni-slider'
+                      type: 'range'
+                      min: -50
+                      max: 50
+                      value: draft.trims[t.prop]
+                      onChange: (e) -> orni.setTrim t.prop, Number e.target.value
 
-    # ── Schlagkurve ───────────────────────────────────
-    h Section,
-      glyph: '🌊'
-      title: 'Schlagkurve'
-      hermes:
-        'Abwärts und Aufwärts — je eigene Ferocity, je eigene ' +
-        'Mitte. Die Kurve ist das Kommando, bevor es ins Gelenk fährt.'
-    ,
-      h 'div', { className: 'orni-wave-stage' },
-        h WaveformWidget, { params: liveWave }
-        h 'div', { className: 'orni-wave-caption' },
-          h 'span', { className: 'orni-hermes' },
-            "Profil #{draft.activeProfile + 1} — live geformt"
-          h 'div', { className: 'orni-wave-legend' },
-            h 'span', { className: 'orni-legend-dot orni-legend-stroke' },
-              'Abwärts'
-            h 'span', { className: 'orni-legend-dot orni-legend-return' },
-              'Aufwärts'
-      h 'div', { className: 'orni-grid' },
-        for field in WAVEFORM_FIELDS
-          do (field) ->
-            limits = WAVEFORM_LIMITS[field.id]
-            value = activeWave[field.id]
-            h Field,
-              key: field.id
-              label: field.label
-              hermes: field.hermes
-            ,
-              h 'div', { className: 'orni-slider-row' },
-                h 'input',
-                  className: 'orni-slider'
-                  type: 'range'
-                  min: limits.min
-                  max: limits.max
-                  value: value
-                  onChange: (e) ->
-                    orni.setWaveformParam(
-                      draft.activeProfile, field.id, Number e.target.value
-                    )
-                h 'span', { className: 'orni-value' },
-                  "#{if limits.min < 0 and value > 0 then '+' else ''}#{value}"
-
-    # ── Kanal-Test ────────────────────────────────────
-    h Section,
-      glyph: '⚡'
-      title: 'Kanal-Test'
-      hermes:
-        'RC-Kanäle treiben die Servos, bevor der Himmel es tut. ' +
-        'Auf einem Gerät spricht der Empfänger.'
-    ,
-      h 'div', { className: 'orni-grid orni-pulse-grid' },
-        if orni.mode is 'sim'
-          for [ch, label] in STICK_CHANNELS
-            do (ch, label) ->
-              h Field, { key: ch, label },
+    # ── Flugwerk ──────────────────────────────────────
+    if subtab is 'airframe'
+      h Section,
+        glyph: '📐'
+        title: 'Flugwerk'
+        hermes:
+          'Spannweite, Masse und Schwerpunkt — die Zelle, ' +
+          'die der Schlag trägt.'
+      ,
+        h 'div', { className: 'orni-grid' },
+          for field in AIRFRAME_FIELDS
+            do (field) ->
+              limits = AIRFRAME_LIMITS[field.id]
+              value = draft.airframe[field.id]
+              h Field,
+                key: field.id
+                label: field.label
+                hermes: field.hermes
+              ,
                 h 'div', { className: 'orni-slider-row' },
                   h 'input',
                     className: 'orni-slider'
                     type: 'range'
-                    min: 1000
-                    max: 2000
-                    value: sim.sticks[ch]
-                    onChange: (e) -> sim.setStick ch, Number e.target.value
-                  h 'span', { className: 'orni-value' }, "#{sim.sticks[ch]}"
-        else
-          for ch, i in (deviceChannels ? [])
-            h Field, { key: i, label: "CH#{i + 1}" },
-              h 'div', { className: 'orni-slider-row' },
-                h 'div', { className: 'orni-meter' },
-                  h 'div',
-                    className: 'orni-meter-fill'
-                    style:
-                      width: "#{Math.min 100, Math.max 0, ((ch - 1000) / 10)}%"
-                h 'span', { className: 'orni-value' }, "#{ch}"
-        h 'div', { className: 'orni-pulse-side' },
-          h 'div', { className: 'orni-channel-read' },
-            h 'b', null, 'Servo-Antwort'
-            h 'div', { className: 'orni-servo-bars' },
-              for value, i in (tele.servos ? [])[0...8]
-                h 'div', { key: i, className: 'orni-servo-bar-row' },
-                  h 'span', { className: 'orni-servo-bar-ch' }, "S#{i + 1}"
-                  h 'div', { className: 'orni-meter' },
-                    h 'div',
-                      className: 'orni-meter-fill orni-meter-servo'
-                      style:
-                        width:
-                          "#{Math.min 100, Math.max 0, ((value - 1000) / 10)}%"
-                  h 'span', { className: 'orni-value' }, "#{value or 0}"
-          if orni.mode is 'sim'
-            h 'button',
-              className: "orni-action #{sweepClass}"
-              type: 'button'
-              onClick: runSweep
-            , if sweeping then 'Sweep stoppen' else 'Alle Kanäle — Sweep'
-          else
-            h 'p', { className: 'orni-hermes' },
-              'Device-Modus: Sweep ist sim-only — ' +
-              'die Kanäle gehören dem Empfänger.'
+                    min: limits.min
+                    max: limits.max
+                    value: value
+                    onChange: (e) ->
+                      orni.setAirframeField field.id, Number e.target.value
+                  h 'span', { className: 'orni-value' },
+                    "#{signedValue value, limits} #{field.unit}"
+        h 'div', { className: 'orni-derived' },
+          h 'span', { className: 'orni-hermes' },
+            "Flügelfläche #{airDerived.wingArea.toFixed 0} cm²"
+          h 'span', { className: 'orni-hermes' },
+            "Streckung #{airDerived.aspectRatio.toFixed 1}"
+        h 'div', { className: 'orni-trims' },
+          h 'h3', null, 'Servo-Montage'
+          h 'p', { className: 'orni-hermes' },
+            'Lage jedes Flügelpaars: Winkel, Station, Höhe.'
+          h 'div', { className: 'orni-grid' },
+            for i in [0...pairCount]
+              do (i) ->
+                h 'div', { key: i, className: 'orni-mount' },
+                  h 'div', { className: 'orni-mount-head' }, "Paar #{i + 1}"
+                  for field in MOUNT_FIELDS
+                    do (field) ->
+                      limits = MOUNT_LIMITS[field.id]
+                      value = draft.airframe.mounts[i][field.id]
+                      h Field, { key: field.id, label: field.label },
+                        h 'div', { className: 'orni-slider-row' },
+                          h 'input',
+                            className: 'orni-slider'
+                            type: 'range'
+                            min: limits.min
+                            max: limits.max
+                            value: value
+                            onChange: (e) ->
+                              orni.setMountField(
+                                i, field.id, Number e.target.value
+                              )
+                          h 'span', { className: 'orni-value' },
+                            "#{signedValue value, limits} #{field.unit}"
+
+    # ── Schlagkurve ───────────────────────────────────
+    if subtab is 'wave'
+      h Section,
+        glyph: '🌊'
+        title: 'Schlagkurve'
+        hermes:
+          'Abwärts und Aufwärts — je eigene Ferocity, je eigene ' +
+          'Mitte. Die Kurve ist das Kommando, bevor es ins Gelenk fährt.'
+      ,
+        h 'div', { className: 'orni-wave-stage' },
+          h WaveformWidget, { params: liveWave }
+          h 'div', { className: 'orni-wave-caption' },
+            h 'span', { className: 'orni-hermes' },
+              "Profil #{draft.activeProfile + 1} — live geformt"
+            h 'div', { className: 'orni-wave-legend' },
+              h 'span', { className: 'orni-legend-dot orni-legend-stroke' },
+                'Abwärts'
+              h 'span', { className: 'orni-legend-dot orni-legend-return' },
+                'Aufwärts'
+        h 'div', { className: 'orni-grid' },
+          for field in WAVEFORM_FIELDS
+            do (field) ->
+              limits = WAVEFORM_LIMITS[field.id]
+              value = activeWave[field.id]
+              h Field,
+                key: field.id
+                label: field.label
+                hermes: field.hermes
+              ,
+                h 'div', { className: 'orni-slider-row' },
+                  h 'input',
+                    className: 'orni-slider'
+                    type: 'range'
+                    min: limits.min
+                    max: limits.max
+                    value: value
+                    onChange: (e) ->
+                      orni.setWaveformParam(
+                        draft.activeProfile, field.id, Number e.target.value
+                      )
+                  h 'span', { className: 'orni-value' },
+                    "#{if limits.min < 0 and value > 0 then '+' else ''}#{value}"
 
     h 'footer', { className: 'orni-foot' },
       h 'span', { className: 'orni-hermes' },

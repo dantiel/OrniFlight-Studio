@@ -21,16 +21,29 @@
         %p.servos-note
           Even outputs drive the left wing, odd the right — servo 0/1 form pair 1.
       .servos-actions
-        %button.servos-action.servos-action-read{ type: 'button', onClick: (-> store.loadFromDevice()), disabled: readDisabled }
+        %button.servos-action.servos-action-read{ type: 'button', 
+                                                  onClick: (-> store.loadFromDevice()), 
+                                                  disabled: readDisabled }
           Read device
-        %button.servos-action.servos-action-save{ type: 'button', onClick: (-> store.save()), disabled: saveDisabled }
+        %button.servos-action.servos-action-save{ type: 'button', 
+                                                  onClick: (-> store.save()), 
+                                                  disabled: saveDisabled }
           Save
-        %button.servos-action.servos-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
+        %button.servos-action.servos-action-revert{ type: 'button', 
+                                                    onClick: (-> store.revert()), 
+                                                    disabled: !store.dirty }
           Revert
   %ViewArea{ area: 'vport' }
     .servos-main
       %Section{ heading: 'Wing Mapping', subheading: 'Flap amplitude, WARP and per-pair geometry (MSP 94/95).' }
-        %ParamRow{ key: 'flap-amplitude', label: 'Flap base amplitude', value: wing.flapBaseAmplitude, min: '-90', max: '90', step: '1', display: "#{fmt0(wing.flapBaseAmplitude)}°", onInput: floatFromEvent((value) -> store.setWingField 'flapBaseAmplitude', value) }
+        %ParamRow{ key: 'flap-amplitude',
+                   label: 'Flap base amplitude', 
+                   value: wing.flapBaseAmplitude, 
+                   min: '-90', 
+                   max: '90', 
+                   step: '1', 
+                   display: "#{fmt0(wing.flapBaseAmplitude)}°", 
+                   onInput: floatFromEvent((value) -> store.setWingField 'flapBaseAmplitude', value) }
         %ParamRow{ key: 'warp-gain', label: 'WARP gain', value: wing.warpGain, min: '-100', max: '100', step: '1', display: String(wing.warpGain), onInput: intFromEvent((value) -> store.setWingField 'warpGain', value) }
         %ParamRow{ key: 'warp-yaw-gain', label: 'WARP yaw gain', value: wing.warpYawGain, min: '-100', max: '100', step: '1', display: String(wing.warpYawGain), onInput: intFromEvent((value) -> store.setWingField 'warpYawGain', value) }
         %ParamRow{ key: 'anchor-gain', label: 'Anchor gain', value: wing.anchorGain, min: '0', max: '100', step: '1', display: String(wing.anchorGain), onInput: intFromEvent((value) -> store.setWingField 'anchorGain', value) }
@@ -69,3 +82,4 @@
             %ParamRow{ key: "rule-min-#{i}", label: 'Min %', value: rule.min, min: '-125', max: '125', step: '1', display: "#{rule.min}%", onInput: floatFromEvent((value) -> store.setMixRuleField i, 'min', value) }
             %ParamRow{ key: "rule-max-#{i}", label: 'Max %', value: rule.max, min: '-125', max: '125', step: '1', display: "#{rule.max}%", onInput: floatFromEvent((value) -> store.setMixRuleField i, 'max', value) }
             %ParamRow{ key: "rule-box-#{i}", label: 'Box', value: rule.box, min: '0', max: '3', step: '1', display: String(rule.box), onInput: intFromEvent((value) -> store.setMixRuleField i, 'box', value) }
+              

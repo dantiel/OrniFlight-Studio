@@ -5,21 +5,9 @@ import { useNavigate } from 'react-router-dom'
 import { getActor } from '../../../hooks/useConnection.coffee'
 import h from '../../../app/h.coffee'
 
-ROUTES = [
-  ['Device', '/device', '◫']
-  ['Airframe', '/airframe', '⌁']
-  ['Flight Control', '/control', '△']
-  ['Receiver', '/receiver', '⇄']
-  ['Power', '/power', 'ϟ']
-  ['Sensors', '/sensors', '◎']
-  ['Safety', '/safety', '◇']
-  ['OSD', '/osd', '⌗']
-  ['VTX', '/vtx', '≋']
-  ['Ports', '/ports', '⇶']
-  ['Data', '/data', '▦']
-  ['Flash Firmware', '/flash', '↯']
-  ['CLI Terminal', '/cli', '❯']
-]
+import { MODULES } from '../../../lib/navigation.coffee'
+
+ROUTES = MODULES.map ([path, label, glyph]) -> [label, path, glyph]
 
 CommandPalette = ->
   [open, setOpen] = useState false

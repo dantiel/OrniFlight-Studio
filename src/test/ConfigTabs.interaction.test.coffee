@@ -11,49 +11,31 @@ describe 'ConfigTabs — Interaction', ->
   afterEach ->
     vi.restoreAllMocks()
 
-  renderApp = (route = '/device') ->
+  renderApp = (route = '/basic/body') ->
     render h(MemoryRouter, { initialEntries: [route] }, h(App, null))
 
-  getTabLink = (text) ->
-    document.querySelector "a.config-view-btn[href=\"/#{text.toLowerCase()}\"]"
+  labels = -> Array.from(document.querySelectorAll('a.config-view-btn')).map((l) -> l.textContent)
 
-  it 'renders all fourteen domain workspaces with full labels', ->
-    renderApp()
-    links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 14
-    labels = [
-      'Device', 'Airframe', 'Flight Control', 'Receiver', 'Power',
-      'Adjustments', 'Sensors', 'Safety', 'OSD', 'VTX', 'Ports',
-      'Data', 'Flash Firmware', 'CLI'
+  it 'renders the Grundkonfiguration sub-views', ->
+    renderApp '/basic/body'
+    expect(labels()).toEqual ['Körperplan', 'Flugwerk', 'Schlagkurve']
+
+  it 'renders the System sub-views', ->
+    renderApp '/system/device'
+    expect(labels()).toEqual [
+      'Gerät', 'Ports', 'Power', 'VTX', 'OSD',
+      'Sprache', 'Speicher', 'Firmware', 'Daten'
     ]
-    expect(Array.from(links).map((link) -> link.textContent)).toEqual labels
 
-  it 'navigates to the Sensors workspace', ->
-    renderApp()
+  it 'renders the Steuerung sub-views', ->
+    renderApp '/control/pid'
+    expect(labels()).toEqual ['PID', 'Modi', 'Empfänger', 'Justierung']
+
+  it 'navigates between sub-views of one module', ->
+    renderApp '/basic/body'
     user = userEvent.setup()
-    link = getTabLink 'Sensors'
+    link = document.querySelector 'a.config-view-btn[href="/basic/airframe"]'
     expect(link).toBeTruthy()
     await user.click link
     await waitFor ->
-      el = document.querySelector '.layout-sensors'
-      expect(el).toBeInTheDocument()
-
-  it 'navigates to Flight Control', ->
-    renderApp()
-    user = userEvent.setup()
-    link = document.querySelector 'a.config-view-btn[href="/control"]'
-    expect(link).toBeTruthy()
-    await user.click link
-    await waitFor ->
-      el = document.querySelector '.layout-control'
-      expect(el).toBeInTheDocument()
-
-  it 'navigates to Airframe from Sensors', ->
-    renderApp('/sensors')
-    user = userEvent.setup()
-    link = getTabLink 'Airframe'
-    expect(link).toBeTruthy()
-    await user.click link
-    await waitFor ->
-      el = document.querySelector '.layout-wings'
-      expect(el).toBeInTheDocument()
+      expect(screen.getByText 'Servo-Montage').toBeInTheDocument()

@@ -3,7 +3,7 @@ import { waitFor } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import App from '../app/App.chaml'
+import WingsView from '../components/views/WingsView/WingsView.chaml'
 import useConfigurationStore from '../stores/useConfigurationStore.coffee'
 
 describe 'ConfigSections', ->
@@ -15,7 +15,7 @@ describe 'ConfigSections', ->
     vi.restoreAllMocks()
 
   renderApp = ->
-    render h(MemoryRouter, { initialEntries: ['/airframe'] }, h(App, null))
+    render h(MemoryRouter, null, h(WingsView, null))
 
   sections = -> within document.querySelector '.config-sections'
 

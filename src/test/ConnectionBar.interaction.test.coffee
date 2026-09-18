@@ -10,7 +10,7 @@ describe 'ConnectionBar — Interaction', ->
   afterEach ->
     vi.restoreAllMocks()
 
-  renderApp = (route = '/device') ->
+  renderApp = (route = '/system/device') ->
     render h(MemoryRouter, { initialEntries: [route] }, h(App, null))
 
   it 'renders connection status BREATHING on startup', ->
@@ -28,22 +28,17 @@ describe 'ConnectionBar — Interaction', ->
     expect(screen.getByText 'Orni').toBeInTheDocument()
     expect(screen.getByText 'Studio').toBeInTheDocument()
 
-  it 'renders fourteen domain workspace links', ->
+  it 'renders the active module sub-views in the top menu', ->
     renderApp()
     links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 14
+    expect(links.length).toBe 9
     texts = Array.from(links).map (l) -> l.textContent
-    expect(texts).toContain 'Device'
-    expect(texts).toContain 'Airframe'
-    expect(texts).toContain 'Flight Control'
-    expect(texts).toContain 'Receiver'
-    expect(texts).toContain 'Power'
-    expect(texts).toContain 'Adjustments'
-    expect(texts).toContain 'Sensors'
-    expect(texts).toContain 'Safety'
-    expect(texts).toContain 'OSD'
-    expect(texts).toContain 'VTX'
+    expect(texts).toContain 'Gerät'
     expect(texts).toContain 'Ports'
-    expect(texts).toContain 'Data'
-    expect(texts).toContain 'Flash Firmware'
-    expect(texts).toContain 'CLI'
+    expect(texts).toContain 'Power'
+    expect(texts).toContain 'VTX'
+    expect(texts).toContain 'OSD'
+    expect(texts).toContain 'Sprache'
+    expect(texts).toContain 'Speicher'
+    expect(texts).toContain 'Firmware'
+    expect(texts).toContain 'Daten'

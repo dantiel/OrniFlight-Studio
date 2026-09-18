@@ -12,6 +12,7 @@
 import {
   shapeWave, ferocityUnits, WAVEFORM_DEFAULTS, WAVEFORM_LIMITS
   modulateWaveform
+  advanceHarmonizedPhase
   throttleSkewShift, aileronSkewShift
   throttleSkewRateShift, aileronSkewRateShift
   SKEW_RATE_LPF_TAU
@@ -53,46 +54,19 @@ PRESETS =
 
 # ═══════════════════════════════════════════════════════════════
 # Servo arrangements — named ornithopter layouts (mirrors the
-# configurator's simulator ARRANGEMENTS). Each spec is pure data:
-# pair count, CG station (σ·100, + = nose) and per-pair geometry
-# (mount angle °, fore/aft station σ·100, vertical station).
-# ═══════════════════════════════════════════════════════════════
+# Servo arrangements — named ornithopter layouts. Each entry owns only
+# the number of wing pairs. Mount geometry (angle/station/vertical),
+# mass and CG belong to the airframe document (setAirframe), not the
+# arrangement archetype — the configuration document is the single
+# source of truth for the physical cell.
 ARRANGEMENTS =
-  tandem_x:
-    pairs: 2, cg: 0
-    angles: [30, -30, 0, 0]
-    dists:  [40, -40, 0, 0]
-    ys:     [0, 0, 0, 0]
-  single:
-    pairs: 1, cg: -20
-    angles: [0, 0, 0, 0]
-    dists:  [0, 0, 0, 0]
-    ys:     [0, 0, 0, 0]
-  single_canard:
-    pairs: 1, cg: 20
-    angles: [0, 0, 0, 0]
-    dists:  [0, 0, 0, 0]
-    ys:     [0, 0, 0, 0]
-  tandem_parallel:
-    pairs: 2, cg: 0
-    angles: [20, 20, 0, 0]
-    dists:  [40, -40, 0, 0]
-    ys:     [0, 0, 0, 0]
-  triple:
-    pairs: 3, cg: 0
-    angles: [30, 0, -30, 0]
-    dists:  [45, 0, -45, 0]
-    ys:     [0, 0, 0, 0]
-  quad:
-    pairs: 4, cg: 0
-    angles: [30, 10, -10, -30]
-    dists:  [50, 17, -17, -50]
-    ys:     [0, 0, 0, 0]
-  double_decker:
-    pairs: 4, cg: 0
-    angles: [30, 30, -30, -30]
-    dists:  [40, 40, -40, -40]
-    ys:     [6, -6, 6, -6]
+  tandem_x:        { pairs: 2 }
+  single:          { pairs: 1 }
+  single_canard:   { pairs: 1 }
+  tandem_parallel: { pairs: 2 }
+  triple:          { pairs: 3 }
+  quad:            { pairs: 4 }
+  double_decker:   { pairs: 4 }
 
 DEFAULT_ARRANGEMENT = 'tandem_x'
 
@@ -157,6 +131,17 @@ export class OrnithopterModel
     @flapFrequency = 6.0
     @baseAmplitude = 45.0
 
+    # Phase-quantized harmonizer state (Josephson washboard pendulum).
+    # basePhase = virtual beat grid (advances at flapFrequency); phaseOffset
+    # = debt to the grid (settles on whole strokes 2π·k); debtVel = the
+    # pendulum's extra flap rate. ferHold/ferHoldVel = the mirror-pendulum
+    # that gives the ferocity dwell bias its own inertial catch + decay.
+    @basePhase   = 0.0
+    @phaseOffset = 0.0
+    @debtVel     = 0.0
+    @ferHold     = 0.0
+    @ferHoldVel  = 0.0
+
     @wingAngleL    = 0.0
     @wingAngleR    = 0.0
     @wingVelocityL = 0.0
@@ -218,6 +203,7 @@ export class OrnithopterModel
       totalMass: 520
       cgX: 0
       cgZ: 0
+      cgLat: 0
     @pairCount = 2
     @servoMounts = for i in [0...@pairCount]
       { index: i, x: 0, z: 0, y: 0, angle: 0, phaseShift: 0 }
@@ -292,6 +278,11 @@ export class OrnithopterModel
     @pidI       = { roll: 0, pitch: 0, yaw: 0 }
     @prevGyro   = { roll: 0, pitch: 0, yaw: 0 }
     @flapPhase  = 0.0
+    @basePhase   = 0.0
+    @phaseOffset = 0.0
+    @debtVel     = 0.0
+    @ferHold     = 0.0
+    @ferHoldVel  = 0.0
     @
 
   # ── Setters — mutation helpers, return @ for chaining ──────
@@ -375,16 +366,6 @@ export class OrnithopterModel
     spec = ARRANGEMENTS[name] ? ARRANGEMENTS[DEFAULT_ARRANGEMENT]
     @arrangement = name
     @pairCount = spec.pairs
-    @mass = { @mass..., cgX: spec.cg }
-    @servoMounts = for i in [0...spec.pairs]
-      {
-        index: i
-        x: 0
-        z: (spec.dists[i] ? 0) / 100
-        y: (spec.ys[i] ? 0) / 100
-        angle: spec.angles[i] ? 0
-        phaseShift: 0
-      }
     @
 
   setSimulationParams: (params = {}) ->
@@ -529,16 +510,36 @@ export class OrnithopterModel
       pitch: @targetRates.pitch - @gyro.pitch
       yaw:   @targetRates.yaw   - @gyro.yaw
 
-    cadenceFreq =
-      @flapFrequency * (1.0 + rateError.pitch * g.cadence_gain * 0.01)
-    cadenceFreq = clamp 1.0, 20.0, cadenceFreq
-
-    @flapPhase += cadenceFreq * TWO_PI * subDt
-    @flapPhase %= TWO_PI
+    # ── Phase-quantized harmonization (Josephson washboard pendulum) ──
+    # The base frequency is a beat GRID. ONDAS cadence demand (kGainMod>1)
+    # is a *rate* target for the phase debt, not a raw frequency scale.
+    # Weak demand nudges the phase and rings back onto the SAME beat; a
+    # strong demand whips the debt over the π barrier — a quantized whole-
+    # stroke slip (2π) — so the flap always lands on a beat, never between.
+    cadenceTarget = @flapFrequency * TWO_PI
+    kGainMod      = clamp 0.5, 2.0, 1.0 + rateError.pitch * g.cadence_gain * 0.01
+    { phase, cadence } = advanceHarmonizedPhase @, cadenceTarget, kGainMod, subDt
+    @flapPhase = phase
+    cadenceFreq = cadence / TWO_PI
 
     sinPhi = Math.sin @flapPhase
     cosPhi = Math.cos @flapPhase
-    live = modulateWaveform @waveform, g, rateError
+
+    # Ferocity mirror-pendulum: the dwell demand is a damped pendulum
+    # (ω₀=10, ζ=0.7) tracking the live pitch error. It catches the demanded
+    # ferocity with pendulum momentum and decays back inertially, so the
+    # dwell change lands in step with the phase-quantized cadence rather
+    # than snapping the reversal boundary mid-stroke.
+    fOmega = 10.0
+    fZeta  = 0.7
+    ferErr = @ferHold - rateError.pitch
+    restore = -fOmega * fOmega * ferErr
+    damping = -2.0 * fZeta * fOmega * @ferHoldVel
+    @ferHoldVel += (restore + damping) * subDt
+    @ferHold += @ferHoldVel * subDt
+
+    heldError = { rateError..., pitch: @ferHold }
+    live = modulateWaveform @waveform, g, heldError
 
     # ── Skew + slew coupling (PteronautOS Ornithopter.cpp) ──
     # Throttle → symmetric skew: gas front-loads the downstroke, idle

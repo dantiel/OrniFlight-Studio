@@ -14,7 +14,7 @@ WelcomeView = ->
 
   connect = ->
     connected = await firmware.connect()
-    navigate '/device' if connected
+    navigate '/system/device' if connected
 
   lastDevice = firmware.identity
   h 'main', { className: 'welcome-view', 'aria-labelledby': 'welcome-title' },
@@ -35,7 +35,7 @@ WelcomeView = ->
           h('button', {
             className: 'welcome-secondary'
             type: 'button'
-            onClick: -> navigate '/device'
+            onClick: -> navigate '/system/device'
           }, 'Open offline workspace'),
         unless firmware.supported
           h('p', { className: 'welcome-notice' }, 'This browser does not expose WebSerial. Offline profiles remain available.')

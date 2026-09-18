@@ -18,17 +18,22 @@
 import { create } from 'zustand'
 import { engine } from '../simulation/engine.coffee'
 import {
-  KERNELS, MIXER_PROFILES, profilesForKernel, firstForKernel
+  KERNELS, MIXER_PROFILES, profilesForKernel, firstForKernel, profileById
 } from '../lib/mixerCatalog.coffee'
 import {
   WAVEFORM_DEFAULTS, WAVEFORM_LIMITS
 } from '../simulation/waveform.coffee'
+import {
+  AIRFRAME_LIMITS, MOUNT_LIMITS, MOUNT_PAIRS, defaultAirframe
+} from '../lib/airframeCatalog.coffee'
 
 SPEED_LIMITS = [40, 400]
 TRIM_LIMITS = [-50, 50]
 GLIDE_LIMITS = [-15, 15]
 PROFILE_IDS = [0..7]
 WAVEFORM_KEYS = Object.keys WAVEFORM_DEFAULTS
+AIRFRAME_FIELD_NAMES = Object.keys AIRFRAME_LIMITS
+MOUNT_FIELD_NAMES = Object.keys MOUNT_LIMITS
 
 TRIM_FIELDS = [
   'leftWing', 'rightWing', 'rudder', 'backLeftWing'
@@ -67,28 +72,37 @@ defaultDraft = ->
     vtailLeft: 0
     vtailRight: 0
     elevator: 0
+  airframe: defaultAirframe()
   profiles: [defaultProfile(), defaultProfile(), defaultProfile()]
   activeProfile: 0
 
-# Body plan → 3D arrangement: the mixer profile chooses which
-# wing pairs the model grows.
-ARRANGEMENT_FOR_PROFILE = {
-  0: 'single'
-  1: 'single_canard'
-  2: 'tandem_x'
-  3: 'tandem_parallel'
-  4: 'tandem_parallel'
-  5: 'double_decker'
-  6: 'single'
-  7: 'single_canard'
-}
+# Airframe → engine: geometry/mass/mounts mirror into the 3D viewport.
+# Mount station/vertical normalise to the engine's σ grid (±300 mm ≈ ±1 σ).
+mirrorAirframe = (airframe) ->
+  engine.setAirframe
+    geometry: { wingSpan: airframe.wingSpan, chord: airframe.chord }
+    mass:
+      totalMass: airframe.totalMass
+      cgX: airframe.cgX
+      cgZ: airframe.cgZ
+      cgLat: airframe.cgLat
+    servoMounts: airframe.mounts.map (m, i) ->
+      {
+        index: i
+        x: 0
+        z: m.station / 300
+        y: m.vertical / 300
+        angle: m.angle
+        phaseShift: 0
+      }
 
 mirrorToEngine = (draft) ->
   # Servo speed rides the engine as the travel-time of one stroke.
   engine.setSimulationParams
     servoTravelTimeMs: draft.servoSpeed
-  name = ARRANGEMENT_FOR_PROFILE[draft.profileId]
+  name = profileById(draft.profileId).arrangement
   engine.applyArrangement name if name
+  mirrorAirframe draft.airframe
   # Waveform + flight profiles — the stroke's shape soul mirrors live.
   for i in [0...3]
     engine.setGlideAngle i, draft.profiles[i].glideAngle
@@ -119,14 +133,15 @@ useOrnithopterStore = create (set, get) ->
     draft.kernel = kernel
     draft.profileId = firstForKernel kernel
     set { draft, dirty: true }
+    mirrorToEngine draft
 
   setProfileId: (id) ->
     id = Number id
     unless Number.isFinite(id) and 0 <= id <= 7
       throw new Error "Unknown mixer profile: #{id}"
-    set
-      draft: { get().draft..., profileId: id }
-      dirty: true
+    draft = { get().draft..., profileId: id }
+    set { draft, dirty: true }
+    mirrorToEngine draft
 
   setServoSpeed: (value) ->
     set
@@ -190,6 +205,29 @@ useOrnithopterStore = create (set, get) ->
       draft: { get().draft..., activeProfile: index }
       dirty: true
     engine.applyFlightProfile index
+
+  setAirframeField: (field, value) ->
+    return unless field in AIRFRAME_FIELD_NAMES
+    limits = AIRFRAME_LIMITS[field]
+    airframe = clone get().draft.airframe
+    airframe[field] = clampInt limits.min, limits.max, value
+    set
+      draft: { get().draft..., airframe }
+      dirty: true
+    mirrorAirframe airframe
+
+  setMountField: (index, field, value) ->
+    return unless 0 <= index < MOUNT_PAIRS
+    return unless field in MOUNT_FIELD_NAMES
+    limits = MOUNT_LIMITS[field]
+    airframe = clone get().draft.airframe
+    mounts = clone airframe.mounts
+    mounts[index][field] = clampInt limits.min, limits.max, value
+    airframe.mounts = mounts
+    set
+      draft: { get().draft..., airframe }
+      dirty: true
+    mirrorAirframe airframe
 
   save: ->
     { mode, session, draft, loadedSession } = get()

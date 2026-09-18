@@ -69,6 +69,28 @@ describe 'useOrnithopterStore', ->
     expect(engine.servoTravelTimeMs).toBe 150
     expect(state().dirty).toBe false
 
+  it 'clamps airframe fields and mirrors them into the engine', ->
+    state().setAirframeField 'wingSpan', 9000
+    expect(state().draft.airframe.wingSpan).toBe 3000
+    expect(engine.geometry.wingSpan).toBe 3000
+    state().setAirframeField 'cgX', -400
+    expect(state().draft.airframe.cgX).toBe -100
+    expect(engine.mass.cgX).toBe -100
+
+  it 'clamps mount geometry per pair and mirrors into the viewport', ->
+    state().setMountField 0, 'angle', 400
+    expect(state().draft.airframe.mounts[0].angle).toBe 45
+    expect(engine.servoMounts[0].angle).toBe 45
+    state().setMountField 3, 'station', -900
+    expect(state().draft.airframe.mounts[3].station).toBe -300
+
+  it 'rejects foreign airframe and mount fields', ->
+    state().setAirframeField 'constructor', 99
+    expect(state().draft.airframe.wingSpan).toBe 1200
+    state().setMountField 0, 'constructor', 99
+    # Seeded tandem default (fore pair dihedral +30°) — unchanged.
+    expect(state().draft.airframe.mounts[0].angle).toBe 30
+
   it 'revert restores the saved draft', ->
     state().setServoSpeed 80
     expect(state().dirty).toBe true

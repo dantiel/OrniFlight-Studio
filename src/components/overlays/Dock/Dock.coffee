@@ -3,26 +3,16 @@ import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import h from '../../../app/h.coffee'
+import { MODULES } from '../../../lib/navigation.coffee'
 
-# Core launcher — the few, the essential, the bird's-eye path.
-ITEMS = [
-  ['Ornithopter', '/ornithopter', '🪽']
-  ['Device', '/device', '◫']
-  ['Wings', '/airframe', '⌁']
-  ['Flight', '/control', '△']
-  ['Receiver', '/receiver', '⇄']
-  ['Power', '/power', 'ϟ']
-  ['Sensors', '/sensors', '◎']
-  ['Safety', '/safety', '◇']
-  ['OSD', '/osd', '⌗']
-  ['CLI', '/cli', '❯']
-]
+# Top-level modules — the bird's-eye path through the suite.
+# Sub-views live in the top menu (ConfigTabs); the dock stays coarse.
 
 Dock = ->
   [hovered, setHovered] = useState -1
   h 'nav', { className: 'dock-shell', 'aria-label': 'Primary navigation' },
     h 'div', { className: 'dock', onMouseLeave: -> setHovered -1 },
-      ITEMS.map ([label, to, glyph], i) ->
+      MODULES.map ([to, label, glyph], i) ->
         scale = switch
           when i == hovered then 1.35
           when Math.abs(i - hovered) == 1 then 1.12
@@ -30,7 +20,6 @@ Dock = ->
         h NavLink,
           key: to
           to: to
-          end: true
           className: 'dock-item'
           onMouseEnter: -> setHovered i
         ,

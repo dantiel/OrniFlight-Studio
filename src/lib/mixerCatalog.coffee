@@ -13,30 +13,34 @@ export KERNELS = [
 ]
 
 # Hermetic: each profile is a body plan, not a setting.
+# `arrangement` names the 3D layout (engine ARRANGEMENTS) each mixer
+# grows — the engine owns the wing-pair count (pairs) for that layout.
+# The configurator renders only the mount pairs this mixer actually has,
+# never a hard-coded superset.
 export MIXER_PROFILES = [
   { id: 0, name: 'SERVO_2WING', kernel: 'servo', servos: 2,
-    rudder: false, vtail: false, motor: false,
+    arrangement: 'single', rudder: false, vtail: false, motor: false,
     map: 'L Wing GPIO9 ↔ R Wing GPIO10' }
   { id: 1, name: 'SERVO_2WING_1RUD', kernel: 'servo', servos: 3,
-    rudder: true, vtail: false, motor: false,
+    arrangement: 'single_canard', rudder: true, vtail: false, motor: false,
     map: 'L Wing GPIO9 ↔ R Wing GPIO10 ↔ Rudder GPIO5' }
   { id: 2, name: 'SERVO_4WING', kernel: 'servo', servos: 4,
-    rudder: false, vtail: false, motor: false,
+    arrangement: 'tandem_x', rudder: false, vtail: false, motor: false,
     map: 'L GPIO9 ↔ R GPIO10 ↔ Back-L GPIO5 ↔ Back-R GPIO16' }
   { id: 3, name: 'GEARBOX_2VTAIL_1RUD', kernel: 'gearbox', servos: 3,
-    rudder: true, vtail: true, motor: false,
+    arrangement: 'tandem_parallel', rudder: true, vtail: true, motor: false,
     map: 'Rudder GPIO9 ↔ V-Tail L GPIO10 ↔ V-Tail R GPIO5' }
   { id: 4, name: 'GEARBOX_1MOT_2VTAIL', kernel: 'gearbox', servos: 3,
-    rudder: false, vtail: true, motor: true,
+    arrangement: 'tandem_parallel', rudder: false, vtail: true, motor: true,
     map: 'Motor GPIO9 ↔ V-Tail L GPIO10 ↔ V-Tail R GPIO5' }
   { id: 5, name: 'GEARBOX_1MOT_2VTAIL_1RUD', kernel: 'gearbox', servos: 4,
-    rudder: true, vtail: true, motor: true,
+    arrangement: 'double_decker', rudder: true, vtail: true, motor: true,
     map: 'Rudder GPIO9 ↔ Motor GPIO10 ↔ V-Tail L GPIO5 ↔ V-Tail R GPIO16' }
   { id: 6, name: 'GEARBOX_1ELE_1RUD', kernel: 'gearbox', servos: 2,
-    rudder: true, vtail: false, motor: false,
+    arrangement: 'single', rudder: true, vtail: false, motor: false,
     map: 'Rudder GPIO9 ↔ Elevator GPIO10' }
   { id: 7, name: 'GEARBOX_1MOT_1ELE_1RUD', kernel: 'gearbox', servos: 3,
-    rudder: true, vtail: false, motor: true,
+    arrangement: 'single_canard', rudder: true, vtail: false, motor: true,
     map: 'Rudder GPIO9 ↔ Motor GPIO10 ↔ Elevator GPIO5' }
 ]
 

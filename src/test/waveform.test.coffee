@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   shapeWave, ferocityUnits, throttleSkewShift, aileronSkewShift
   throttleSkewRateShift, sampleWave, modulateWaveform
+  advanceHarmonizedPhase
 } from '../simulation/waveform.coffee'
 
 approx = (a, b, eps = 1e-3) -> Math.abs(a - b) < eps
@@ -77,3 +78,39 @@ describe 'waveform kernel (PteronautOS port)', ->
     expect(limiarFraction).toBeGreaterThan 0
     expect(limiarFraction).toBeLessThan 1
     expect(approx points[0].y, 1, 1e-2).toBe true
+
+describe 'phase-quantized harmonizer (Josephson washboard pendulum)', ->
+  TWO_PI = 2 * Math.PI
+  target = 6 * TWO_PI
+  makeState = -> { basePhase: 0, phaseOffset: 0, debtVel: 0 }
+  fracToBeat = (offset) ->
+    f = ((offset % TWO_PI) + TWO_PI) % TWO_PI
+    Math.min f, TWO_PI - f
+
+  it 'locks on the beat with no demand', ->
+    state = makeState()
+    for i in [0...1000]
+      advanceHarmonizedPhase state, target, 1.0, 0.001
+    expect(state.phaseOffset).toBeCloseTo 0, 1
+    expect(state.debtVel).toBeCloseTo 0, 1
+
+  it 'weak demand rings back to the same beat on release', ->
+    state = makeState()
+    # extraTarget = 0.08·37.7 = 3.0 rad/s < ω₀/2ζ = 7.14 → stays within the beat
+    for i in [0...2000]
+      advanceHarmonizedPhase state, target, 1.08, 0.001
+    for i in [0...3000]
+      advanceHarmonizedPhase state, target, 1.0, 0.001
+    expect(fracToBeat state.phaseOffset).toBeLessThan 0.05
+
+  it 'strong demand slips and lands on a WHOLE stroke (quantized)', ->
+    state = makeState()
+    # extraTarget = 0.3·37.7 = 11.3 rad/s > ω₀/2ζ → crosses the π barrier
+    for i in [0...1500]
+      advanceHarmonizedPhase state, target, 1.3, 0.001
+    # Release: the debt settles on an exact multiple of 2π — the additional
+    # flap lands in step with the grid, never a fractional beat.
+    for i in [0...3000]
+      advanceHarmonizedPhase state, target, 1.0, 0.001
+    expect(fracToBeat state.phaseOffset).toBeLessThan 0.05
+    expect(state.phaseOffset).toBeGreaterThan TWO_PI - 0.5

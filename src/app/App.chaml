@@ -1,12 +1,11 @@
 import './App.sass'
 import h from './h.coffee'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { useSimulation } from '../simulation/useSimulation.coffee'
 import useBridge from '../integration/useBridge.coffee'
 import AnimatedPage from './AnimatedPage.coffee'
 import ConnectionBar from '../components/panels/ConnectionBar/ConnectionBar.chaml'
-import ProgressiveBlur from '../components/overlays/ProgressiveBlur/ProgressiveBlur.coffee'
 import FeatherField from '../components/canvas/FeatherField/FeatherField.coffee'
 import Dock from '../components/overlays/Dock/Dock.coffee'
 import CommandPalette from '../components/overlays/CommandPalette/CommandPalette.coffee'
@@ -15,9 +14,8 @@ import BreakpointIndicator from '../components/debug/BreakpointIndicator/Breakpo
 import ConfigurationHub from '../components/views/ConfigurationHub/ConfigurationHub.coffee'
 import WelcomeView from '../components/views/WelcomeView/WelcomeView.coffee'
 import OrnithopterView from '../components/views/OrnithopterView/OrnithopterView.coffee'
-import WingsView from '../components/views/WingsView/WingsView.chaml'
+import FlightProfilesView from '../components/views/FlightProfilesView/FlightProfilesView.coffee'
 import ServosView from '../components/views/ServosView/ServosView.chaml'
-import FlightView from '../components/views/FlightView/FlightView.chaml'
 import PidTuningView from '../components/views/PidTuningView/PidTuningView.coffee'
 import OsdEditorView from '../components/views/OsdEditorView/OsdEditorView.coffee'
 import ReceiverView from '../components/views/ReceiverView/ReceiverView.coffee'
@@ -37,67 +35,66 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - useSimulation()
 - useBridge()
 - location = useLocation()
-- `const deviceEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'device'}))`
-- `const airframeEl = h(AnimatedPage, null, h(WingsView, null))`
-- `const servosEl = h(AnimatedPage, null, h(ServosView, null))`
-- `const controlEl = h(AnimatedPage, null, h(PidTuningView, null))`
-- `const deckEl = h(AnimatedPage, null, h(FlightView, null))`
-- `const receiverEl = h(AnimatedPage, null, h(ReceiverView, null))`
-- `const voiceEl = h(AnimatedPage, null, h(VoiceView, null))`
-- `const modesEl = h(AnimatedPage, null, h(ModesView, null))`
-- `const vtxEl = h(AnimatedPage, null, h(VtxView, null))`
-- `const portsEl = h(AnimatedPage, null, h(PortsView, null))`
-- `const powerEl = h(AnimatedPage, null, h(PowerView, null))`
-- `const sensorsEl = h(AnimatedPage, null, h(SensorsView, null))`
-- `const adjustmentsEl = h(AnimatedPage, null, h(AdjustmentsView, null))`
-- `const perceptionEl = h(AnimatedPage, null, h(PerceptionView, null))`
-- `const safetyEl = h(AnimatedPage, null, h(FailsafeView, null))`
-- `const osdEl = h(AnimatedPage, null, h(OsdEditorView, null))`
-- `const dataEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'data'}))`
-- `const flashEl = h(AnimatedPage, null, h(FlashingView, null))`
-- `const cliEl = h(AnimatedPage, null, h(CliTerminalView, null))`
 - `const welcomeEl = h(AnimatedPage, null, h(WelcomeView, null))`
 - `const orniEl = h(AnimatedPage, null, h(OrnithopterView, null))`
+- `const profilesEl = h(AnimatedPage, null, h(FlightProfilesView, null))`
+- `const servosEl = h(AnimatedPage, null, h(ServosView, null))`
+- `const controlEl = h(AnimatedPage, null, h(PidTuningView, null))`
+- `const modesEl = h(AnimatedPage, null, h(ModesView, null))`
+- `const receiverEl = h(AnimatedPage, null, h(ReceiverView, null))`
+- `const adjustmentsEl = h(AnimatedPage, null, h(AdjustmentsView, null))`
+- `const sensorsEl = h(AnimatedPage, null, h(SensorsView, null))`
+- `const perceptionEl = h(AnimatedPage, null, h(PerceptionView, null))`
+- `const deviceEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'device'}))`
+- `const portsEl = h(AnimatedPage, null, h(PortsView, null))`
+- `const powerEl = h(AnimatedPage, null, h(PowerView, null))`
+- `const vtxEl = h(AnimatedPage, null, h(VtxView, null))`
+- `const osdEl = h(AnimatedPage, null, h(OsdEditorView, null))`
+- `const voiceEl = h(AnimatedPage, null, h(VoiceView, null))`
+- `const memoryEl = h(AnimatedPage, null, h(MemoryView, null))`
+- `const flashEl = h(AnimatedPage, null, h(FlashingView, null))`
+- `const dataEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'data'}))`
+- `const safetyEl = h(AnimatedPage, null, h(FailsafeView, null))`
+- `const cliEl = h(AnimatedPage, null, h(CliTerminalView, null))`
+- `const basicEl = h(Navigate, { to: '/basic/body', replace: true })`
+- `const controlRedirectEl = h(Navigate, { to: '/control/pid', replace: true })`
+- `const sensorsRedirectEl = h(Navigate, { to: '/sensors/hardware', replace: true })`
+- `const systemRedirectEl = h(Navigate, { to: '/system/device', replace: true })`
 .studio-shell{ role: 'application', aria-label: 'OrniFlight Studio' }
   %FeatherField
   %a.skip-link{ href: '#main-content' }
     Skip to content
   %ConnectionBar
-  %ProgressiveBlur{ position: 'top' }
-  %ProgressiveBlur{ position: 'bottom' }
   %div#main-content{ role: 'main' }
     %AnimatePresence{ mode: 'wait' }
       %Routes{ location: location, key: location.pathname }
         %Route{ path: '/', element: welcomeEl }
-        %Route{ path: '/device', element: deviceEl }
-        %Route{ path: '/airframe', element: airframeEl }
-        %Route{ path: '/control', element: controlEl }
-        %Route{ path: '/receiver', element: receiverEl }
-        %Route{ path: '/power', element: powerEl }
-        %Route{ path: '/sensors', element: sensorsEl }
-        %Route{ path: '/adjustments', element: adjustmentsEl }
-        %Route{ path: '/safety', element: safetyEl }
-        %Route{ path: '/osd', element: osdEl }
-        %Route{ path: '/data', element: dataEl }
-        %Route{ path: '/flash', element: flashEl }
-        %Route{ path: '/cli', element: cliEl }
-        %Route{ path: '/ornithopter', element: orniEl }
-        %Route{ path: '/kernel', element: orniEl }
-        %Route{ path: '/simulator', element: airframeEl }
+        %Route{ path: '/basic', element: basicEl }
+        %Route{ path: '/basic/body', element: orniEl }
+        %Route{ path: '/basic/airframe', element: orniEl }
+        %Route{ path: '/basic/wave', element: orniEl }
+        %Route{ path: '/profiles', element: profilesEl }
         %Route{ path: '/servos', element: servosEl }
-        %Route{ path: '/pid', element: controlEl }
-        %Route{ path: '/mixer', element: deckEl }
-        %Route{ path: '/gyro', element: perceptionEl }
-        %Route{ path: '/wings', element: airframeEl }
-        %Route{ path: '/flight', element: deckEl }
-        %Route{ path: '/perception', element: perceptionEl }
-        %Route{ path: '/voice', element: voiceEl }
-        %Route{ path: '/modes', element: modesEl }
-        %Route{ path: '/vtx', element: vtxEl }
-        %Route{ path: '/ports', element: portsEl }
-        %Route{ path: '/memory', element: deckEl }
-        %Route{ path: '/profiles', element: deckEl }
-        %Route{ path: '/firmware', element: flashEl }
+        %Route{ path: '/control', element: controlRedirectEl }
+        %Route{ path: '/control/pid', element: controlEl }
+        %Route{ path: '/control/modes', element: modesEl }
+        %Route{ path: '/control/receiver', element: receiverEl }
+        %Route{ path: '/control/adjustments', element: adjustmentsEl }
+        %Route{ path: '/sensors', element: sensorsRedirectEl }
+        %Route{ path: '/sensors/hardware', element: sensorsEl }
+        %Route{ path: '/sensors/gyro', element: perceptionEl }
+        %Route{ path: '/system', element: systemRedirectEl }
+        %Route{ path: '/system/device', element: deviceEl }
+        %Route{ path: '/system/ports', element: portsEl }
+        %Route{ path: '/system/power', element: powerEl }
+        %Route{ path: '/system/vtx', element: vtxEl }
+        %Route{ path: '/system/osd', element: osdEl }
+        %Route{ path: '/system/voice', element: voiceEl }
+        %Route{ path: '/system/memory', element: memoryEl }
+        %Route{ path: '/system/flash', element: flashEl }
+        %Route{ path: '/system/data', element: dataEl }
+        %Route{ path: '/safety', element: safetyEl }
+        %Route{ path: '/cli', element: cliEl }
   %Dock
   %CommandPalette
   %DebugPanel

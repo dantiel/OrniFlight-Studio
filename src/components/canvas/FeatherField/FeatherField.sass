@@ -2,18 +2,14 @@
 // FeatherField — the æther beneath the glass
 // ═══════════════════════════════════════════
 
-// Full-shell anchor: the æther now breathes behind EVERYTHING —
+// Full-shell anchor: the æther breathes behind EVERYTHING —
 // the transparent toolbar, the scroll content, the floating dock.
-// It is pure backdrop, painted once beneath all glass.
+// It is pure backdrop, painted once beneath all glass — and it
+// stays sharp: panels frost it via their own backdrop-filter.
 .feather-field-anchor
   position: absolute
   inset: 0
   z-index: 0
-  overflow: hidden
-  pointer-events: none
-
-.feather-field-defs
-  position: absolute
   overflow: hidden
   pointer-events: none
 
@@ -27,7 +23,6 @@
   background-repeat: repeat
   background-size: clamp(300px, 26vw, 840px)
   opacity: calc(var(--of-feather-opacity) * 0.9)
-  filter: url(#of-feather-refract)
   will-change: transform
   // Feathers whisper in the wind — a slow breathing drift.
   animation: feather-drift 46s ease-in-out infinite alternate
