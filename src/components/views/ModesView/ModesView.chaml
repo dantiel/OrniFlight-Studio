@@ -1,3 +1,4 @@
+- import { memo } from 'react'
 - import { fmt0, intFromEvent } from '../../../lib/essential.coffee'
 - import useModesStore from '../../../stores/useModesStore.coffee'
 - import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'

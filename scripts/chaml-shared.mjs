@@ -31,9 +31,37 @@ export const compileCoffee = (src, realId) => {
   const result = coffeeScript.compile(src, { bare: true, sourceMap: true, filename: realId });
   if (typeof result === 'string') return { code: result, map: null };
   return { code: result.js, map: result.v3SourceMap || null };
-};
-
-// Memoized PascalCase → file-path registry built from src/components/.
+ };
+ 
+ // Extract top-level `---` fence blocks (coffeehaml@0.8.0 module-scope Coffee).
+ // coffeehaml hoists them outside the component wrapper; we extract them here
+ // and compile them separately so the re-wrap below never swallows their
+ // `const helper = ...` output into the function body (where it would either
+ // syntax-error on `export` or re-run every render).
+ const extractFences = (src) => {
+ const lines = src.split('\n');
+ const out = [];
+ const blocks = [];
+ let i = 0;
+ while (i < lines.length) {
+   if (!/^\s*---\s*$/.test(lines[i])) { out.push(lines[i]); i++; continue; }
+   i++; // open fence
+   const body = [];
+   while (i < lines.length && !/^\s*---\s*$/.test(lines[i])) {
+     body.push(lines[i]);
+     i++;
+   }
+   if (i < lines.length) i++; // close fence
+   const minIndent = body.reduce((m, b) => {
+     if (b.trim() === '') return m;
+     return Math.min(m, b.match(/^\s*/)[0].length);
+   }, Infinity);
+   blocks.push((minIndent === Infinity ? body : body.map((b) => b.slice(minIndent))).join('\n'));
+ }
+ return { source: out.join('\n'), blocks };
+ };
+ 
+ // Memoized PascalCase → file-path registry built from src/components/.
 export const createComponentRegistry = (rootDir) => {
   let componentPaths = null;
 
@@ -105,7 +133,8 @@ export const createComponentRegistry = (rootDir) => {
 export const compileChamlComponent = (
   realId, src, name, { generateComponentImports, useCreateElement = false, fail }
 ) => {
-  const result = compileChaml(src, { sourceMap: true, wrap: null, filename: realId });
+  const { source: cleanedSrc, blocks } = extractFences(src);
+  const result = compileChaml(cleanedSrc, { sourceMap: true, wrap: null, filename: realId });
   if (result.errors.length > 0) {
     const err = new Error(result.errors[0].message);
     if (fail) fail(err);
@@ -151,6 +180,10 @@ export const compileChamlComponent = (
 
   const imports = sassImport + compImports + lines.slice(0, splitAt).join('\n');
   const body = lines.slice(splitAt).join('\n');
+  const fenceCode = blocks
+    .map((block) => compileCoffee(block, realId).code.trim())
+    .filter(Boolean)
+    .join('\n\n');
 
   // The JSX expression is the last top-level jsx/jsxs call — prepend `return`.
   const bodyLines = body.split('\n');
@@ -162,11 +195,22 @@ export const compileChamlComponent = (
     }
   }
 
+  // Thin `.coffee` wrappers that only did `import { memo } from 'react'` +
+  // `export default memo X` are inlined into the `.chaml` as
+  // `- import { memo } from 'react'`. When memo is imported, wrap the default
+  // export so the component stays memoized without a separate file.
+  const memoFromReact = /import\s*\{([^}]*)\}\s*from\s*['"]react['"]/.exec(imports + '\n' + fenceCode);
+  const memoized = !!memoFromReact && /\bmemo\b/.test(memoFromReact[1]);
+  const signature = memoized
+    ? `export default memo(function ${name}(props) {`
+    : `export default function ${name}(props) {`;
+
   return [
     '// @refresh reset',
     imports,
-    `export default function ${name}(props) {`,
+    fenceCode ? fenceCode + '\n' : '',
+    signature,
     bodyLines.join('\n'),
-    '}',
+    memoized ? '})' : '}',
   ].join('\n');
 };

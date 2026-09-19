@@ -1,3 +1,4 @@
+- import { memo } from 'react'
 - conn = props.connected
 - label = if conn then 'BREATHING' else 'GROUNDED'
 .connection-indicator{ className: "connection-indicator#{if conn then ' simulation' else ' disconnected' }", role: 'status', aria-label: "Connection: #{label}" }

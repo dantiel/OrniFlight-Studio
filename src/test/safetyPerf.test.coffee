@@ -1,7 +1,7 @@
 import { render, act } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import FailsafeView from '../components/views/FailsafeView/FailsafeView.coffee'
+import FailsafeView from '../components/views/FailsafeView/FailsafeView.chaml'
 import useSafetyStore from '../stores/useSafetyStore.coffee'
 import {
   encodeFailsafeConfig, decodeFailsafeConfig

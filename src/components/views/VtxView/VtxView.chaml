@@ -1,3 +1,4 @@
+- import { memo } from 'react'
 - import useVtxStore from '../../../stores/useVtxStore.coffee'
 - import { VTX_BANDS, VTX_CHANNEL_COUNT, VTX_POWER_LEVELS, VTX_TYPE_LABELS, bandLabel, bandLetter, lookupBandChannel } from '../../../lib/vtxCatalog.coffee'
 - store = useVtxStore()

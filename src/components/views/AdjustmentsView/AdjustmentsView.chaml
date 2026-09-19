@@ -1,3 +1,4 @@
+- import { memo } from 'react'
 - import './AdjustmentsView.sass'
 - import useAdjustmentsStore from '../../../stores/useAdjustmentsStore.coffee'
 - import { MAX_ADJUSTMENT_RANGE_COUNT } from '../../../lib/adjustmentsCatalog.coffee'

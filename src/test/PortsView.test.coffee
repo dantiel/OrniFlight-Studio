@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import PortsView from '../components/views/PortsView/PortsView.coffee'
+import PortsView from '../components/views/PortsView/PortsView.chaml'
 import usePortsStore from '../stores/usePortsStore.coffee'
 import { FUNCTION_MSP, FUNCTION_GPS } from '../lib/serialCatalog.coffee'
 

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import VtxView from '../components/views/VtxView/VtxView.coffee'
+import VtxView from '../components/views/VtxView/VtxView.chaml'
 import useVtxStore from '../stores/useVtxStore.coffee'
 
 describe 'VtxView', ->

@@ -1,3 +1,4 @@
+- import { memo } from 'react'
 - import './PowerView.sass'
 - import usePowerStore from '../../../stores/usePowerStore.coffee'
 - store = usePowerStore()

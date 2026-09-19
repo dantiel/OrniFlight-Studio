@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import OsdEditorView from '../components/views/OsdEditorView/OsdEditorView.coffee'
+import OsdEditorView from '../components/views/OsdEditorView/OsdEditorView.chaml'
 import useOsdStore from '../stores/useOsdStore.coffee'
 import { itemPos, posCell, visibleInProfile } from '../lib/osdCatalog.coffee'
 

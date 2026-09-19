@@ -1,7 +1,7 @@
 import { render, fireEvent, screen } from '@testing-library/react'
 import { createElement as h, memo, useState } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import PidTuningView from '../components/views/PidTuningView/PidTuningView.coffee'
+import PidTuningView from '../components/views/PidTuningView/PidTuningView.chaml'
 import MockRow from '../components/primitives/ParamRow/ParamRow.chaml'
 import useTuningStore from '../stores/useTuningStore.coffee'
 
@@ -23,7 +23,10 @@ vi.mock '../components/primitives/ParamRow/ParamRow.chaml', ->
         type: 'range'
         value: String(props.value ? 0)
         onInput: props.onInput
-  { default: row }
+  # ParamRow now self-memoizes (the `.coffee` memo wrapper was inlined into
+  # the `.chaml`), so the mock must preserve that contract or every parent
+  # render would re-render all 29 rows and break the perf probe.
+  { default: memo(row) }
 
 describe 'mock memo probe', ->
   it 're-renders a memoized row when its props change', ->

@@ -2,7 +2,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createElement as h } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import PidTuningView from '../components/views/PidTuningView/PidTuningView.coffee'
+import PidTuningView from '../components/views/PidTuningView/PidTuningView.chaml'
 import useTuningStore from '../stores/useTuningStore.coffee'
 
 describe 'PidTuningView', ->
