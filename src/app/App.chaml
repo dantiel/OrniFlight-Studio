@@ -65,9 +65,9 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
   %FeatherField
   %a.skip-link{ href: '#main-content' }
     Skip to content
-    %ConnectionBar
-    %ProgressiveBlur{ position: 'top' }
-    %div#main-content{ role: 'main' }
+  %ConnectionBar
+  %ProgressiveBlur{ position: 'top' }
+  %div#main-content{ role: 'main' }
     %AnimatePresence{ mode: 'wait' }
       %Routes{ location: location, key: location.pathname }
         %Route{ path: '/', element: welcomeEl }

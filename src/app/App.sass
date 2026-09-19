@@ -105,4 +105,7 @@
   background: transparent
   // The transparent toolbar floats over the scroll surface; pad the
   // top so content starts below it, then scrolls beneath its glass.
+  // Bottom padding clears the floating Dock so trailing buttons can
+  // scroll fully into view instead of hiding under the shelf.
   padding-top: var(--of-toolbar-height)
+  padding-bottom: calc(var(--of-dock-height) + var(--of-space-8))

@@ -17,18 +17,17 @@
   &-bottom
     bottom: 0
 
-// Each tier blurs only what it overlaps; the mask fades the blur to
-// nothing in a smooth, continuous ramp (not a hard 52% plate), so the
-// text crossing beneath dissolves progressively — masked in sync with
-// the blur, never a slab of frost.
-$pb-fade: rgba(0,0,0,0.6) 55%, transparent var(--pb-reach)
-$pb-mask: linear-gradient(to bottom, #000 0%, $pb-fade)
+// Each tier blurs only what it overlaps; the mask holds the blur at
+// full strength through the entire toolbar (primary row + submenu),
+// then dissolves in a smooth, continuous ramp below it — masked in
+// sync with the blur, never a slab of frost over the title.
+$pb-mask: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), transparent var(--pb-reach))
 
 .progressive-blur-layer
   position: absolute
   left: 0
   right: 0
-  height: 88px
+  height: 112px
   // Neutral blur — no saturate() here, that was the blue overdrive.
   backdrop-filter: blur(var(--pb-blur))
   -webkit-backdrop-filter: blur(var(--pb-blur))
@@ -49,7 +48,7 @@ $pb-mask: linear-gradient(to bottom, #000 0%, $pb-fade)
   position: absolute
   left: 0
   right: 0
-  height: 88px
+  height: 112px
   background: linear-gradient(to bottom,
     rgba(var(--of-accent-rgb), 0.10),
     rgba(var(--of-accent-rgb), 0.04) 60%,

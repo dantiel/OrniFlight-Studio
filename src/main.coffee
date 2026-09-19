@@ -14,6 +14,9 @@ if import.meta.env.DEV
 
 rootEl = document.getElementById 'root'
 root = createRoot rootEl
-root.render h HashRouter, null,
+routerFuture =
+  v7_startTransition: true
+  v7_relativeSplatPath: true
+root.render h HashRouter, { future: routerFuture },
   h ErrorBoundary, null,
     h App, null

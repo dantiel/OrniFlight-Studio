@@ -19,12 +19,12 @@ import h from '../../../app/h.coffee'
 # progressively instead of slamming shut in a blue wall.
 LAYERS = [
   { blur: 16, reach: '100%' }
-  { blur: 10, reach: '70%' }
-  { blur: 5,  reach: '44%' }
-  { blur: 2,  reach: '22%' }
+  { blur: 10, reach: '85%' }
+  { blur: 5,  reach: '73%' }
+  { blur: 2,  reach: '66%' }
 ]
 
-CURTAIN = 88
+CURTAIN = 112
 
 ProgressiveBlur = (props) ->
   position = props.position or 'top'
@@ -39,6 +39,8 @@ ProgressiveBlur = (props) ->
         style:
           '--pb-blur': "#{layer.blur}px"
           '--pb-reach': layer.reach
-    h 'div', { className: 'progressive-blur-tint' }
+    h 'div',
+      className: 'progressive-blur-tint'
+      style: { '--pb-reach': '100%' }
 
 export default ProgressiveBlur
