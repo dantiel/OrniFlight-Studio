@@ -1,5 +1,8 @@
-- import { servoDefs, pidDefs, ondasDefs, servoDisplay, servoParse } from './helpers.coffee'
-- import { parsedFromEvent, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
+~~~
+import { servoDefs, pidDefs, ondasDefs, servoDisplay, servoParse } from './helpers.coffee'
+import { parsedFromEvent, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
+~~~
+
 - mode = props.mode || 'all'
 .studio-inspector
   - if mode == 'servos' or mode == 'all'

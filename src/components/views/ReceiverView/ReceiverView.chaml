@@ -1,8 +1,11 @@
-- import { memo } from 'react'
-- import { fmt0, intFromEvent } from '../../../lib/essential.coffee'
-- import useReceiverStore from '../../../stores/useReceiverStore.coffee'
-- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
-- import { SERIALRX_PROVIDERS, RC_CHANNEL_LETTERS, RXFAIL_MODE, RXFAIL_STEP_MAX } from '../../../protocol/mspDecoders.coffee'
+~~~
+import { memo } from 'react'
+import { fmt0, intFromEvent } from '../../../lib/essential.coffee'
+import useReceiverStore from '../../../stores/useReceiverStore.coffee'
+import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+import { SERIALRX_PROVIDERS, RC_CHANNEL_LETTERS, RXFAIL_MODE, RXFAIL_STEP_MAX } from '../../../protocol/mspDecoders.coffee'
+~~~
+
 - store = useReceiverStore()
 - draft = store.draft
 - telemetry = useTelemetryStore (state) -> state.rcChannels

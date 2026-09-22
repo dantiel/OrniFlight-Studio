@@ -1,6 +1,9 @@
-- import './FeaturePanel.sass'
-- import useSafetyStore from '../../../stores/useSafetyStore.coffee'
-- import { FEATURE_BITS, featureBit } from '../../../lib/safetyCatalog.coffee'
+~~~
+import './FeaturePanel.sass'
+import useSafetyStore from '../../../stores/useSafetyStore.coffee'
+import { FEATURE_BITS, featureBit } from '../../../lib/safetyCatalog.coffee'
+~~~
+
 - store = useSafetyStore()
 - mask = store.draft.features
 - boolFromEvent = (f) -> (e) -> f e.target.checked

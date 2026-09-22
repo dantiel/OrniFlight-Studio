@@ -1,6 +1,9 @@
-- import './ArmingPanel.sass'
-- import useSafetyStore from '../../../stores/useSafetyStore.coffee'
-- import { ARMING_SMALL_ANGLE_MAX, GYRO_CAL_ON_FIRST_ARM_DEFAULT } from '../../../lib/safetyCatalog.coffee'
+~~~
+import './ArmingPanel.sass'
+import useSafetyStore from '../../../stores/useSafetyStore.coffee'
+import { ARMING_SMALL_ANGLE_MAX, GYRO_CAL_ON_FIRST_ARM_DEFAULT } from '../../../lib/safetyCatalog.coffee'
+~~~
+
 - store = useSafetyStore()
 - draft = store.draft.arming
 - valueFromEvent = (f) -> (e) -> f e.target.value

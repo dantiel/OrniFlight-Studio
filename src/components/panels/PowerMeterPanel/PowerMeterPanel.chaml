@@ -1,5 +1,8 @@
-- import './PowerMeterPanel.sass'
-- import usePowerStore from '../../../stores/usePowerStore.coffee'
+~~~
+import './PowerMeterPanel.sass'
+import usePowerStore from '../../../stores/usePowerStore.coffee'
+~~~
+
 - store = usePowerStore()
 - voltageMeter = store.draft.voltageMeter
 - currentMeter = store.draft.currentMeter

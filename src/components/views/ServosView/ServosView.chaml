@@ -1,6 +1,9 @@
-- import { fmt0, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
-- import useServoStore from '../../../stores/useServoStore.coffee'
-- import { SERVO_PRESETS } from '../../../lib/servoCatalog.coffee'
+~~~
+import { fmt0, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
+import useServoStore from '../../../stores/useServoStore.coffee'
+import { SERVO_PRESETS } from '../../../lib/servoCatalog.coffee'
+~~~
+
 - store = useServoStore()
 - draft = store.draft
 - wing = draft.wing

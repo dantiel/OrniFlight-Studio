@@ -1,5 +1,8 @@
-- import { memo } from 'react'
-- import AnimatedValue from '../../motion/AnimatedValue/AnimatedValue.coffee'
+~~~
+import { memo } from 'react'
+import AnimatedValue from '../../motion/AnimatedValue/AnimatedValue.coffee'
+~~~
+
 .readout
   - for item, i in (props.items || [])
     .readout-item{ key: i }

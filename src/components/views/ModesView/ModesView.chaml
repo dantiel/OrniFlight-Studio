@@ -1,9 +1,12 @@
-- import { memo } from 'react'
-- import { fmt0, intFromEvent } from '../../../lib/essential.coffee'
-- import useModesStore from '../../../stores/useModesStore.coffee'
-- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
-- import { modeCatalogEntries, ACRO_HINT } from '../../../lib/modeCatalog.coffee'
-- import { MODE_RANGE_USEC_MIN, MODE_RANGE_STEP_MAX } from '../../../protocol/mspDecoders.coffee'
+~~~
+import { memo } from 'react'
+import { fmt0, intFromEvent } from '../../../lib/essential.coffee'
+import useModesStore from '../../../stores/useModesStore.coffee'
+import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+import { modeCatalogEntries, ACRO_HINT } from '../../../lib/modeCatalog.coffee'
+import { MODE_RANGE_USEC_MIN, MODE_RANGE_STEP_MAX } from '../../../protocol/mspDecoders.coffee'
+~~~
+
 - store = useModesStore()
 - draft = store.draft
 - telemetry = useTelemetryStore (state) -> state.rcChannels

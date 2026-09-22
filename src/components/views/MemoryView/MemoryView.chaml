@@ -1,5 +1,8 @@
-- import { callWith } from '../../../lib/essential.coffee'
-- import useAppStore from '../../../stores/useAppStore.coffee'
+~~~
+import { callWith } from '../../../lib/essential.coffee'
+import useAppStore from '../../../stores/useAppStore.coffee'
+~~~
+
 - PROFILES = [['Gentle Glide', 'Slow, stable soaring.'], ['Agile Swirl', 'High-rate acrobatics with flips.'], ['Race Wind', 'Maximum thrust, minimal correction.'], ['Night Murmur', 'Quiet flight, reduced cadence.']]
 - PROFILE_ICONS = ['🕊️', '🦅', '⚡', '🦉']
 - activeProfile = useAppStore (s) -> s.activeProfile

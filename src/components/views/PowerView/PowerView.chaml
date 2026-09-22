@@ -1,6 +1,9 @@
-- import { memo } from 'react'
-- import './PowerView.sass'
-- import usePowerStore from '../../../stores/usePowerStore.coffee'
+~~~
+import { memo } from 'react'
+import './PowerView.sass'
+import usePowerStore from '../../../stores/usePowerStore.coffee'
+~~~
+
 - store = usePowerStore()
 - modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
 - readDisabled = store.mode != 'device' or !store.session

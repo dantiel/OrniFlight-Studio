@@ -1,6 +1,9 @@
-- import useFlashController from '../../../hooks/useFlashController.coffee'
-- import { FLASH_OPTIONS } from '../../../firmware/flashUi.coffee'
-- import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
+~~~
+import useFlashController from '../../../hooks/useFlashController.coffee'
+import { FLASH_OPTIONS } from '../../../firmware/flashUi.coffee'
+import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
+~~~
+
 - ctrl = useFlashController()
 .view-layout.layout-flash
   %ViewArea{ area: 'device' }

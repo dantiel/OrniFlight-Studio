@@ -1,6 +1,9 @@
-- import useEngineStore from '../../../stores/useEngineStore.coffee'
-- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
-- import useDeviceStore from '../../../stores/useDeviceStore.coffee'
+~~~
+import useEngineStore from '../../../stores/useEngineStore.coffee'
+import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+import useDeviceStore from '../../../stores/useDeviceStore.coffee'
+~~~
+
 - CHANS = ['Roll', 'Pitch', 'Yaw', 'Throttle', 'Aux 1', 'Aux 2', 'Aux 3', 'Aux 4']
 - sim = useEngineStore()
 - tele = useTelemetryStore()

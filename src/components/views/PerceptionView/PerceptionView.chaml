@@ -1,7 +1,10 @@
-- import { fmt1 } from '../../../lib/essential.coffee'
-- import { useDeferredValue } from 'react'
-- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
-- import useAppStore from '../../../stores/useAppStore.coffee'
+~~~
+import { fmt1 } from '../../../lib/essential.coffee'
+import { useDeferredValue } from 'react'
+import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+import useAppStore from '../../../stores/useAppStore.coffee'
+~~~
+
 - DEFAULT_GYRO = { roll: 0, pitch: 0, yaw: 0 }
 - DEFAULT_SERVOS = [0, 0, 0, 0, 0, 0]
 - tele = useTelemetryStore()

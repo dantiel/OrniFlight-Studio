@@ -1,6 +1,9 @@
-- import './AdjustmentRow.sass'
-- import useAdjustmentsStore from '../../../stores/useAdjustmentsStore.coffee'
-- import { ADJUSTMENT_FUNCTIONS, ADJUSTMENT_SLOTS, AUX_CHANNEL_COUNT, ADJUSTMENT_CHANNEL_STEP_MAX, adjustmentStepToUsec } from '../../../lib/adjustmentsCatalog.coffee'
+~~~
+import './AdjustmentRow.sass'
+import useAdjustmentsStore from '../../../stores/useAdjustmentsStore.coffee'
+import { ADJUSTMENT_FUNCTIONS, ADJUSTMENT_SLOTS, AUX_CHANNEL_COUNT, ADJUSTMENT_CHANNEL_STEP_MAX, adjustmentStepToUsec } from '../../../lib/adjustmentsCatalog.coffee'
+~~~
+
 - store = useAdjustmentsStore()
 - range = store.draft.ranges[props.slot]
 - valueFromEvent = (f) -> (event) -> f Number(event.target.value)

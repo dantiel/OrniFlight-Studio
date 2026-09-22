@@ -1,8 +1,11 @@
-- import { fmt1 } from '../../../lib/essential.coffee'
-- import ArrangementPanel from '../../panels/ArrangementPanel/ArrangementPanel.chaml'
-- import useEngineStore from '../../../stores/useEngineStore.coffee'
-- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
-- import useAppStore from '../../../stores/useAppStore.coffee'
+~~~
+import { fmt1 } from '../../../lib/essential.coffee'
+import ArrangementPanel from '../../panels/ArrangementPanel/ArrangementPanel.chaml'
+import useEngineStore from '../../../stores/useEngineStore.coffee'
+import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+import useAppStore from '../../../stores/useAppStore.coffee'
+~~~
+
 - sim = useEngineStore()
 - tele = useTelemetryStore()
 - waveCurves = useAppStore (s) -> s.waveCurves

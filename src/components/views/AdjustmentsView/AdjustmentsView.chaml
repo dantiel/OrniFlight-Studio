@@ -1,7 +1,10 @@
-- import { memo } from 'react'
-- import './AdjustmentsView.sass'
-- import useAdjustmentsStore from '../../../stores/useAdjustmentsStore.coffee'
-- import { MAX_ADJUSTMENT_RANGE_COUNT } from '../../../lib/adjustmentsCatalog.coffee'
+~~~
+import { memo } from 'react'
+import './AdjustmentsView.sass'
+import useAdjustmentsStore from '../../../stores/useAdjustmentsStore.coffee'
+import { MAX_ADJUSTMENT_RANGE_COUNT } from '../../../lib/adjustmentsCatalog.coffee'
+~~~
+
 - store = useAdjustmentsStore()
 - modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
 - readDisabled = store.mode != 'device' or !store.session

@@ -1,6 +1,9 @@
-- import './SensorAlignmentPanel.sass'
-- import useSensorsStore from '../../../stores/useSensorsStore.coffee'
-- import { SENSOR_ALIGNMENTS } from '../../../lib/sensorsCatalog.coffee'
+~~~
+import './SensorAlignmentPanel.sass'
+import useSensorsStore from '../../../stores/useSensorsStore.coffee'
+import { SENSOR_ALIGNMENTS } from '../../../lib/sensorsCatalog.coffee'
+~~~
+
 - store = useSensorsStore()
 - alignment = store.draft.sensorAlignment
 - valueFromEvent = (f) -> (event) -> f Number(event.target.value)

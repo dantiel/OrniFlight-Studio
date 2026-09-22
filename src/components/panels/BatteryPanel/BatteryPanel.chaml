@@ -1,6 +1,9 @@
-- import './BatteryPanel.sass'
-- import usePowerStore from '../../../stores/usePowerStore.coffee'
-- import { VOLTAGE_METER_SOURCES, CURRENT_METER_SOURCES } from '../../../lib/powerCatalog.coffee'
+~~~
+import './BatteryPanel.sass'
+import usePowerStore from '../../../stores/usePowerStore.coffee'
+import { VOLTAGE_METER_SOURCES, CURRENT_METER_SOURCES } from '../../../lib/powerCatalog.coffee'
+~~~
+
 - store = usePowerStore()
 - battery = store.draft.battery
 - valueFromEvent = (f) -> (event) -> f Number(event.target.value)

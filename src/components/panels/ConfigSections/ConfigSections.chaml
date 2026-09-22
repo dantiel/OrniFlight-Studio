@@ -1,5 +1,8 @@
-- import { fmt0, fmt2, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
-- import useConfigurationStore from '../../../stores/useConfigurationStore.coffee'
+~~~
+import { fmt0, fmt2, floatFromEvent, intFromEvent } from '../../../lib/essential.coffee'
+import useConfigurationStore from '../../../stores/useConfigurationStore.coffee'
+~~~
+
 - cfg = useConfigurationStore()
 - geometry = cfg.draft.geometry
 - mass = cfg.draft.mass

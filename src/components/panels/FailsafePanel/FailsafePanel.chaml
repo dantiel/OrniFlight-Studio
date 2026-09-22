@@ -1,6 +1,9 @@
-- import './FailsafePanel.sass'
-- import useSafetyStore from '../../../stores/useSafetyStore.coffee'
-- import { FAILSAFE_PROCEDURES, FAILSAFE_SWITCH_MODES, FAILSAFE_THROTTLE_MIN, FAILSAFE_THROTTLE_MAX } from '../../../lib/safetyCatalog.coffee'
+~~~
+import './FailsafePanel.sass'
+import useSafetyStore from '../../../stores/useSafetyStore.coffee'
+import { FAILSAFE_PROCEDURES, FAILSAFE_SWITCH_MODES, FAILSAFE_THROTTLE_MIN, FAILSAFE_THROTTLE_MAX } from '../../../lib/safetyCatalog.coffee'
+~~~
+
 - store = useSafetyStore()
 - draft = store.draft.failsafe
 - valueFromEvent = (f) -> (e) -> f e.target.value

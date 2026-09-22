@@ -1,7 +1,10 @@
-- import './SensorCalibratePanel.sass'
-- import { useState } from 'react'
-- import useSensorsStore from '../../../stores/useSensorsStore.coffee'
-- import useDeviceStore from '../../../stores/useDeviceStore.coffee'
+~~~
+import './SensorCalibratePanel.sass'
+import { useState } from 'react'
+import useSensorsStore from '../../../stores/useSensorsStore.coffee'
+import useDeviceStore from '../../../stores/useDeviceStore.coffee'
+~~~
+
 - store = useSensorsStore()
 - status = useDeviceStore (state) -> state.status
 - [feedback, setFeedback] = useState null

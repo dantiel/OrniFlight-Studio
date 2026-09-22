@@ -1,5 +1,8 @@
-- import { memo } from 'react'
-- import useSafetyStore from '../../../stores/useSafetyStore.coffee'
+~~~
+import { memo } from 'react'
+import useSafetyStore from '../../../stores/useSafetyStore.coffee'
+~~~
+
 - store = useSafetyStore()
 - modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
 - readDisabled = store.mode != 'device' or !store.session

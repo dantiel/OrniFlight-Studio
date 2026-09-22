@@ -1,5 +1,8 @@
-- import { fmt1 } from '../../../lib/essential.coffee'
-- import { useDeferredValue } from 'react'
+~~~
+import { fmt1 } from '../../../lib/essential.coffee'
+import { useDeferredValue } from 'react'
+~~~
+
 - DEFAULT_GYRO = { roll: 0, pitch: 0, yaw: 0 }
 - DEFAULT_SERVOS = [0, 0, 0, 0, 0, 0]
 - wc0 = (props.waveCurves || ['wingL', 'wingR'])[0] || 'wingL'

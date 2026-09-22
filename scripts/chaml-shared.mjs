@@ -33,21 +33,25 @@ export const compileCoffee = (src, realId) => {
   return { code: result.js, map: result.v3SourceMap || null };
  };
  
- // Extract top-level `---` fence blocks (coffeehaml@0.8.0 module-scope Coffee).
- // coffeehaml hoists them outside the component wrapper; we extract them here
- // and compile them separately so the re-wrap below never swallows their
- // `const helper = ...` output into the function body (where it would either
- // syntax-error on `export` or re-run every render).
+ // Extract `~~~` preamble blocks (coffeehaml@0.10.0 module-scope Coffee).
+ // The `~~~` fence holds imports, helpers and one-time setup that must run
+ // once at module load, outside the component wrapper. coffeehaml emits them
+ // before the body; we extract them here and compile them separately so the
+ // re-wrap below never swallows their `const helper = ...` output into the
+ // function body (where it would re-run every render).
+ // NB: `---` is the render-time counterpart in 0.10.0 (re-runs per render,
+ // like `-` lines) — those stay in the source for coffeehaml to emit into
+ // the component body, so we do NOT extract them.
  const extractFences = (src) => {
  const lines = src.split('\n');
  const out = [];
  const blocks = [];
  let i = 0;
  while (i < lines.length) {
-   if (!/^\s*---\s*$/.test(lines[i])) { out.push(lines[i]); i++; continue; }
+   if (!/^\s*~~~\s*$/.test(lines[i])) { out.push(lines[i]); i++; continue; }
    i++; // open fence
    const body = [];
-   while (i < lines.length && !/^\s*---\s*$/.test(lines[i])) {
+   while (i < lines.length && !/^\s*~~~\s*$/.test(lines[i])) {
      body.push(lines[i]);
      i++;
    }
@@ -95,11 +99,14 @@ export const createComponentRegistry = (rootDir) => {
     return componentPaths;
   };
 
-  const generateComponentImports = (code, filePath) => {
+  const generateComponentImports = (code, filePath, preambleSource = '') => {
     const paths = getComponentPaths();
     const seen = new Set();
-    // Collect already-imported names to avoid duplicates.
-    for (const m of code.matchAll(
+    // Collect already-imported names to avoid duplicates. `preambleSource`
+    // carries the compiled `~~~` fence code so imports hoisted into the
+    // module preamble still register as "seen" (they are no longer part of
+    // `code` after extractFences strips the fences).
+    for (const m of (code + '\n' + preambleSource).matchAll(
       /import\s+(?:(\w+)\s*,?\s*)?(?:\{([^}]*)\})?\s*from/g
     )) {
       if (m[1]) seen.add(m[1]);
@@ -141,7 +148,14 @@ export const compileChamlComponent = (
     return null;
   }
 
-  const compImports = generateComponentImports(result.code, realId);
+  // Compile the `~~~` preamble blocks first so generateComponentImports can
+  // see their hoisted imports (they are stripped from `result.code` above).
+  const fenceCode = blocks
+    .map((block) => compileCoffee(block, realId).code.trim())
+    .filter(Boolean)
+    .join('\n\n');
+
+  const compImports = generateComponentImports(result.code, realId, fenceCode);
   let code = useCreateElement
     ? fixRuntime(result.code)
     : result.code.replace(/jsx\(([^,]+), null\)/g, 'jsx($1, {})');
@@ -180,10 +194,6 @@ export const compileChamlComponent = (
 
   const imports = sassImport + compImports + lines.slice(0, splitAt).join('\n');
   const body = lines.slice(splitAt).join('\n');
-  const fenceCode = blocks
-    .map((block) => compileCoffee(block, realId).code.trim())
-    .filter(Boolean)
-    .join('\n\n');
 
   // The JSX expression is the last top-level jsx/jsxs call — prepend `return`.
   const bodyLines = body.split('\n');

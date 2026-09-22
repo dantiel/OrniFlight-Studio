@@ -1,9 +1,12 @@
-- import { ARRANGEMENT_CATALOG } from '../../../lib/arrangementCatalog.coffee'
-- import SidebarSection from '../../layout/SidebarSection/SidebarSection.coffee'
-- import SidebarItem from '../../primitives/SidebarItem/SidebarItem.chaml'
-- import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
-- import useEngineStore from '../../../stores/useEngineStore.coffee'
-- import { callWith, floatFromEvent } from '../../../lib/essential.coffee'
+~~~
+import { ARRANGEMENT_CATALOG } from '../../../lib/arrangementCatalog.coffee'
+import SidebarSection from '../../layout/SidebarSection/SidebarSection.coffee'
+import SidebarItem from '../../primitives/SidebarItem/SidebarItem.chaml'
+import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
+import useEngineStore from '../../../stores/useEngineStore.coffee'
+import { callWith, floatFromEvent } from '../../../lib/essential.coffee'
+~~~
+
 - sim = useEngineStore()
 - sp = sim.simParams
 .studio-arrangement

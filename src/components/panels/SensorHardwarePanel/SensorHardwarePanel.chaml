@@ -1,6 +1,9 @@
-- import './SensorHardwarePanel.sass'
-- import useSensorsStore from '../../../stores/useSensorsStore.coffee'
-- import { ACC_HARDWARE, BARO_HARDWARE, MAG_HARDWARE } from '../../../lib/sensorsCatalog.coffee'
+~~~
+import './SensorHardwarePanel.sass'
+import useSensorsStore from '../../../stores/useSensorsStore.coffee'
+import { ACC_HARDWARE, BARO_HARDWARE, MAG_HARDWARE } from '../../../lib/sensorsCatalog.coffee'
+~~~
+
 - store = useSensorsStore()
 - config = store.draft.sensorConfig
 - valueFromEvent = (f) -> (event) -> f Number(event.target.value)

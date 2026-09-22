@@ -1,5 +1,8 @@
-- import { memo } from 'react'
-- import AnimatedNumberInput from '../../controls/AnimatedNumberInput/AnimatedNumberInput.coffee'
+~~~
+import { memo } from 'react'
+import AnimatedNumberInput from '../../controls/AnimatedNumberInput/AnimatedNumberInput.coffee'
+~~~
+
 .param-row
   %span.param-label
     = props.label

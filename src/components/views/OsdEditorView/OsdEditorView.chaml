@@ -1,7 +1,10 @@
-- import { useState, useRef, memo } from 'react'
-- import { OSD_ITEMS, OSD_PROFILE_COUNT, GRID_COLS, GRID_ROWS, visibleInProfile, posCell } from '../../../lib/osdCatalog.coffee'
-- import useOsdStore from '../../../stores/useOsdStore.coffee'
-- import makeOsdHandlers, { osdItemStyle } from './OsdEditorView.handlers.coffee'
+~~~
+import { useState, useRef, memo } from 'react'
+import { OSD_ITEMS, OSD_PROFILE_COUNT, GRID_COLS, GRID_ROWS, visibleInProfile, posCell } from '../../../lib/osdCatalog.coffee'
+import useOsdStore from '../../../stores/useOsdStore.coffee'
+import makeOsdHandlers, { osdItemStyle } from './OsdEditorView.handlers.coffee'
+~~~
+
 - osd = useOsdStore()
 - [selected, setSelected] = useState null
 - gridRef = useRef null

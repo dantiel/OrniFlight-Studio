@@ -1,10 +1,13 @@
-- import { memo } from 'react'
-- import { fmt2 } from '../../../lib/essential.coffee'
-- import { ONDAS_KEYS, PID_AXES, PID_TERMS } from '../../../protocol/mspDecoders.coffee'
-- import useTuningStore, { PID_GAIN_MAX } from '../../../stores/useTuningStore.coffee'
-- import { pidHandlers, ondasHandlers, rateHandlers, filterHandlers } from './fieldHandlers.coffee'
-- import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
-- import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
+~~~
+import { memo } from 'react'
+import { fmt2 } from '../../../lib/essential.coffee'
+import { ONDAS_KEYS, PID_AXES, PID_TERMS } from '../../../protocol/mspDecoders.coffee'
+import useTuningStore, { PID_GAIN_MAX } from '../../../stores/useTuningStore.coffee'
+import { pidHandlers, ondasHandlers, rateHandlers, filterHandlers } from './fieldHandlers.coffee'
+import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
+import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
+~~~
+
 - tuning = useTuningStore()
 - draft = tuning.draft
 - modeLabel = if tuning.mode == 'sim' then 'SIMULATION' else 'DEVICE'

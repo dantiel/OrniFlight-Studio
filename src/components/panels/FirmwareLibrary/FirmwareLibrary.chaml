@@ -1,4 +1,7 @@
-- import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
+~~~
+import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
+~~~
+
 - catalog = props.catalog || []
 - localImage = props.localImage
 - selectedId = props.selectedId

@@ -1,5 +1,8 @@
-- import { NavLink, useLocation } from 'react-router-dom'
-- import { activeModuleForPath, subtabsForPath } from '../../../lib/navigation.coffee'
+~~~
+import { NavLink, useLocation } from 'react-router-dom'
+import { activeModuleForPath, subtabsForPath } from '../../../lib/navigation.coffee'
+~~~
+
 - location = useLocation()
 - mod = activeModuleForPath location.pathname
 - subtabs = subtabsForPath location.pathname

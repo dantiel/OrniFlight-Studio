@@ -1,7 +1,10 @@
-- import SidebarSection from '../../layout/SidebarSection/SidebarSection.coffee'
-- import SidebarItem from '../../primitives/SidebarItem/SidebarItem.chaml'
-- import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
-- import { callWith, intFromEvent } from '../../../lib/essential.coffee'
+~~~
+import SidebarSection from '../../layout/SidebarSection/SidebarSection.coffee'
+import SidebarItem from '../../primitives/SidebarItem/SidebarItem.chaml'
+import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
+import { callWith, intFromEvent } from '../../../lib/essential.coffee'
+~~~
+
 .studio-sidebar
   %SidebarSection{ heading: 'Wing Servos' }
     - for servo, i in props.servos

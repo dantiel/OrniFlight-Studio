@@ -1,7 +1,10 @@
-- import { fmt1 } from '../../../lib/essential.coffee'
-- import useEngineStore from '../../../stores/useEngineStore.coffee'
-- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
-- import useAppStore from '../../../stores/useAppStore.coffee'
+~~~
+import { fmt1 } from '../../../lib/essential.coffee'
+import useEngineStore from '../../../stores/useEngineStore.coffee'
+import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+import useAppStore from '../../../stores/useAppStore.coffee'
+~~~
+
 - sim = useEngineStore()
 - tele = useTelemetryStore()
 - storedTab = useAppStore (s) -> s.activeTab

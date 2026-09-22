@@ -1,6 +1,9 @@
-- import './BeeperPanel.sass'
-- import useSafetyStore from '../../../stores/useSafetyStore.coffee'
-- import { BEEPER_MODES, BEEPER_ALL, BEEPER_ALL_FLAG, DSHOT_BEACON_MODES, beeperModeSilenced } from '../../../lib/safetyCatalog.coffee'
+~~~
+import './BeeperPanel.sass'
+import useSafetyStore from '../../../stores/useSafetyStore.coffee'
+import { BEEPER_MODES, BEEPER_ALL, BEEPER_ALL_FLAG, DSHOT_BEACON_MODES, beeperModeSilenced } from '../../../lib/safetyCatalog.coffee'
+~~~
+
 - store = useSafetyStore()
 - beeper = store.draft.beeper
 - valueFromEvent = (f) -> (e) -> f e.target.value

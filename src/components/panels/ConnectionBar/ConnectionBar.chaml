@@ -1,9 +1,12 @@
-- import { fmt1 } from '../../../lib/essential.coffee'
-- import useFirmwareConnection from '../../../hooks/useFirmwareConnection.coffee'
-- import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
-- import useAppStore from '../../../stores/useAppStore.coffee'
-- import Tooltip from '../../overlays/Tooltip/Tooltip.coffee'
-- import StatusIsland from '../../display/StatusIsland/StatusIsland.coffee'
+~~~
+import { fmt1 } from '../../../lib/essential.coffee'
+import useFirmwareConnection from '../../../hooks/useFirmwareConnection.coffee'
+import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+import useAppStore from '../../../stores/useAppStore.coffee'
+import Tooltip from '../../overlays/Tooltip/Tooltip.coffee'
+import StatusIsland from '../../display/StatusIsland/StatusIsland.coffee'
+~~~
+
 - conn = useFirmwareConnection()
   teleBattery = useTelemetryStore (s) -> s.batteryVoltage
   teleFlap = useTelemetryStore (s) -> s.flapFrequency
