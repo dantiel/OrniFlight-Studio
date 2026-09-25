@@ -40,5 +40,5 @@ describe 'ConnectionBar — Interaction', ->
     expect(texts).toContain 'OSD'
     expect(texts).toContain 'Sprache'
     expect(texts).toContain 'Speicher'
-    expect(texts).toContain 'Firmware'
+    expect(texts).toContain 'The Molt'
     expect(texts).toContain 'Daten'

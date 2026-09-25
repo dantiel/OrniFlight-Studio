@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — Flash State Machine (XState v5)
+# ORNIFLIGHT STUDIO · The Molt — Flash State Machine (XState v5)
 #
 # Single source of truth for the firmware flash lifecycle:
 #   idle → scanning → ready

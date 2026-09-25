@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — useFlasher Hook
+# ORNIFLIGHT STUDIO · The Molt — useFlasher Hook
 #
 # Bridge between the XState flash machine and React, mirroring
 # useConnection: one singleton actor, subscribed via useState.

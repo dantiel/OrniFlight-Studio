@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — USB DFU 1.1 Protocol (pure WebUSB)
+# ORNIFLIGHT STUDIO · The Molt — USB DFU 1.1 Protocol (pure WebUSB)
 #
 # Implements the USB-DFU class protocol for STM32 and compatible MCUs.
 # This is the wire layer — no DOM, no WebUSB handles, just protocol.

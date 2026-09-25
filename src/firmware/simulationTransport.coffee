@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — Simulation flash transport (dry-run)
+# ORNIFLIGHT STUDIO · The Molt — Simulation flash transport (dry-run)
 #
 # Faithful no-hardware backend behind run()/reboot(). Drives the
 # machine through erase → write → verify with chunked progress and

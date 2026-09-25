@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — Firmware Catalog
+# ORNIFLIGHT STUDIO · The Molt — Firmware Catalog
 #
 # Pure discovery + normalization for firmware images. The manifest
 # JSON at /public/firmware/manifest.json is the single source of

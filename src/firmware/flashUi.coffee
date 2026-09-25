@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — Flash UI lexicon
+# ORNIFLIGHT STUDIO · The Molt — Flash UI lexicon
 #
 # Pure presentation data: phase labels, option list and the
 # contextual flash button descriptor. No state, no side effects.

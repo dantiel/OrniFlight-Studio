@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — WebSerial transport for STM32 USART bootloader
+# ORNIFLIGHT STUDIO · The Molt — WebSerial transport for STM32 USART bootloader
 #
 # Hardware soul behind the same run()/reboot() interface the
 # simulation exposes. Owns the WebSerial port, fetches the image,

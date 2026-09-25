@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — WebUSB transport for STM32 DFU mode
+# ORNIFLIGHT STUDIO · The Molt — WebUSB transport for STM32 DFU mode
 #
 # Implements the USB-DFU class protocol for STM32 MCUs that
 # expose the native DFU bootloader (F3 family: SPRACINGF3, CLRACINGF3, etc.)

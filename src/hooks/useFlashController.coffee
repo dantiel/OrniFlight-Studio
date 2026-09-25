@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — useFlashController Hook
+# ORNIFLIGHT STUDIO · The Molt — useFlashController Hook
 #
 # Orchestrates the flashing page: catalog discovery, board detection,
 # flash machine events and the contextual button descriptor.

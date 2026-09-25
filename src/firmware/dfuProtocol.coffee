@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — STM32 USART bootloader protocol (AN3155)
+# ORNIFLIGHT STUDIO · The Molt — STM32 USART bootloader protocol (AN3155)
 #
 # Pure wire grammar over a minimal byte-port abstraction:
 #   read(count)  -> Promise<Uint8Array>  (exact count, or throw)

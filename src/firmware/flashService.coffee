@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — Firmware Flash Service (dispatcher)
+# ORNIFLIGHT STUDIO · The Molt — Firmware Flash Service (dispatcher)
 #
 # Single run()/reboot() surface for the flash controller. Routes to
 # WebSerial (USART bootloader) or WebUSB (DFU mode) when detected,

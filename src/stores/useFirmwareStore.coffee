@@ -1,5 +1,5 @@
 ###
-# ORNIFLIGHT STUDIO — Firmware Store (Zustand)
+# ORNIFLIGHT STUDIO · The Molt — Firmware Store (Zustand)
 #
 # UI state for the flashing page: discovered catalog, selection,
 # flash options, log buffer, detected device and transport mode.

@@ -48,7 +48,7 @@ SUBTABS =
     ['/system/osd',    'OSD']
     ['/system/voice',  'Sprache']
     ['/system/memory', 'Speicher']
-    ['/system/flash',  'Firmware']
+    ['/system/flash',  'The Molt']
     ['/system/data',   'Daten']
   ]
   safety: [['/safety', 'Failsafe']]
