@@ -1,0 +1,216 @@
+// ═══════════════════════════════════════════
+// CloudForge — cloud firmware build panel
+// ═══════════════════════════════════════════
+
+.cloud-forge
+  display: flex
+  flex-direction: column
+  min-height: 0
+  border-top: 1px solid var(--of-border-1)
+
+.cf-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding: var(--of-space-3) var(--of-space-5)
+
+.cf-head-title
+  font-family: var(--of-font-heading)
+  font-size: 10px
+  font-weight: 600
+  letter-spacing: 0.1em
+  text-transform: uppercase
+  color: var(--of-accent)
+
+.cf-status
+  display: flex
+  align-items: center
+  gap: var(--of-space-2)
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-xs)
+  text-transform: uppercase
+  letter-spacing: 0.05em
+  color: var(--of-text-muted)
+
+.cf-dot
+  width: 8px
+  height: 8px
+  border-radius: 50%
+  background: var(--of-text-muted)
+  transition: background var(--of-dur-fast) var(--of-ease-out)
+
+.cf-status.online .cf-dot
+  background: var(--of-accent-green)
+  box-shadow: 0 0 8px rgba(var(--of-accent-green-rgb), 0.6)
+
+.cf-status.offline .cf-dot
+  background: var(--of-accent-red)
+
+.cf-status.online
+  color: var(--of-accent-green)
+
+.cf-status.offline
+  color: var(--of-accent-red)
+
+.cf-banner
+  display: flex
+  align-items: flex-start
+  gap: var(--of-space-2)
+  margin: 0 var(--of-space-4) var(--of-space-4)
+  padding: var(--of-space-3)
+  border: 1px solid var(--of-border-1)
+  border-radius: var(--of-radius-lg)
+  background: var(--of-glass-card)
+
+.cf-banner-glyph
+  font-size: 14px
+
+.cf-banner-text
+  font-size: var(--of-text-xs)
+  line-height: 1.45
+  color: var(--of-text-soft)
+
+.cf-controls
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-3)
+  padding: 0 var(--of-space-4) var(--of-space-3)
+
+.cf-field
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-1)
+
+.cf-label
+  font-size: var(--of-text-xs)
+  letter-spacing: 0.05em
+  text-transform: uppercase
+  color: var(--of-text-muted)
+
+.cf-select,
+.cf-input
+  width: 100%
+  padding: var(--of-space-2) var(--of-space-3)
+  border: 1px solid var(--of-border-1)
+  border-radius: var(--of-radius-md)
+  background: var(--of-glass-card)
+  color: var(--of-text-primary)
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-sm)
+  outline: none
+
+  &:focus
+    border-color: var(--of-accent)
+    box-shadow: 0 0 0 1px rgba(var(--of-accent-rgb), 0.4)
+
+.cf-build,
+.cf-load
+  padding: var(--of-space-3)
+  border: none
+  border-radius: var(--of-radius-md)
+  cursor: pointer
+  font-family: var(--of-font-heading)
+  font-size: var(--of-text-sm)
+  letter-spacing: 0.06em
+  text-transform: uppercase
+  transition: all var(--of-dur-fast) var(--of-ease-out)
+
+  &:disabled
+    opacity: 0.5
+    cursor: not-allowed
+
+.cf-build
+  background: linear-gradient(135deg, var(--of-accent), var(--of-accent-cyan))
+  color: #0b0b0d
+
+  &:not(:disabled):hover
+    filter: brightness(1.1)
+
+.cf-load
+  background: rgba(var(--of-accent-rgb), 0.12)
+  color: var(--of-accent)
+  border: 1px solid rgba(var(--of-accent-rgb), 0.4)
+
+  &:not(:disabled):hover
+    background: rgba(var(--of-accent-rgb), 0.2)
+
+.cf-run
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-2)
+  margin: 0 var(--of-space-4) var(--of-space-3)
+  padding: var(--of-space-3)
+  border: 1px solid var(--of-border-1)
+  border-radius: var(--of-radius-lg)
+  background: var(--of-glass-card)
+
+.cf-run-line
+  display: flex
+  justify-content: space-between
+  gap: var(--of-space-2)
+
+.cf-run-label
+  font-size: var(--of-text-xs)
+  text-transform: uppercase
+  letter-spacing: 0.05em
+  color: var(--of-text-muted)
+
+.cf-run-value
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-xs)
+  color: var(--of-accent-amber)
+
+.cf-run-link
+  font-size: var(--of-text-xs)
+  color: var(--of-accent-cyan)
+  text-decoration: none
+
+  &:hover
+    text-decoration: underline
+
+.cf-error,
+.cf-run-error
+  font-size: var(--of-text-xs)
+  color: var(--of-accent-red)
+  line-height: 1.45
+
+.cf-error
+  margin: 0 var(--of-space-4) var(--of-space-3)
+
+.cf-history
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-2)
+  padding: var(--of-space-3) var(--of-space-4)
+  border-top: 1px solid var(--of-border-1)
+  overflow-y: auto
+
+.cf-history-title
+  font-size: var(--of-text-xs)
+  letter-spacing: 0.05em
+  text-transform: uppercase
+  color: var(--of-text-muted)
+
+.cf-history-item
+  display: flex
+  justify-content: space-between
+  align-items: center
+  padding: var(--of-space-2) var(--of-space-3)
+  border: 1px solid var(--of-border-1)
+  border-radius: var(--of-radius-md)
+  background: var(--of-glass-card)
+  cursor: pointer
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-xs)
+  color: var(--of-text-soft)
+  transition: all var(--of-dur-fast) var(--of-ease-out)
+
+  &:hover
+    border-color: var(--of-accent)
+    color: var(--of-accent)
+
+.cf-history-sha
+  color: var(--of-accent-cyan)
+
+.cf-history-date
+  color: var(--of-text-muted)

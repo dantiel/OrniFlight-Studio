@@ -2,6 +2,7 @@
 import useFlashController from '../../../hooks/useFlashController.coffee'
 import { FLASH_OPTIONS } from '../../../firmware/flashUi.coffee'
 import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
+import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
 ~~~
 
 - ctrl = useFlashController()
@@ -19,7 +20,9 @@ import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coff
       onDisconnect: ctrl.onDisconnect
     }
   %ViewArea{ area: 'library' }
-    %FirmwareLibrary{ catalog: ctrl.catalog, loading: ctrl.loading, selectedId: ctrl.selectedId, localImage: ctrl.localImage, onSelect: ctrl.onSelect, onLoadLocal: ctrl.onLoadLocal }
+    %div.library-stack
+      %FirmwareLibrary{ catalog: ctrl.catalog, loading: ctrl.loading, selectedId: ctrl.selectedId, localImage: ctrl.localImage, cloudImage: ctrl.cloudImage, onSelect: ctrl.onSelect, onLoadLocal: ctrl.onLoadLocal }
+      %CloudForge{ forge: ctrl.forge }
   %ViewArea{ area: 'forge' }
     %div.forge-stage
       %FlashProgress{ phase: ctrl.phase, progress: ctrl.progress, label: ctrl.label }

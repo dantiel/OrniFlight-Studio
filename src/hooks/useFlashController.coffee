@@ -8,6 +8,7 @@
 import { useEffect } from 'react'
 import useFlasher, { getFlashActor } from './useFlasher.coffee'
 import useFirmwareStore from '../stores/useFirmwareStore.coffee'
+import useCloudForgeStore from '../stores/useCloudForgeStore.coffee'
 import { run, reboot } from '../firmware/flashService.coffee'
 import { phaseLabel, buttonFor } from '../firmware/flashUi.coffee'
 
@@ -20,11 +21,19 @@ useFlashController = ->
 
   flash = useFlasher()
   fwStore = useFirmwareStore()
+  forge = useCloudForgeStore()
+
+  useEffect ->
+    forge.checkHealth()
+    undefined
+  , []
 
   catalog = fwStore.catalog
   selectedFw =
     if fwStore.selectedId == 'local'
       fwStore.localImage
+    else if fwStore.selectedId == 'cloud'
+      fwStore.cloudImage
     else
       catalog.find (f) -> f.id == fwStore.selectedId
   phase = flash.state
@@ -86,6 +95,7 @@ useFlashController = ->
     loading:    fwStore.loading
     selectedId: fwStore.selectedId
     localImage: fwStore.localImage
+    cloudImage: fwStore.cloudImage
     options:    fwStore.options
     device:     fwStore.device
     log:        fwStore.log
@@ -104,6 +114,23 @@ useFlashController = ->
     onClearLog: ->
       fwStore.clearLog()
       fwStore.appendLog 'INFO', 'Console cleared.'
+    forge:
+      online: forge.online
+      configured: forge.configured
+      checking: forge.checking
+      targets: forge.targets
+      history: forge.history
+      current: forge.current
+      building: forge.building
+      built: forge.built
+      loading: forge.loading
+      error: forge.error
+      onCheckHealth: forge.checkHealth
+      onLoadHistory: forge.loadHistory
+      onBuild: forge.startBuild
+      onLoad: forge.loadBuild
+      onCancel: forge.cancel
+      onReset: forge.reset
   }
 
 export default useFlashController

@@ -36,6 +36,7 @@ useFirmwareStore = create (set, get) ->
   loading: false
   selectedId: null
   localImage: null
+  cloudImage: null
   options: { verify: true, fullErase: false, reboot: true }
   log: []
   device: DEFAULT_DEVICE
@@ -74,6 +75,10 @@ useFirmwareStore = create (set, get) ->
     digest = await sha256Hex bytes
     fw = localFirmware file, bytes, digest
     set { localImage: fw, selectedId: 'local', lastError: null }
+    fw
+
+  setCloudImage: (fw) ->
+    set { cloudImage: fw, selectedId: 'cloud', lastError: null }
     fw
 
   # Detect with transport hint: 'serial' (default) or 'webusb'

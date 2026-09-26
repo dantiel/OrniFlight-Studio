@@ -25,6 +25,23 @@
     border-right: 1px solid var(--of-border-1)
     overflow: hidden
 
+
+.library-stack
+  display: flex
+  flex-direction: column
+  height: 100%
+  min-height: 0
+
+  .firmware-library
+    flex: 1
+    min-height: 0
+    height: auto
+
+  .cloud-forge
+    flex: 0 0 auto
+    max-height: 46%
+    overflow-y: auto
+
   .view-area-forge
     grid-area: forge
     display: flex

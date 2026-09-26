@@ -4,10 +4,11 @@ import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
 
 - catalog = props.catalog || []
 - localImage = props.localImage
+- cloudImage = props.cloudImage
 - selectedId = props.selectedId
 - loading = !!props.loading
 - onLocal = props.onLoadLocal || (->)
-- total = catalog.length + (if localImage then 1 else 0)
+- total = catalog.length + (if localImage then 1 else 0) + (if cloudImage then 1 else 0)
 .firmware-library
   .fw-head
     %span.fw-head-title Firmware Images
@@ -27,6 +28,17 @@ import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
       .fw-empty-text No firmware found — load a local image.
   - else
     .fw-list
+      - if cloudImage
+        %button.fw-card{ className: "fw-card#{if selectedId == 'cloud' then ' active' else ''}", onClick: (-> props.onSelect && props.onSelect('cloud')) }
+          .fw-card-top
+            %span.fw-card-name= cloudImage.name
+            %span.fw-channel{ className: 'fw-channel fw-channel-cloud' }
+              = 'cloud'
+          .fw-card-version= "v#{cloudImage.version}"
+          .fw-card-meta
+            %span= cloudImage.target
+            %span= fmtBytes(cloudImage.size)
+          .fw-card-notes= cloudImage.notes
       - if localImage
         %button.fw-card{ className: "fw-card#{if selectedId == 'local' then ' active' else ''}", onClick: (-> props.onSelect && props.onSelect('local')) }
           .fw-card-top

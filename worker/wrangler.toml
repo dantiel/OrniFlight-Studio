@@ -1,0 +1,17 @@
+name = "orniflight-forge"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+# Firmware repo the cloud build targets (Betaflight fork with ONDAS).
+GITHUB_REPO = "dantiel/OrniFlight"
+GITHUB_REF = "main"
+# Names must match .github/workflows/cloud-build.yml in the firmware repo.
+WORKFLOW_NAME = "OrniFlight Cloud Build"
+ARTIFACT_NAME = "orniflight-firmware"
+
+# GITHUB_TOKEN is a secret — set it with:
+#   wrangler secret put GITHUB_TOKEN
+# Needs Actions:read + Actions:write (trigger workflow_dispatch) and
+# artifact download. A fine-grained token with "Actions: read/write" on
+# dantiel/OrniFlight, or a classic PAT with `repo` scope, both work.

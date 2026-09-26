@@ -1,0 +1,17 @@
+{
+  "name": "orniflight-forge-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "OrniFlight Studio · The Forge — cloud firmware build backend (Cloudflare Worker).",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "fflate": "^0.8.2"
+  },
+  "devDependencies": {
+    "wrangler": "^4.86.0"
+  }
+}
