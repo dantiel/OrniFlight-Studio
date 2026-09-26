@@ -14,6 +14,12 @@ describe 'cloudForge', ->
     expect(resolveForgeBase()).toBe DEFAULT_FORGE_BASE
     expect(DEFAULT_FORGE_BASE).toMatch /^https:\/\/orniflight-forge\./
 
+  it 'mirrors configured in the store initial state', ->
+    # A bare `configured` key in a CoffeeScript object literal compiles to a
+    # no-op statement, silently dropping the field from the store. The store
+    # must carry the module-level flag so checkHealth() takes the network path.
+    expect(useCloudForgeStore.getState().configured).toBe true
+
   it 'builds a bytes-backed descriptor from a manifest', ->
     bytes = new Uint8Array [0x01, 0x02, 0x03]
     manifest =

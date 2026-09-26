@@ -18,7 +18,7 @@ POLL_FIRST = 1200
 
 useCloudForgeStore = create (set, get) ->
   online: null            # null = unknown | true | false
-  configured             # worker base URL present?
+  configured: configured  # worker base URL present?
   targets: TARGETS
   checking: false
   history: []
