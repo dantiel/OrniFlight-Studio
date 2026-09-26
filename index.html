@@ -61,5 +61,25 @@
     </div>
   </div>
   <script type="module" src="/src/main.coffee"></script>
+  <script>
+    // Hardened SW registration: fetch sw.js fresh every navigation
+    // (updateViaCache: 'none' defeats GitHub Pages' 10-min cache) and
+    // reload once when a newly-installed worker takes control.
+    (function () {
+      if (!('serviceWorker' in navigator)) return;
+      var refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('%BASE_URL%sw.js', {
+          scope: '%BASE_URL%',
+          updateViaCache: 'none',
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
