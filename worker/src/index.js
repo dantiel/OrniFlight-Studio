@@ -168,14 +168,36 @@ async function handleBuild(request, env) {
     );
   }
 
+  // Build flags: curated compile-time defines forwarded to the workflow's
+  // `options` input (make OPTIONS → -D tokens in a shell command). Force
+  // uppercase, whitelist the shape, cap the count.
+  const rawOptions = Array.isArray(inputs.options)
+    ? inputs.options
+    : String(inputs.options || "").trim().split(/\s+/).filter(Boolean);
+  if (rawOptions.length > 32) {
+    return json({ error: "options: at most 32 defines per build." }, 400);
+  }
+  const options = [];
+  for (const token of rawOptions) {
+    const def = String(token).trim().toUpperCase();
+    if (!/^[A-Z0-9_]{2,40}$/.test(def)) {
+      return json(
+        { error: `Invalid build define '${def}'. Only [A-Z0-9_], 2-40 chars.` },
+        400,
+      );
+    }
+    options.push(def);
+  }
+
   // Only forward keys that exist in cloud-build.yml's dispatch inputs.
-  // (ONDAS gains are runtime CLI-tunable, so no compile-time defines are
-  // needed — keeping the surface to target + version_tag only.)
   const dispatchInputs = {};
   for (const key of ["target", "version_tag"]) {
     const v = inputs[key];
     if (v == null || v === "") continue;
     dispatchInputs[key] = String(v);
+  }
+  if (options.length) {
+    dispatchInputs.options = options.join(" ");
   }
 
   const dispatchTime = Date.now();
