@@ -6,14 +6,14 @@
 ###
 import { create } from 'zustand'
 import {
-  fetchCatalog, sha256Hex, localFirmware
+  fetchCatalog, sha256Hex, localFirmware, MANIFEST_PATH
 } from '../firmware/firmwareCatalog.coffee'
 import {
   detectDevice, detectSerial, detectWebUsb
   clearDevice, isSerialSupported, isWebUsbSupported
 } from '../firmware/flashService.coffee'
 
-MANIFEST_URL = '/firmware/manifest.json'
+MANIFEST_URL = MANIFEST_PATH
 
 DEFAULT_DEVICE =
   name: 'OrniFlight F4'

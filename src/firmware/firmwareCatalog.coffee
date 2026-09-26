@@ -7,6 +7,15 @@
 ###
 import { Result } from '../lib/essential.coffee'
 
+# Vite public base (e.g. '/OrniFlight-Studio/'). Resolve asset paths
+# against it so static resources work under a subpath deploy (GitHub Pages)
+# and the dev server alike. Falls back to '/' outside Vite (tests).
+BASE = import.meta.env?.BASE_URL or '/'
+
+publicPath = (p) -> BASE + (p or '').replace /^\//, ''
+
+MANIFEST_PATH = publicPath 'firmware/manifest.json'
+
 normalizeFirmware = (raw = {}) ->
   target = raw.target || 'ORNI-F4'
   version = raw.version || '0.0.0'
@@ -16,7 +25,7 @@ normalizeFirmware = (raw = {}) ->
     version
     mcu:     raw.mcu || 'STM32F405'
     channel: raw.channel || 'stable'
-    file:    raw.file || ''
+    file:    if raw.file then publicPath(raw.file) else ''
     size:    raw.size || 0
     sha256:  raw.sha256 || ''
     date:    raw.date || ''
@@ -44,7 +53,7 @@ parseCatalog = (json) ->
   catalog = raw.map(normalizeFirmware).sort(compareVersions)
   Result.ok catalog
 
-fetchCatalog = (url = '/firmware/manifest.json') ->
+fetchCatalog = (url = MANIFEST_PATH) ->
   fetch(url)
     .then (res) ->
       if res.ok then res.json() else Promise.reject(new Error("HTTP #{res.status}"))
@@ -88,6 +97,7 @@ fmtBytes = (n = 0) ->
     "#{(n / (1024 * 1024)).toFixed(1)} MB"
 
 export {
+  publicPath, MANIFEST_PATH
   normalizeFirmware, parseCatalog, fetchCatalog, compareVersions, fmtBytes
   sha256Hex, localFirmware
 }
