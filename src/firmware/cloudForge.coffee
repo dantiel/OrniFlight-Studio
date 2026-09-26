@@ -9,10 +9,11 @@
 #   1. ?forge=<url>            runtime override
 #   2. VITE_FORGE_API_BASE     baked in at build time
 #   3. localStorage            persisted override
-#   4. same-origin fallback    worker serving the dashboard directly
+#   4. DEFAULT_FORGE_BASE      the production deployment
 ###
 
 TARGETS = ['TINYFISH', 'OMNIBUSF4', 'SPRACINGF7DUAL', 'BETAFLIGHTF3']
+DEFAULT_FORGE_BASE = 'https://orniflight-forge.orniflight-cloud-forge.workers.dev'
 
 stripSlash = (s) -> (s or '').replace /\/$/, ''
 
@@ -27,7 +28,9 @@ resolveForgeBase = ->
   return stripSlash fromQuery if fromQuery
   fromEnv = import.meta.env?.VITE_FORGE_API_BASE
   return stripSlash fromEnv if fromEnv
-  stripSlash readStorage()
+  fromStorage = stripSlash readStorage()
+  return fromStorage if fromStorage
+  DEFAULT_FORGE_BASE
 
 setForgeBase = (url) ->
   try localStorage.setItem 'orniflight-forge-api', stripSlash url
@@ -104,7 +107,7 @@ cloudFirmware = (manifest, bytes) ->
   }
 
 export {
-  TARGETS, FORGE_API_BASE, configured
+  TARGETS, FORGE_API_BASE, DEFAULT_FORGE_BASE, configured
   resolveForgeBase, setForgeBase
   health, startBuild, buildStatus, downloadBuild, buildManifest
   buildHistory, cancelBuild, cloudFirmware

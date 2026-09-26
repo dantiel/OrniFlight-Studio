@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
-  TARGETS, configured, health, cloudFirmware
+  TARGETS, configured, DEFAULT_FORGE_BASE, resolveForgeBase, cloudFirmware
 } from '../firmware/cloudForge.coffee'
 import useCloudForgeStore from '../stores/useCloudForgeStore.coffee'
 
@@ -9,12 +9,10 @@ describe 'cloudForge', ->
     expect(TARGETS).toContain 'TINYFISH'
     expect(TARGETS).toContain 'SPRACINGF7DUAL'
 
-  it 'reports unconfigured without a worker base URL', ->
-    expect(configured).toBe false
-    h = await health()
-    expect(h.ok).toBe false
-    expect(h.configured).toBe false
-    expect(h.targets).toEqual TARGETS
+  it 'defaults to the production forge deployment', ->
+    expect(configured).toBe true
+    expect(resolveForgeBase()).toBe DEFAULT_FORGE_BASE
+    expect(DEFAULT_FORGE_BASE).toMatch /^https:\/\/orniflight-forge\./
 
   it 'builds a bytes-backed descriptor from a manifest', ->
     bytes = new Uint8Array [0x01, 0x02, 0x03]
