@@ -1,6 +1,8 @@
 ~~~
+import {
+  FORGE_FEATURES, hasFeature
+} from '../../../firmware/forgeFeatures.coffee'
 import { useState } from 'react'
-import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
 ~~~
 
 - forge = props.forge || {}
@@ -13,54 +15,75 @@ import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
 - done = current?.ready and current?.conclusion == 'success'
 - failed = current?.ready and not done
 - statusText = current?.status or 'idle'
-- statusClass = if online then 'online' else if online == false then 'offline' else 'unknown'
-- statusWord = if online then 'online' else if online == false then 'offline' else '…'
+- statusClass = { true: 'online', false: 'offline' }[online] ? 'unknown'
+- statusWord = { true: 'online', false: 'offline' }[online] ? '…'
 - buildLabel = if forge.building then 'Forging…' else '⚒️ Forge build'
 - loadLabel = if forge.loading then 'Loading…' else 'Load image'
+- features = forge.features || []
+- pickTarget = (e) -> setTarget(e.target.value)
+- pickTag = (e) -> setVersionTag(e.target.value)
 - build = -> forge.onBuild && forge.onBuild(target, versionTag.trim())
 - loadRun = (id) -> forge.onLoad && forge.onLoad(id)
 - shortSha = (sha) -> (sha or '').slice(0, 7)
 - shortDate = (d) -> (d or '').slice(0, 10)
 .cloud-forge
   .cf-head
-    %span.cf-head-title The Forge
+    %div.cf-head-copy
+      %span.cf-head-title The Forge
+      %span.cf-head-sub Cloud build · dantiel/OrniFlight
     %span.cf-status{ className: "cf-status #{statusClass}" }
       %span.cf-dot
       %span.cf-status-word= statusWord
   - unless configured
     .cf-banner
       %span.cf-banner-glyph ⚒️
-      %span.cf-banner-text The Forge is not configured. Set VITE_FORGE_API_BASE or append ?forge= to the URL.
+      %span.cf-banner-text
+        The Forge is not configured. Set VITE_FORGE_API_BASE or
+        append ?forge= to the URL.
   - else
-    .cf-controls
-      %label.cf-field
-        %span.cf-label Target
-        %select.cf-select{ value: target, onChange: (e) -> setTarget(e.target.value) }
-          - for t in targets
-            %option{ key: t, value: t }= t
-      %label.cf-field
-        %span.cf-label Build label
-        %input.cf-input{ type: 'text', placeholder: 'optional — e.g. coaxial-rc1', value: versionTag, onChange: (e) -> setVersionTag(e.target.value) }
-      %button.cf-build{ disabled: forge.building or forge.loading, onClick: build }
-        = buildLabel
-    - if current
-      .cf-run
-        .cf-run-line
-          %span.cf-run-label Status
-          %span.cf-run-value= statusText
-        - if current.htmlUrl
-          %a.cf-run-link{ href: current.htmlUrl, target: '_blank', rel: 'noopener' } GitHub run ↗
-        - if done
-          %button.cf-load{ disabled: forge.loading, onClick: (-> loadRun(current.runId)) }
-            = loadLabel
-        - if failed
-          .cf-run-error= forge.error or current.error or "Build #{current.conclusion}"
-    - if forge.error and not current
-      .cf-error= forge.error
-    - if forge.history.length
-      .cf-history
-        .cf-history-title Recent builds
-        - for b in forge.history.slice(0, 6)
-          %button.cf-history-item{ key: b.run_id, onClick: (-> loadRun(b.run_id)) }
-            %span.cf-history-sha= shortSha(b.head_sha)
-            %span.cf-history-date= shortDate(b.created_at)
+    .cf-body
+      .cf-buildline
+        %label.cf-field
+          %span.cf-label Target
+          %select.cf-select{ value: target, onChange: pickTarget }
+            - for t in targets
+              %option{ key: t, value: t }= t
+        %label.cf-field.cf-field-grow
+          %span.cf-label Build label
+          %input.cf-input{ type: 'text', placeholder: 'optional build label', value: versionTag, onChange: pickTag }
+        %button.cf-build{ disabled: forge.building or forge.loading, onClick: build }
+          = buildLabel
+      .cf-flags
+        .cf-flags-head
+          %span.cf-flags-title Build flags
+          %span.cf-flags-count= "#{features.length} of #{FORGE_FEATURES.length} included"
+        .cf-flag-grid
+          - for f in FORGE_FEATURES
+            %label.cf-flag{ key: f.id, className: "cf-flag#{if hasFeature(features, f.id) then ' on' else ' off'}" }
+              %input.cf-flag-check{ type: 'checkbox', checked: hasFeature(features, f.id), onChange: (-> forge.onToggleFeature && forge.onToggleFeature(f.id)) }
+              %span.cf-flag-box= "#{if hasFeature(features, f.id) then '✓' else '—'}"
+              %span.cf-flag-copy
+                %span.cf-flag-label= f.label
+                %span.cf-flag-blurb= f.blurb
+              %code.cf-flag-define= f.define
+      - if current
+        .cf-run
+          .cf-run-line
+            %span.cf-run-label Status
+            %span.cf-run-value= statusText
+          - if current.htmlUrl
+            %a.cf-run-link{ href: current.htmlUrl, target: '_blank', rel: 'noopener' } GitHub run ↗
+          - if done
+            %button.cf-load{ disabled: forge.loading, onClick: (-> loadRun(current.runId)) }
+              = loadLabel
+          - if failed
+            .cf-run-error= forge.error or current.error or "Build #{current.conclusion}"
+      - if forge.error and not current
+        .cf-error= forge.error
+      - if forge.history.length
+        .cf-history
+          .cf-history-title Recent builds
+          - for b in forge.history.slice(0, 6)
+            %button.cf-history-item{ key: b.run_id, onClick: (-> loadRun(b.run_id)) }
+              %span.cf-history-sha= shortSha(b.head_sha)
+              %span.cf-history-date= shortDate(b.created_at)

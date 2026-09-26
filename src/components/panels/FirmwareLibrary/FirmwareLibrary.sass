@@ -5,7 +5,7 @@
 .firmware-library
   display: flex
   flex-direction: column
-  height: 100%
+  height: auto
   min-height: 0
 
 .fw-head
@@ -74,11 +74,11 @@
   display: none
 
 .fw-list
-  display: flex
-  flex-direction: column
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr))
   gap: var(--of-space-3)
   padding: var(--of-space-4)
-  overflow-y: auto
+  overflow: visible
 
 .fw-card
   text-align: left

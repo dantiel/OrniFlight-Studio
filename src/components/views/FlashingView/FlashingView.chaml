@@ -1,41 +1,42 @@
 ~~~
 import useFlashController from '../../../hooks/useFlashController.coffee'
-import { FLASH_OPTIONS } from '../../../firmware/flashUi.coffee'
+import { FLASH_OPTIONS, transportLabel } from '../../../firmware/flashUi.coffee'
 import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
 import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
 ~~~
 
 - ctrl = useFlashController()
-.view-layout.layout-flash
-  %ViewArea{ area: 'device' }
-    %DeviceTarget{
-      device: ctrl.device,
-      connected: ctrl.connected,
-      transport: ctrl.transport,
-      serialSupported: ctrl.serialSupported,
-      webUsbSupported: ctrl.webUsbSupported,
-      detecting: ctrl.detecting,
-      onDetectSerial: ctrl.onDetectSerial,
-      onDetectWebUsb: ctrl.onDetectWebUsb,
-      onDisconnect: ctrl.onDisconnect
-    }
-  %ViewArea{ area: 'library' }
-    %div.library-stack
-      %FirmwareLibrary{ catalog: ctrl.catalog, loading: ctrl.loading, selectedId: ctrl.selectedId, localImage: ctrl.localImage, cloudImage: ctrl.cloudImage, onSelect: ctrl.onSelect, onLoadLocal: ctrl.onLoadLocal }
-      %CloudForge{ forge: ctrl.forge }
-  %ViewArea{ area: 'forge' }
-    %div.forge-stage
+- transportWord = transportLabel(ctrl.transport)
+- pickOption = (key) -> (e) -> ctrl.onOption(key, e.target.checked)
+.molt-view.layout-flash
+  %header.molt-head
+    %div.molt-head-copy
+      %span.molt-kicker SYSTEM · THE MOLT
+      %h1 The Molt
+      %p.molt-hermes
+        Strip the old plumage — forge a fitted build in the cloud,
+        weave it onto the board over Serial or USB DFU.
+    %span.molt-transport{ className: "molt-transport molt-transport-#{ctrl.transport}" }
+      = transportWord
+  %section.molt-section.molt-device
+    %DeviceTarget{ ctrl: ctrl }
+  %section.molt-section.molt-library
+    %FirmwareLibrary{ ctrl: ctrl }
+  %section.molt-section.molt-forge
+    %CloudForge{ forge: ctrl.forge }
+  %section.molt-section.molt-stage
+    %div.molt-stage-grid
       %FlashProgress{ phase: ctrl.phase, progress: ctrl.progress, label: ctrl.label }
-      %div.forge-actions
-        %FlashButton{ variant: ctrl.btn.variant, label: ctrl.btn.label, glyph: ctrl.btn.glyph, disabled: ctrl.btn.disabled, onClick: ctrl.onClick }
-      %StudioAccordion{ title: 'Advanced flash options', defaultOpen: true }
-        %div.forge-options
-          - for opt in FLASH_OPTIONS
-            %label.fw-option{ key: opt[0] }
-              %input.fw-option-check{ type: 'checkbox', checked: ctrl.options[opt[0]], onChange: (e) -> ctrl.onOption(opt[0], e.target.checked) }
-              %span.fw-option-label= opt[1]
-              %span.fw-option-hint= opt[2]
-      - if ctrl.error
-        %div.forge-error= ctrl.error
-  %ViewArea{ area: 'console' }
+      %div.molt-stage-actions
+        %FlashButton{ btn: ctrl.btn, onClick: ctrl.onClick }
+        - if ctrl.error
+          %div.forge-error= ctrl.error
+        %StudioAccordion{ title: 'Advanced flash options', defaultOpen: false }
+          %div.forge-options
+            - for opt in FLASH_OPTIONS
+              %label.fw-option{ key: opt[0] }
+                %input.fw-option-check{ type: 'checkbox', checked: ctrl.options[opt[0]], onChange: pickOption(opt[0]) }
+                %span.fw-option-label= opt[1]
+                %span.fw-option-hint= opt[2]
+  %section.molt-section.molt-console
     %FlashConsole{ log: ctrl.log, onClear: ctrl.onClearLog }

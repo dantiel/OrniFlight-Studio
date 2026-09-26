@@ -24,6 +24,9 @@ describe 'FlashingView', ->
     renderApp()
     el = document.querySelector '.layout-flash'
     expect(el).toBeInTheDocument()
+    # Migrated off the fixed grid: vertical parallax document.
+    expect(document.querySelector '.molt-view').toBeInTheDocument()
+    expect(document.querySelector '.molt-stage-grid').toBeInTheDocument()
 
   it 'renders the device target and console', ->
     renderApp()

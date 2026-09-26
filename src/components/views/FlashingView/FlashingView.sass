@@ -1,90 +1,114 @@
 // ═══════════════════════════════════════════
-// FlashingView — Molting Bay
-// device | forge | console
-// library| forge | console
+// FlashingView — The Molt (vertical parallax document)
+//
+// Migrated off the fixed-height ViewArea grid: a flowing column of
+// glass sections over the FeatherField parallax layer, like
+// OrnithopterView / FlightProfilesView. The page scrolls with the
+// document instead of fighting unknown viewport heights.
 // ═══════════════════════════════════════════
 
-.layout-flash
-  grid-template-columns: 300px 1fr 340px
-  grid-template-rows: 176px 1fr
-  grid-template-areas: "device forge console" "library forge console"
+@use '../../../styles/glass' as *
 
-  .view-area-device
-    grid-area: device
-    background: var(--of-glass-bg)
-    backdrop-filter: blur(12px)
-    -webkit-backdrop-filter: blur(12px)
-    border-bottom: 1px solid var(--of-border-1)
-    overflow-y: auto
+$acc: rgba(var(--of-accent-rgb), 0.26)
+$acc-soft: rgba(var(--of-accent-rgb), 0.1)
 
-  .view-area-library
-    grid-area: library
-    background: var(--of-glass-bg)
-    backdrop-filter: blur(12px)
-    -webkit-backdrop-filter: blur(12px)
-    border-right: 1px solid var(--of-border-1)
-    overflow: hidden
-
-
-.library-stack
-  display: flex
-  flex-direction: column
-  height: 100%
-  min-height: 0
-
-  .firmware-library
-    flex: 1
-    min-height: 0
-    height: auto
-
-  .cloud-forge
-    flex: 0 0 auto
-    max-height: 46%
-    overflow-y: auto
-
-  .view-area-forge
-    grid-area: forge
-    display: flex
-    align-items: center
-    justify-content: center
-    background: radial-gradient(
-      ellipse at 50% 42%,
-      rgba(var(--of-accent-rgb), 0.10) 0%,
-      rgba(26, 26, 28, 0) 62%
-    )
-    position: relative
-
-    &::before
-      content: ''
-      position: absolute
-      inset: 0
-      pointer-events: none
-      background-image: var(--of-feathers)
-      background-repeat: repeat
-      background-size: clamp(300px, 25vw, 800px)
-      opacity: calc(var(--of-feather-opacity) * 0.5)
-
-  .view-area-console
-    grid-area: console
-    background: var(--of-glass-bg)
-    backdrop-filter: blur(12px)
-    -webkit-backdrop-filter: blur(12px)
-    border-left: 1px solid var(--of-border-1)
-    overflow: hidden
-
-.forge-stage
+.molt-view
   position: relative
   z-index: 1
+  flex: 1
+  width: 100%
+  max-width: 1080px
+  margin: 0 auto
+  padding: var(--of-space-6) var(--of-space-6) var(--of-space-10)
   display: flex
   flex-direction: column
-  align-items: center
-  gap: var(--of-space-8)
+  gap: var(--of-space-6)
 
-.forge-actions
+// ── page head ──
+
+.molt-head
+  display: flex
+  justify-content: space-between
+  align-items: flex-end
+  gap: var(--of-space-6)
+  padding: var(--of-space-2) var(--of-space-1)
+  flex-wrap: wrap
+
+  h1
+    font-family: var(--of-font-heading)
+    font-size: 42px
+    letter-spacing: 0.14em
+    margin: 0
+    font-weight: 400
+
+.molt-kicker
+  color: var(--of-accent-alt)
+  font: 650 10px/1 var(--of-font-mono)
+  letter-spacing: 0.18em
+
+.molt-hermes
+  margin: var(--of-space-2) 0 0
+  max-width: 52ch
+  color: var(--of-text-muted)
+  font-size: var(--of-text-sm)
+  line-height: 1.55
+
+.molt-transport
+  padding: 4px 12px
+  border-radius: 999px
+  border: 1px solid var(--of-glass-rim-soft)
+  background: var(--of-glass-bg)
+  color: var(--of-text-muted)
+  font: 600 10px/1 var(--of-font-mono)
+  letter-spacing: 0.14em
+
+.molt-transport-serial,
+.molt-transport-webusb
+  color: var(--of-accent-green)
+  border-color: rgba(var(--of-accent-green-rgb), 0.4)
+
+// ── glass sections ──
+
+.molt-section
+  background: var(--of-glass-bg)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-glass-radius)
+  box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
+  padding: var(--of-space-6)
+  +of-glass-refract
+
+// Panels that carry their own head/body chrome sit flush inside the
+// glass frame; self-contained sections (forge, stage) keep padding.
+
+.molt-device,
+.molt-library,
+.molt-console
+  padding: 0
+  overflow: hidden
+
+// ── flash stage ──
+
+.molt-stage-grid
+  display: grid
+  grid-template-columns: auto 1fr
+  gap: var(--of-space-8)
+  align-items: center
+
+  @media (max-width: 720px)
+    grid-template-columns: 1fr
+    justify-items: center
+
+.molt-stage-actions
   display: flex
   flex-direction: column
-  align-items: center
+  align-items: flex-start
   gap: var(--of-space-4)
+  min-width: 0
+
+  @media (max-width: 720px)
+    align-items: center
 
 .forge-options
   display: flex
@@ -116,4 +140,3 @@
   font-family: var(--of-font-mono)
   font-size: var(--of-text-sm)
   color: var(--of-accent-red)
-  text-align: center

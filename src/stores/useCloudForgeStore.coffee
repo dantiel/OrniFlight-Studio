@@ -11,6 +11,7 @@ import {
   health, startBuild, buildStatus, downloadBuild, buildManifest
   buildHistory, cancelBuild, cloudFirmware
 } from '../firmware/cloudForge.coffee'
+import { FORGE_FEATURE_IDS, stripDefines } from '../firmware/forgeFeatures.coffee'
 import useFirmwareStore from './useFirmwareStore.coffee'
 
 POLL_INTERVAL = 4000
@@ -23,6 +24,7 @@ useCloudForgeStore = create (set, get) ->
   checking: false
   history: []
   loadingHistory: false
+  features: [...FORGE_FEATURE_IDS]  # feature ids included in the build
   current: null          # active run descriptor (normalized)
   building: false
   built: null            # forged firmware descriptor (bytes-backed)
@@ -51,10 +53,16 @@ useCloudForgeStore = create (set, get) ->
     catch e
       set { loadingHistory: false, error: e.message }
 
+  toggleFeature: (id) ->
+    current = get().features
+    next = if id in current then current.filter((x) -> x != id) else [...current, id]
+    set { features: next }
+
   startBuild: (target, versionTag = '') ->
     set { building: true, error: null, current: null, built: null }
     try
-      data = await startBuild target, versionTag
+      options = stripDefines get().features
+      data = await startBuild target, versionTag, options
       get().startPolling data.run_id
       set { current: { runId: data.run_id, htmlUrl: data.html_url, status: data.status } }
     catch e

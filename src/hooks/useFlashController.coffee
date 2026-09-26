@@ -125,6 +125,8 @@ useFlashController = ->
       built: forge.built
       loading: forge.loading
       error: forge.error
+      features: forge.features
+      onToggleFeature: forge.toggleFeature
       onCheckHealth: forge.checkHealth
       onLoadHistory: forge.loadHistory
       onBuild: forge.startBuild

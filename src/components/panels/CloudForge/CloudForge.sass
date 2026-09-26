@@ -1,26 +1,36 @@
 // ═══════════════════════════════════════════
-// CloudForge — cloud firmware build panel
+// CloudForge — cloud firmware build panel (wide card)
 // ═══════════════════════════════════════════
 
 .cloud-forge
   display: flex
   flex-direction: column
+  gap: var(--of-space-5)
   min-height: 0
-  border-top: 1px solid var(--of-border-1)
 
 .cf-head
   display: flex
   align-items: center
   justify-content: space-between
-  padding: var(--of-space-3) var(--of-space-5)
+  gap: var(--of-space-4)
+
+.cf-head-copy
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-1)
 
 .cf-head-title
   font-family: var(--of-font-heading)
-  font-size: 10px
+  font-size: var(--of-text-sm)
   font-weight: 600
   letter-spacing: 0.1em
   text-transform: uppercase
   color: var(--of-accent)
+
+.cf-head-sub
+  font-size: var(--of-text-xs)
+  color: var(--of-text-muted)
+  letter-spacing: 0.04em
 
 .cf-status
   display: flex
@@ -56,7 +66,6 @@
   display: flex
   align-items: flex-start
   gap: var(--of-space-2)
-  margin: 0 var(--of-space-4) var(--of-space-4)
   padding: var(--of-space-3)
   border: 1px solid var(--of-border-1)
   border-radius: var(--of-radius-lg)
@@ -70,16 +79,26 @@
   line-height: 1.45
   color: var(--of-text-soft)
 
-.cf-controls
+.cf-body
   display: flex
   flex-direction: column
-  gap: var(--of-space-3)
-  padding: 0 var(--of-space-4) var(--of-space-3)
+  gap: var(--of-space-5)
+
+.cf-buildline
+  display: flex
+  align-items: flex-end
+  gap: var(--of-space-4)
+  flex-wrap: wrap
 
 .cf-field
   display: flex
   flex-direction: column
   gap: var(--of-space-1)
+  min-width: 180px
+
+.cf-field-grow
+  flex: 1
+  min-width: 220px
 
 .cf-label
   font-size: var(--of-text-xs)
@@ -105,7 +124,7 @@
 
 .cf-build,
 .cf-load
-  padding: var(--of-space-3)
+  padding: var(--of-space-3) var(--of-space-5)
   border: none
   border-radius: var(--of-radius-md)
   cursor: pointer
@@ -122,6 +141,7 @@
 .cf-build
   background: linear-gradient(135deg, var(--of-accent), var(--of-accent-cyan))
   color: #0b0b0d
+  box-shadow: 0 0 16px rgba(var(--of-accent-rgb), 0.25)
 
   &:not(:disabled):hover
     filter: brightness(1.1)
@@ -134,12 +154,106 @@
   &:not(:disabled):hover
     background: rgba(var(--of-accent-rgb), 0.2)
 
+.cf-flags
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-3)
+  border-top: 1px solid var(--of-border-1)
+  padding-top: var(--of-space-4)
+
+.cf-flags-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+
+.cf-flags-title
+  font-size: var(--of-text-xs)
+  letter-spacing: 0.05em
+  text-transform: uppercase
+  color: var(--of-text-muted)
+
+.cf-flags-count
+  font-family: var(--of-font-mono)
+  font-size: var(--of-text-xs)
+  color: var(--of-accent-amber)
+
+.cf-flag-grid
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))
+  gap: var(--of-space-3)
+
+.cf-flag
+  display: flex
+  align-items: flex-start
+  gap: var(--of-space-3)
+  padding: var(--of-space-3)
+  border: 1px solid var(--of-border-1)
+  border-radius: var(--of-radius-lg)
+  background: var(--of-glass-card)
+  cursor: pointer
+  transition: border-color var(--of-dur-fast) var(--of-ease-out)
+
+  &:hover
+    border-color: var(--of-glass-edge-hover)
+
+.cf-flag.on
+  border-color: rgba(var(--of-accent-rgb), 0.35)
+  background: linear-gradient(180deg, rgba(var(--of-accent-rgb), 0.1), transparent)
+
+.cf-flag.off
+  opacity: 0.55
+
+.cf-flag-check
+  position: absolute
+  opacity: 0
+  pointer-events: none
+
+.cf-flag-box
+  flex: 0 0 auto
+  display: grid
+  place-items: center
+  width: 20px
+  height: 20px
+  border-radius: var(--of-radius-sm)
+  border: 1px solid var(--of-border-1)
+  font-size: 11px
+  color: var(--of-text-muted)
+  background: var(--of-glass-card)
+
+.cf-flag.on .cf-flag-box
+  border-color: var(--of-accent)
+  background: rgba(var(--of-accent-rgb), 0.16)
+  color: var(--of-accent)
+
+.cf-flag-copy
+  display: flex
+  flex-direction: column
+  gap: 2px
+  flex: 1
+  min-width: 0
+
+.cf-flag-label
+  font-size: var(--of-text-sm)
+  font-weight: 600
+  letter-spacing: 0.04em
+
+.cf-flag-blurb
+  font-size: var(--of-text-xs)
+  line-height: 1.4
+  color: var(--of-text-soft)
+
+.cf-flag-define
+  flex: 0 0 auto
+  font-family: var(--of-font-mono)
+  font-size: 10px
+  color: var(--of-text-muted)
+  padding-top: var(--of-space-1)
+
 .cf-run
   display: flex
   flex-direction: column
   gap: var(--of-space-2)
-  margin: 0 var(--of-space-4) var(--of-space-3)
-  padding: var(--of-space-3)
+  padding: var(--of-space-3) var(--of-space-4)
   border: 1px solid var(--of-border-1)
   border-radius: var(--of-radius-lg)
   background: var(--of-glass-card)
@@ -174,18 +288,15 @@
   color: var(--of-accent-red)
   line-height: 1.45
 
-.cf-error
-  margin: 0 var(--of-space-4) var(--of-space-3)
-
 .cf-history
   display: flex
-  flex-direction: column
+  flex-wrap: wrap
   gap: var(--of-space-2)
-  padding: var(--of-space-3) var(--of-space-4)
   border-top: 1px solid var(--of-border-1)
-  overflow-y: auto
+  padding-top: var(--of-space-4)
 
 .cf-history-title
+  width: 100%
   font-size: var(--of-text-xs)
   letter-spacing: 0.05em
   text-transform: uppercase
@@ -193,8 +304,8 @@
 
 .cf-history-item
   display: flex
-  justify-content: space-between
   align-items: center
+  gap: var(--of-space-3)
   padding: var(--of-space-2) var(--of-space-3)
   border: 1px solid var(--of-border-1)
   border-radius: var(--of-radius-md)

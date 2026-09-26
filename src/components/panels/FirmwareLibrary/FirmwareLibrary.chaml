@@ -2,12 +2,14 @@
 import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
 ~~~
 
-- catalog = props.catalog || []
-- localImage = props.localImage
-- cloudImage = props.cloudImage
-- selectedId = props.selectedId
-- loading = !!props.loading
-- onLocal = props.onLoadLocal || (->)
+- c = props.ctrl || {}
+- catalog = props.catalog || c.catalog || []
+- localImage = props.localImage ? c.localImage
+- cloudImage = props.cloudImage ? c.cloudImage
+- selectedId = props.selectedId ? c.selectedId
+- loading = !!props.loading or !!c.loading
+- onLocal = props.onLoadLocal || c.onLoadLocal || (->)
+- onSelect = props.onSelect || c.onSelect || (->)
 - total = catalog.length + (if localImage then 1 else 0) + (if cloudImage then 1 else 0)
 .firmware-library
   .fw-head
@@ -29,7 +31,7 @@ import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
   - else
     .fw-list
       - if cloudImage
-        %button.fw-card{ className: "fw-card#{if selectedId == 'cloud' then ' active' else ''}", onClick: (-> props.onSelect && props.onSelect('cloud')) }
+        %button.fw-card{ className: "fw-card#{if selectedId == 'cloud' then ' active' else ''}", onClick: (-> onSelect('cloud')) }
           .fw-card-top
             %span.fw-card-name= cloudImage.name
             %span.fw-channel{ className: 'fw-channel fw-channel-cloud' }
@@ -40,7 +42,7 @@ import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
             %span= fmtBytes(cloudImage.size)
           .fw-card-notes= cloudImage.notes
       - if localImage
-        %button.fw-card{ className: "fw-card#{if selectedId == 'local' then ' active' else ''}", onClick: (-> props.onSelect && props.onSelect('local')) }
+        %button.fw-card{ className: "fw-card#{if selectedId == 'local' then ' active' else ''}", onClick: (-> onSelect('local')) }
           .fw-card-top
             %span.fw-card-name= localImage.name
             %span.fw-channel{ className: 'fw-channel fw-channel-local' }
@@ -51,7 +53,7 @@ import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
             %span= fmtBytes(localImage.size)
           .fw-card-notes= localImage.notes
       - for fw, i in catalog
-        %button.fw-card{ key: i, className: "fw-card#{if fw.id == selectedId then ' active' else ''}", onClick: (-> props.onSelect && props.onSelect(fw.id)) }
+        %button.fw-card{ key: i, className: "fw-card#{if fw.id == selectedId then ' active' else ''}", onClick: (-> onSelect(fw.id)) }
           .fw-card-top
             %span.fw-card-name= fw.name
             %span.fw-channel{ className: "fw-channel fw-channel-#{fw.channel}" }

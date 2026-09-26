@@ -21,6 +21,11 @@ FLASH_OPTIONS = [
   ['reboot', 'Reboot after flash', 'hatch immediately']
 ]
 
+transportLabel = (transport) ->
+  if transport == 'serial' then 'SERIAL'
+  else if transport == 'webusb' then 'USB DFU'
+  else 'DRY-RUN'
+
 phaseLabel = (phase) -> PHASE_LABELS[phase] || phase
 
 buttonFor = (phase, hasFirmware) ->
@@ -43,4 +48,4 @@ buttonFor = (phase, hasFirmware) ->
   disabled = flashing or ((phase == 'idle' or phase == 'ready') and not hasFirmware)
   { variant, glyph, label, disabled }
 
-export { PHASE_LABELS, FLASH_OPTIONS, phaseLabel, buttonFor }
+export { PHASE_LABELS, FLASH_OPTIONS, phaseLabel, transportLabel, buttonFor }

@@ -1,6 +1,8 @@
-- variant = props.variant || 'idle'
-%button{ className: "flash-button flash-button-#{variant}", disabled: !!props.disabled, onClick: props.onClick }
+- btn = props.btn || {}
+- variant = props.variant || btn.variant || 'idle'
+- disabled = if props.disabled? then props.disabled else btn.disabled
+%button{ className: "flash-button flash-button-#{variant}", disabled: !!disabled, onClick: props.onClick }
   %span.flash-button-glyph
-    = props.glyph || '⚡'
+    = props.glyph || btn.glyph || '⚡'
   %span.flash-button-label
-    = props.label || 'FLASH'
+    = props.label || btn.label || 'FLASH'

@@ -70,11 +70,11 @@ health = ->
   catch e
     { ok: false, configured: true, reason: e.message, targets: TARGETS }
 
-startBuild = (target, versionTag = '') ->
+startBuild = (target, versionTag = '', options = []) ->
   apiFetch '/api/build',
     method: 'POST'
     headers: { 'Content-Type': 'application/json' }
-    body: JSON.stringify { target, version_tag: versionTag }
+    body: JSON.stringify { target, version_tag: versionTag, options }
 
 buildStatus = (runId) -> apiFetch "/api/build/#{runId}"
 
