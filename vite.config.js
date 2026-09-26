@@ -169,7 +169,9 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https?:\/\/.*/i,
+            // Same-origin only — never intercept/cache the Forge worker's
+            // cross-origin API responses; those must always hit the network.
+            urlPattern: ({ url }) => url.origin === self.location.origin,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'orniflight-cache',
