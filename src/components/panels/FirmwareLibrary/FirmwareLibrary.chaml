@@ -36,31 +36,31 @@ import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
             %span.fw-card-name= cloudImage.name
             %span.fw-channel{ className: 'fw-channel fw-channel-cloud' }
               = 'cloud'
-          .fw-card-version= "v#{cloudImage.version}"
+          %div.fw-card-version= "v#{cloudImage.version}"
           .fw-card-meta
             %span= cloudImage.target
             %span= fmtBytes(cloudImage.size)
-          .fw-card-notes= cloudImage.notes
+          %div.fw-card-notes= cloudImage.notes
       - if localImage
         %button.fw-card{ className: "fw-card#{if selectedId == 'local' then ' active' else ''}", onClick: (-> onSelect('local')) }
           .fw-card-top
             %span.fw-card-name= localImage.name
             %span.fw-channel{ className: 'fw-channel fw-channel-local' }
               = 'local'
-          .fw-card-version= 'custom'
+          %div.fw-card-version= 'custom'
           .fw-card-meta
             %span= localImage.target
             %span= fmtBytes(localImage.size)
-          .fw-card-notes= localImage.notes
+          %div.fw-card-notes= localImage.notes
       - for fw, i in catalog
         %button.fw-card{ key: i, className: "fw-card#{if fw.id == selectedId then ' active' else ''}", onClick: (-> onSelect(fw.id)) }
           .fw-card-top
             %span.fw-card-name= fw.name
             %span.fw-channel{ className: "fw-channel fw-channel-#{fw.channel}" }
               = fw.channel
-          .fw-card-version= "v#{fw.version}"
+          %div.fw-card-version= "v#{fw.version}"
           .fw-card-meta
             %span= fw.target
             %span= fmtBytes(fw.size)
-          .fw-card-date= fw.date
-          .fw-card-notes= fw.notes
+          %div.fw-card-date= fw.date
+          %div.fw-card-notes= fw.notes

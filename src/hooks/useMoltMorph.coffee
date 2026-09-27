@@ -10,11 +10,29 @@
 #   --depth       px lag offset — deeper sections scroll a touch slower
 #   --head-morph  0→1 as the page head condenses into the masthead
 #
-# The host gains .molt-travelled once the page has scrolled. Honours
-# prefers-reduced-motion by not attaching at all; CSS custom-property
-# fallbacks keep every effect at rest (fully revealed) without JS.
+# The host gains .molt-travelled once the page has scrolled and
+# .molt-stuck once the big title has fully dissolved and the control
+# deck is pinned. Honours prefers-reduced-motion by not attaching at
+# all; CSS custom-property fallbacks keep every effect at rest
+# (fully revealed) without JS.
 ###
 import { useEffect } from 'react'
+
+###
+# Action-driven scroll: brings a section into the reading position
+# and briefly spotlights it. Safe in jsdom (scrollIntoView guarded).
+###
+export moltScrollTo = (id) ->
+  el = document.getElementById id
+  return unless el
+  reduce = window.matchMedia?('(prefers-reduced-motion: reduce)')?.matches
+  try
+    el.scrollIntoView?({ behavior: (if reduce then 'auto' else 'smooth'), block: 'start' })
+  catch err
+    undefined
+  unless reduce
+    el.classList.add 'molt-spotlight'
+    window.setTimeout (-> el.classList.remove 'molt-spotlight'), 1900
 
 clamp01 = (v) -> Math.max 0, Math.min 1, v
 
@@ -27,7 +45,7 @@ useMoltMorph = (hostRef) ->
     return if reduce
 
     sections = Array.from host.querySelectorAll '.molt-section'
-    head = host.querySelector '.molt-head'
+    headTitle = host.querySelector '.molt-head-title'
     ticking = false
 
     frame = ->
@@ -35,10 +53,11 @@ useMoltMorph = (hostRef) ->
       vh = scrollHost.clientHeight or window.innerHeight or 800
       st = scrollHost.scrollTop
 
-      if head
-        headH = head.offsetHeight or 1
+      if headTitle
+        titleH = headTitle.offsetHeight or 1
         host.style.setProperty '--head-morph',
-          clamp01(st / (headH * 0.45)).toFixed 3
+          clamp01(st / (titleH * 0.9)).toFixed 3
+        host.classList.toggle 'molt-stuck', st > titleH * 0.9
 
       host.classList.toggle 'molt-travelled', st > 24
 

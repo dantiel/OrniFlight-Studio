@@ -48,4 +48,44 @@ buttonFor = (phase, hasFirmware) ->
   disabled = flashing or ((phase == 'idle' or phase == 'ready') and not hasFirmware)
   { variant, glyph, label, disabled }
 
-export { PHASE_LABELS, FLASH_OPTIONS, phaseLabel, transportLabel, buttonFor }
+###
+# The Molt control deck — compact live lexicon for the sticky command
+# bar. Pure derivation of deck strings from the flash controller.
+###
+moltDeck = (ctrl) ->
+  sel = ctrl.selectedId
+  special =
+    local: ctrl.localImage?.name ? 'local'
+    cloud: ctrl.cloudImage?.name ? 'cloud'
+  specialWord = special[sel]
+  catFw = if sel then (ctrl.catalog or []).find (f) -> f.id == sel
+  fw =
+    if specialWord then specialWord
+    else if catFw then "v#{catFw.version}"
+    else 'no image'
+  flashing = ctrl.phase in ['erasing', 'writing', 'verifying']
+  forge =
+    if ctrl.forge.checking then 'SCANNING'
+    else if ctrl.forge.online then 'ONLINE'
+    else 'OFFLINE'
+  btn =
+    if flashing then 'TRANSMUTING…'
+    else if ctrl.phase == 'done' then 'REBOOT'
+    else '⚡ FLASH'
+  state =
+    if flashing then ctrl.label
+    else if ctrl.phase == 'done' then 'hatched'
+    else 'armed'
+  {
+    target: ctrl.device?.target or 'ORNI-F4'
+    fw
+    forge
+    flashing
+    btn
+    state
+  }
+
+export {
+  PHASE_LABELS, FLASH_OPTIONS, phaseLabel, transportLabel, buttonFor,
+  moltDeck
+}

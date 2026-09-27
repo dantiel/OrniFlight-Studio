@@ -25,8 +25,8 @@ import { transportLabel } from '../../../firmware/flashUi.coffee'
     %span.device-glyph
       = '🐦'
     .device-name
-      .device-title= d.name || 'OrniFlight'
-      .device-sub= d.target || 'ORNI-F4'
+      %div.device-title= d.name || 'OrniFlight'
+      %div.device-sub= d.target || 'ORNI-F4'
     %span.device-transport{ className: transportClass }
       = transportName
   .device-body

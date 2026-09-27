@@ -26,6 +26,7 @@ import { useState } from 'react'
 - loadRun = (id) -> forge.onLoad && forge.onLoad(id)
 - shortSha = (sha) -> (sha or '').slice(0, 7)
 - shortDate = (d) -> (d or '').slice(0, 10)
+- runError = forge.error or current?.error or "Build #{current?.conclusion}"
 .cloud-forge
   .cf-head
     %div.cf-head-copy
@@ -77,9 +78,9 @@ import { useState } from 'react'
             %button.cf-load{ disabled: forge.loading, onClick: (-> loadRun(current.runId)) }
               = loadLabel
           - if failed
-            .cf-run-error= forge.error or current.error or "Build #{current.conclusion}"
+            %div.cf-run-error= runError
       - if forge.error and not current
-        .cf-error= forge.error
+        %div.cf-error= forge.error
       - if forge.history.length
         .cf-history
           .cf-history-title Recent builds

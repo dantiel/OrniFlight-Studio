@@ -2,7 +2,10 @@
 import { useRef } from 'react'
 import useFlashController from '../../../hooks/useFlashController.coffee'
 import useMoltMorph from '../../../hooks/useMoltMorph.coffee'
-import { FLASH_OPTIONS, transportLabel } from '../../../firmware/flashUi.coffee'
+import { moltScrollTo } from '../../../hooks/useMoltMorph.coffee'
+import { FLASH_OPTIONS } from '../../../firmware/flashUi.coffee'
+import { transportLabel } from '../../../firmware/flashUi.coffee'
+import { moltDeck } from '../../../firmware/flashUi.coffee'
 import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
 import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
 ~~~
@@ -12,23 +15,57 @@ import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
 - useMoltMorph(moltRef)
 - transportWord = transportLabel(ctrl.transport)
 - pickOption = (key) -> (e) -> ctrl.onOption(key, e.target.checked)
+- wrapSelect = (id) -> ctrl.onSelect(id); moltScrollTo('molt-flash-deck')
+- wrapLoad = (id) -> ctrl.forge.onLoad(id); moltScrollTo('molt-flash-deck')
+- deckForge = Object.assign({}, ctrl.forge, { onLoad: wrapLoad })
+- deck = moltDeck(ctrl)
+- deckTarget = deck.target
+- deckFwWord = deck.fw
+- forgeWord = deck.forge
+- deckFlashing = deck.flashing
+- deckPhaseLive = deck.flashing or ctrl.phase == 'done'
+- deckLiveClass = if deckPhaseLive then ' molt-deck-live' else ''
+- deckStatusClass = if ctrl.forge.online then ' deck-on' else ''
+- deckPct = Math.max(0, Math.min(100, ctrl.progress or 0))
+- deckBtnLabel = deck.btn
+- deckStateWord = deck.state
+- deckDisabled = ctrl.btn.disabled
+- deckFlash = (e) -> ctrl.onClick(e); moltScrollTo('molt-flash-deck')
+- deckTransportClass = "deck-transport deck-transport-#{ctrl.transport}"
 .molt-view.layout-flash{ ref: moltRef }
   %header.molt-head
-    %div.molt-head-copy
+    %div.molt-head-title
       %span.molt-kicker.orgone-kicker SYSTEM · THE MOLT
       %h1.orgone-display.orgone-display-shimmer The Molt
       %p.molt-hermes
         Strip the old plumage — forge a fitted build in the cloud,
         weave it onto the board over Serial or USB DFU.
-    %span.molt-transport{ className: "molt-transport molt-transport-#{ctrl.transport}" }
+  %div.molt-deck{ className: "molt-deck#{deckLiveClass}" }
+    %span.deck-device
+      %span.deck-glyph 🐦
+      %span.deck-copy
+        %span.deck-target= deckTarget
+        %span.deck-fw= deckFwWord
+    %span.deck-status{ className: "deck-status#{deckStatusClass}" }
+      %span.deck-dot
+      = forgeWord
+    %span.deck-transport{ className: deckTransportClass }
       = transportWord
-  %section.molt-section.molt-device
+    %span.deck-state= deckStateWord
+    %span.deck-spacer
+    %button.deck-flash{ disabled: deckDisabled, onClick: deckFlash }
+      = deckBtnLabel
+    %span.deck-progress{ style: { width: "#{deckPct}%" } }
+  %section.molt-section.molt-device#molt-device
     %DeviceTarget{ ctrl: ctrl }
-  %section.molt-section.molt-library
-    %FirmwareLibrary{ ctrl: ctrl }
-  %section.molt-section.molt-forge
-    %CloudForge{ forge: ctrl.forge }
-  %section.molt-section.molt-stage
+  %section.molt-section.molt-library#molt-library
+    %FirmwareLibrary{ ctrl: ctrl, onSelect: wrapSelect }
+  %section.molt-section.molt-forge#molt-forge
+    %CloudForge{ forge: deckForge }
+  %section.molt-section.molt-deck-section#molt-flash-deck
+    %div.deck-head
+      %span.deck-head-kicker.orgone-kicker THE FLASH DECK
+      %span.deck-head-state= deckStateWord
     %div.molt-stage-grid
       %FlashProgress{ phase: ctrl.phase, progress: ctrl.progress, label: ctrl.label }
       %div.molt-stage-actions
@@ -42,5 +79,5 @@ import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
                 %input.fw-option-check{ type: 'checkbox', checked: ctrl.options[opt[0]], onChange: pickOption(opt[0]) }
                 %span.fw-option-label= opt[1]
                 %span.fw-option-hint= opt[2]
-  %section.molt-section.molt-console
-    %FlashConsole{ log: ctrl.log, onClear: ctrl.onClearLog }
+    %div.deck-console
+      %FlashConsole{ log: ctrl.log, onClear: ctrl.onClearLog }

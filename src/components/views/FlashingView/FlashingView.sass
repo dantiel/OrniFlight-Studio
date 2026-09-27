@@ -8,16 +8,17 @@
 //   --morph       entrance: curtain rise + lift + blur-settle + glow
 //   --exit        sections recede (dim, sink) past the upper view
 //   --depth       per-section lag — deeper cards scroll a touch slower
-//   --head-morph  the page head condenses into a sticky glass masthead
+//   --head-morph  the big title dissolves as the control deck pins
 //
+// The control deck (.molt-deck) transmutes from a bare strip into a
+// glass command bar (.molt-stuck on the host) carrying live device,
+// forge, transport, phase and flash state. Actions elsewhere scroll
+// the flash deck into view (moltScrollTo) and spotlight it briefly.
 // Every effect rests at its revealed state without JS (fallbacks),
 // and honours prefers-reduced-motion.
 // ═══════════════════════════════════════════
 
 @use '../../../styles/glass' as *
-
-$acc: rgba(var(--of-accent-rgb), 0.26)
-$acc-soft: rgba(var(--of-accent-rgb), 0.1)
 
 .molt-view
   position: relative
@@ -26,28 +27,63 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
   width: 100%
   max-width: 1080px
   margin: 0 auto
-  padding: var(--of-space-6) var(--of-space-6) var(--of-space-10)
+  padding: var(--of-space-6) var(--of-space-6) calc(var(--of-dock-height) + var(--of-space-8) + var(--of-space-2))
   display: flex
   flex-direction: column
   gap: var(--of-space-6)
+  overflow-x: clip
 
-// ── page head — condenses into the sticky masthead ──
+// ── page head — the big title dissolves on the way up ──
 
 .molt-head
+  position: relative
+  z-index: 1
+  margin: 0 calc(var(--of-space-3) * -1) var(--of-space-4)
+  padding: var(--of-space-2) var(--of-space-3)
+
+.molt-head-title
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-3)
+  opacity: calc(1 - var(--head-morph, 0))
+  transform: translate3d(0, calc(var(--head-morph, 0) * -32px), 0) scale(calc(1 - var(--head-morph, 0) * 0.04))
+  filter: blur(calc(var(--head-morph, 0) * 7px))
+  transform-origin: 0% 100%
+
+  h1
+    font-family: var(--of-font-heading)
+    font-size: 42px
+    letter-spacing: 0.14em
+    margin: 0
+    font-weight: 400
+
+.molt-kicker
+  color: var(--of-accent-alt)
+  font: 650 10px/1 var(--of-font-mono)
+  letter-spacing: 0.18em
+  display: inline-block
+
+.molt-hermes
+  margin: 0
+  max-width: 52ch
+  color: var(--of-text-muted)
+  font-size: var(--of-text-sm)
+  line-height: 1.55
+
+// ── the control deck — transmutes into the glass command bar ──
+
+.molt-deck
   position: sticky
-  top: calc(var(--of-toolbar-height) + var(--of-space-3))
+  top: calc(var(--of-toolbar-height) + var(--of-space-8) + var(--of-space-2))
   z-index: 8
   display: flex
-  justify-content: space-between
-  align-items: flex-end
-  gap: var(--of-space-6)
+  align-items: center
+  gap: var(--of-space-4)
   flex-wrap: wrap
-  margin: 0 calc(var(--of-space-3) * -1)
-  padding: var(--of-space-2) var(--of-space-3)
+  padding: var(--of-space-3) var(--of-space-4)
   border-radius: var(--of-glass-radius)
 
-  // The masthead glass fades in as the head condenses — the title
-  // transmorphs from open air into a floating glass bar.
+  // The glass layer transmutes in once the deck is pinned.
   &::before
     content: ''
     position: absolute
@@ -57,72 +93,129 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
     background: var(--of-glass-bg)
     backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
     -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
-    border: 1px solid rgba(255, 255, 255, 0.05)
+    border: 1px solid var(--of-glass-rim-soft)
     box-shadow: var(--of-glass-shadow)
-    opacity: var(--head-morph, 0)
-    pointer-events: none
+    opacity: 0
+    transition: opacity var(--of-dur-slow) var(--of-ease-out)
 
-  // The orgone hairline that appears under the condensed masthead.
-  &::after
-    content: ''
-    position: absolute
-    left: var(--of-space-4)
-    right: var(--of-space-4)
-    bottom: 0
-    height: 1px
-    background: linear-gradient(90deg,
-      transparent,
-      rgba(var(--orgone-a-rgb), 0.45) 30%,
-      rgba(var(--orgone-b-rgb), 0.45) 70%,
-      transparent)
-    opacity: var(--head-morph, 0)
-    pointer-events: none
+.molt-view.molt-stuck .molt-deck::before
+  opacity: 1
 
-  h1
-    font-family: var(--of-font-heading)
-    font-size: calc(42px - var(--head-morph, 0) * 22px)
-    letter-spacing: calc(0.14em - var(--head-morph, 0) * 0.06em)
-    margin: 0
-    font-weight: 400
-    transform: translateY(calc(var(--head-morph, 0) * 1px))
+.deck-device
+  display: inline-flex
+  align-items: center
+  gap: var(--of-space-3)
 
-.molt-head-copy,
-.molt-transport
-  position: relative
-  z-index: 1
+.deck-glyph
+  font-size: 16px
 
-.molt-kicker
-  color: var(--of-accent-alt)
+.deck-copy
+  display: flex
+  flex-direction: column
+  gap: 2px
+
+.deck-target
   font: 650 10px/1 var(--of-font-mono)
-  letter-spacing: 0.18em
-  display: inline-block
+  letter-spacing: 0.12em
+  color: var(--of-text-primary)
 
-.molt-hermes
-  margin: calc(var(--of-space-2) * (1 - var(--head-morph, 0))) 0 0
-  max-width: 52ch
+.deck-fw
+  font: 500 9px/1 var(--of-font-mono)
+  letter-spacing: 0.06em
   color: var(--of-text-muted)
-  font-size: var(--of-text-sm)
-  line-height: 1.55
-  opacity: calc(1 - var(--head-morph, 0))
-  transform: translateY(calc(var(--head-morph, 0) * 10px))
-  max-height: calc((1 - var(--head-morph, 0)) * 84px)
-  overflow: hidden
 
-.molt-transport
-  padding: 4px 12px
+.deck-status
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 4px 10px
+  border-radius: 999px
+  border: 1px solid var(--of-glass-rim-soft)
+  background: var(--of-glass-bg)
+  font: 600 9px/1 var(--of-font-mono)
+  letter-spacing: 0.14em
+  color: var(--of-text-muted)
+
+.deck-dot
+  width: 6px
+  height: 6px
+  border-radius: 50%
+  background: var(--of-text-muted)
+  transition: background var(--of-dur-fast) var(--of-ease-out), box-shadow var(--of-dur-fast) var(--of-ease-out)
+
+.deck-status.deck-on
+  color: var(--of-accent-green)
+  border-color: rgba(var(--of-accent-green-rgb), 0.4)
+
+.deck-status.deck-on .deck-dot
+  background: var(--of-accent-green)
+  box-shadow: 0 0 8px rgba(var(--of-accent-green-rgb), 0.7)
+
+.deck-transport
+  padding: 4px 10px
   border-radius: 999px
   border: 1px solid var(--of-glass-rim-soft)
   background: var(--of-glass-bg)
   color: var(--of-text-muted)
-  font: 600 10px/1 var(--of-font-mono)
+  font: 600 9px/1 var(--of-font-mono)
   letter-spacing: 0.14em
-  transform: scale(calc(1 - var(--head-morph, 0) * 0.16))
-  transform-origin: 100% 50%
 
-.molt-transport-serial,
-.molt-transport-webusb
+.deck-transport-serial,
+.deck-transport-webusb
   color: var(--of-accent-green)
   border-color: rgba(var(--of-accent-green-rgb), 0.4)
+
+.deck-state
+  font: 600 9px/1 var(--of-font-mono)
+  letter-spacing: 0.1em
+  color: var(--of-text-muted)
+  opacity: 0
+  transform: translateX(-4px)
+  transition: opacity var(--of-dur-normal) var(--of-ease-out), transform var(--of-dur-normal) var(--of-ease-out)
+
+.molt-deck.molt-deck-live .deck-state
+  opacity: 1
+  transform: translateX(0)
+  color: var(--of-accent-green)
+
+.deck-spacer
+  flex: 1
+
+.deck-flash
+  padding: 8px 18px
+  border-radius: var(--of-radius-lg)
+  border: 1px solid var(--of-border-accent)
+  background: linear-gradient(135deg, var(--of-accent-dim), var(--of-accent))
+  color: #fff
+  font: 650 11px/1 var(--of-font-mono)
+  letter-spacing: 0.12em
+  cursor: pointer
+  white-space: nowrap
+  box-shadow: 0 0 14px rgba(var(--of-accent-rgb), 0.3)
+  transition: transform var(--of-dur-fast) var(--of-ease-out), box-shadow var(--of-dur-fast) var(--of-ease-out), opacity var(--of-dur-fast)
+
+  &:hover:not(:disabled)
+    transform: translateY(-1px)
+    box-shadow: 0 2px 20px rgba(var(--of-accent-rgb), 0.5)
+
+  &:disabled
+    opacity: 0.5
+    cursor: not-allowed
+
+.deck-progress
+  position: absolute
+  left: 0
+  bottom: 0
+  height: 2px
+  width: 0
+  border-radius: 0 2px 2px 0
+  background: linear-gradient(90deg, rgba(var(--orgone-a-rgb), 0.9), rgba(var(--orgone-b-rgb), 0.9))
+  opacity: 0
+  pointer-events: none
+  transition: width 0.4s var(--of-ease-out), opacity var(--of-dur-normal) var(--of-ease-out)
+
+.molt-deck.molt-deck-live .deck-progress
+  opacity: 1
 
 // ── glass sections — the transmorphing cards ──
 
@@ -135,6 +228,7 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
   border-radius: var(--of-glass-radius)
   box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
   padding: var(--of-space-6)
+  scroll-margin-top: calc(var(--of-toolbar-height) + var(--of-space-8) + 64px)
   +of-glass-refract
   // Choreography — curtain rise, settle, recede.
   opacity: calc(1 - var(--exit, 0) * 0.55)
@@ -144,12 +238,26 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
   transform-origin: 50% 100%
   will-change: transform, opacity, clip-path
 
+// Action-driven arrival: a brief orgone halo rings the target.
+.molt-section.molt-spotlight
+  animation: molt-spotlight 1.8s var(--of-ease-out)
+
+@keyframes molt-spotlight
+  0%
+    border-color: var(--of-glass-rim-soft)
+    box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
+  25%
+    border-color: rgba(var(--orgone-a-rgb), 0.8)
+    box-shadow: inset 0 1px 0 var(--of-glass-rim), 0 0 0 3px rgba(var(--orgone-a-rgb), 0.25), 0 0 44px rgba(var(--orgone-b-rgb), 0.45)
+  100%
+    border-color: var(--of-glass-rim-soft)
+    box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
+
 // Panels that carry their own head/body chrome sit flush inside the
 // glass frame; self-contained sections (forge, stage) keep padding.
 
 .molt-device,
-.molt-library,
-.molt-console
+.molt-library
   padding: 0
   overflow: hidden
 
@@ -178,20 +286,43 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
   to
     background-position: 100% 100%
 
-// ── flash stage ──
+// ── the flash deck — ring beside log, exclusive but bound ──
+
+.molt-deck-section
+  display: grid
+  grid-template-columns: minmax(280px, 5fr) minmax(340px, 6fr)
+  gap: var(--of-space-6)
+  align-items: stretch
+
+  @media (max-width: 920px)
+    grid-template-columns: 1fr
+
+.deck-head
+  grid-column: 1 / -1
+  display: flex
+  align-items: center
+  justify-content: space-between
+  padding-bottom: var(--of-space-4)
+  border-bottom: 1px solid var(--of-border-1)
+
+.deck-head-state
+  font: 600 9px/1 var(--of-font-mono)
+  letter-spacing: 0.12em
+  color: var(--of-text-muted)
 
 .molt-stage-grid
   display: grid
   grid-template-columns: auto 1fr
   gap: var(--of-space-8)
   align-items: center
+  min-width: 0
 
   @media (max-width: 720px)
     grid-template-columns: 1fr
     justify-items: center
 
 // The ring's glow swells as the stage rises into view.
-.molt-stage .flash-ring
+.molt-stage-grid .flash-ring
   filter: drop-shadow(0 0 calc(var(--morph, 1) * 18px) rgba(var(--of-accent-rgb), 0.35))
 
 .molt-stage-actions
@@ -203,6 +334,18 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
 
   @media (max-width: 720px)
     align-items: center
+
+.deck-console
+  min-width: 0
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-glass-radius)
+  background: var(--of-glass-bg)
+  overflow: hidden
+
+.deck-console .console-body
+  max-height: 340px
+  min-height: 240px
+  filter: brightness(calc(0.55 + var(--morph, 1) * 0.45))
 
 .forge-options
   display: flex
@@ -235,11 +378,6 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
   font-size: var(--of-text-sm)
   color: var(--of-accent-red)
 
-// ── console — powers on as it enters ──
-
-.molt-console .console-body
-  filter: brightness(calc(0.55 + var(--morph, 1) * 0.45))
-
 // ── native scroll-driven kicker scan (progressive enhancement) ──
 
 @supports (animation-timeline: view())
@@ -261,10 +399,13 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
     transform: none
     clip-path: none
     filter: none
-  .molt-head h1,
-  .molt-hermes,
-  .molt-transport
+  .molt-section.molt-spotlight
+    animation: none
+  .molt-head-title
     transform: none
+    filter: none
+  .molt-deck::before
+    transition: none
   .molt-forge::before,
   .molt-kicker
     animation: none
