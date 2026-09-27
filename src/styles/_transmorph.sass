@@ -4,7 +4,8 @@
 // The vertical parallax document language for migrated views:
 // .morph-doc (flowing column over the FeatherField) + .morph-head
 // (ORGONE page head that dissolves upward) + .morph-deck (optional
-// sticky command strip that transmutes into glass once pinned) +
+// bare command strip that docks under the toolbar and frosts the
+// content passing beneath it while pinned) +
 // .morph-section (curtain-rising cards that recede and lag at
 // per-section depth).
 //
@@ -66,19 +67,31 @@
   font-size: var(--of-text-sm)
   line-height: 1.55
 
-// ── optional command deck — a bare strip, no background; once the
-// title has dissolved it docks flush under the toolbar and floats
-// over the æther as pure controls (chips only) ──
+// ── optional command deck — a bare strip, no background. Once the
+// title has dissolved it docks flush under the toolbar; #main-content
+// carries padding-top equal to the toolbar height and sticky offsets
+// are measured from that padded content edge, so top: 0 pins the deck
+// exactly at the toolbar's bottom edge. ──
 
 .morph-deck
   position: sticky
-  top: var(--of-toolbar-height)
+  top: 0
   z-index: 8
   display: flex
   align-items: center
   gap: var(--of-space-3)
   flex-wrap: wrap
   padding: var(--of-space-3) 0
+  transition: backdrop-filter var(--of-dur-normal) var(--of-ease-out)
+
+// Docked: still no background — but the deck carries its own frost
+// (backdrop-filter, not a coat), so the progressive blur area extends
+// beneath the docked strip and the content scrolling under it
+// dissolves while the chips themselves stay crisp.
+.morph-doc.morph-stuck .morph-deck
+  backdrop-filter: blur(10px) saturate(1.15)
+  -webkit-backdrop-filter: blur(10px) saturate(1.15)
+  box-shadow: 0 1px 0 var(--of-glass-rim-soft)
 
 // ── glass sections — the transmorphing cards ──
 
@@ -128,5 +141,5 @@
   .morph-head-title
     transform: none
     filter: none
-  .morph-deck::before
+  .morph-deck
     transition: none
