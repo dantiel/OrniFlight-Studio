@@ -16,7 +16,8 @@ FlightProfilesView = ->
   h 'div', { className: 'flight-profiles-view' },
     h 'header', { className: 'fp-head' },
       h 'div', null,
-        h 'h1', null, 'FLUGPROFILE'
+        h 'h1', { className: 'orgone-display orgone-display-shimmer' },
+          'FLUGPROFILE'
         h 'p', { className: 'fp-hermes' },
           'Drei Profile, gewählt über CH7. Jedes trägt Gleitwinkel ' +
           'und Schlagmitte.'

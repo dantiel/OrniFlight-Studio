@@ -128,7 +128,8 @@ OrnithopterView = ->
     # ── Page head ──────────────────────────────────────
     h 'header', { className: 'orni-page-head' },
       h 'div', null,
-        h 'h1', null, 'GRUNDKONFIGURATION'
+        h 'h1', { className: 'orgone-display orgone-display-shimmer' },
+          'GRUNDKONFIGURATION'
         h 'p', { className: 'orni-hermes' },
           'Körperplan · Flugwerk · Schlagkurve. ' +
           'Die Antriebsseite des Vogels, eine Sicht pro Gelenk.'

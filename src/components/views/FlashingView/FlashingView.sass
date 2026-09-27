@@ -1,10 +1,17 @@
 // ═══════════════════════════════════════════
 // FlashingView — The Molt (vertical parallax document)
 //
-// Migrated off the fixed-height ViewArea grid: a flowing column of
-// glass sections over the FeatherField parallax layer, like
-// OrnithopterView / FlightProfilesView. The page scrolls with the
-// document instead of fighting unknown viewport heights.
+// A flowing column of glass sections over the FeatherField layer.
+// Scroll-driven transmorph choreography via useMoltMorph custom
+// properties:
+//
+//   --morph       entrance: curtain rise + lift + blur-settle + glow
+//   --exit        sections recede (dim, sink) past the upper view
+//   --depth       per-section lag — deeper cards scroll a touch slower
+//   --head-morph  the page head condenses into a sticky glass masthead
+//
+// Every effect rests at its revealed state without JS (fallbacks),
+// and honours prefers-reduced-motion.
 // ═══════════════════════════════════════════
 
 @use '../../../styles/glass' as *
@@ -24,34 +31,82 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
   flex-direction: column
   gap: var(--of-space-6)
 
-// ── page head ──
+// ── page head — condenses into the sticky masthead ──
 
 .molt-head
+  position: sticky
+  top: calc(var(--of-toolbar-height) + var(--of-space-3))
+  z-index: 8
   display: flex
   justify-content: space-between
   align-items: flex-end
   gap: var(--of-space-6)
-  padding: var(--of-space-2) var(--of-space-1)
   flex-wrap: wrap
+  margin: 0 calc(var(--of-space-3) * -1)
+  padding: var(--of-space-2) var(--of-space-3)
+  border-radius: var(--of-glass-radius)
+
+  // The masthead glass fades in as the head condenses — the title
+  // transmorphs from open air into a floating glass bar.
+  &::before
+    content: ''
+    position: absolute
+    inset: 0
+    z-index: -1
+    border-radius: inherit
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+    -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+    border: 1px solid rgba(255, 255, 255, 0.05)
+    box-shadow: var(--of-glass-shadow)
+    opacity: var(--head-morph, 0)
+    pointer-events: none
+
+  // The orgone hairline that appears under the condensed masthead.
+  &::after
+    content: ''
+    position: absolute
+    left: var(--of-space-4)
+    right: var(--of-space-4)
+    bottom: 0
+    height: 1px
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(var(--orgone-a-rgb), 0.45) 30%,
+      rgba(var(--orgone-b-rgb), 0.45) 70%,
+      transparent)
+    opacity: var(--head-morph, 0)
+    pointer-events: none
 
   h1
     font-family: var(--of-font-heading)
-    font-size: 42px
-    letter-spacing: 0.14em
+    font-size: calc(42px - var(--head-morph, 0) * 22px)
+    letter-spacing: calc(0.14em - var(--head-morph, 0) * 0.06em)
     margin: 0
     font-weight: 400
+    transform: translateY(calc(var(--head-morph, 0) * 1px))
+
+.molt-head-copy,
+.molt-transport
+  position: relative
+  z-index: 1
 
 .molt-kicker
   color: var(--of-accent-alt)
   font: 650 10px/1 var(--of-font-mono)
   letter-spacing: 0.18em
+  display: inline-block
 
 .molt-hermes
-  margin: var(--of-space-2) 0 0
+  margin: calc(var(--of-space-2) * (1 - var(--head-morph, 0))) 0 0
   max-width: 52ch
   color: var(--of-text-muted)
   font-size: var(--of-text-sm)
   line-height: 1.55
+  opacity: calc(1 - var(--head-morph, 0))
+  transform: translateY(calc(var(--head-morph, 0) * 10px))
+  max-height: calc((1 - var(--head-morph, 0)) * 84px)
+  overflow: hidden
 
 .molt-transport
   padding: 4px 12px
@@ -61,15 +116,18 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
   color: var(--of-text-muted)
   font: 600 10px/1 var(--of-font-mono)
   letter-spacing: 0.14em
+  transform: scale(calc(1 - var(--head-morph, 0) * 0.16))
+  transform-origin: 100% 50%
 
 .molt-transport-serial,
 .molt-transport-webusb
   color: var(--of-accent-green)
   border-color: rgba(var(--of-accent-green-rgb), 0.4)
 
-// ── glass sections ──
+// ── glass sections — the transmorphing cards ──
 
 .molt-section
+  position: relative
   background: var(--of-glass-bg)
   backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
   -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
@@ -78,6 +136,13 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
   box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
   padding: var(--of-space-6)
   +of-glass-refract
+  // Choreography — curtain rise, settle, recede.
+  opacity: calc(1 - var(--exit, 0) * 0.55)
+  transform: translate3d(0, calc(var(--depth, 0px) + (1 - var(--morph, 1)) * 56px), 0) scale(calc(1 - (1 - var(--morph, 1)) * 0.03 - var(--exit, 0) * 0.02))
+  clip-path: inset(0 0 calc((1 - var(--morph, 1)) * 100%) 0 round var(--of-glass-radius))
+  filter: blur(calc((1 - var(--morph, 1)) * 9px)) saturate(calc(0.55 + var(--morph, 1) * 0.45))
+  transform-origin: 50% 100%
+  will-change: transform, opacity, clip-path
 
 // Panels that carry their own head/body chrome sit flush inside the
 // glass frame; self-contained sections (forge, stage) keep padding.
@@ -87,6 +152,31 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
 .molt-console
   padding: 0
   overflow: hidden
+
+// ── the forge — an aurora breathing behind the glass ──
+
+.molt-forge
+  > *
+    position: relative
+    z-index: 1
+
+  &::before
+    content: ''
+    position: absolute
+    inset: -24px
+    z-index: 0
+    pointer-events: none
+    border-radius: inherit
+    background: radial-gradient(55% 45% at 72% 12%, rgba(var(--orgone-a-rgb), 0.14), transparent 70%), radial-gradient(45% 40% at 24% 88%, rgba(var(--orgone-b-rgb), 0.10), transparent 70%)
+    background-size: 160% 160%
+    opacity: var(--morph, 1)
+    animation: molt-aurora-drift 14s ease-in-out infinite alternate
+
+@keyframes molt-aurora-drift
+  from
+    background-position: 0% 0%
+  to
+    background-position: 100% 100%
 
 // ── flash stage ──
 
@@ -99,6 +189,10 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
   @media (max-width: 720px)
     grid-template-columns: 1fr
     justify-items: center
+
+// The ring's glow swells as the stage rises into view.
+.molt-stage .flash-ring
+  filter: drop-shadow(0 0 calc(var(--morph, 1) * 18px) rgba(var(--of-accent-rgb), 0.35))
 
 .molt-stage-actions
   display: flex
@@ -140,3 +234,37 @@ $acc-soft: rgba(var(--of-accent-rgb), 0.1)
   font-family: var(--of-font-mono)
   font-size: var(--of-text-sm)
   color: var(--of-accent-red)
+
+// ── console — powers on as it enters ──
+
+.molt-console .console-body
+  filter: brightness(calc(0.55 + var(--morph, 1) * 0.45))
+
+// ── native scroll-driven kicker scan (progressive enhancement) ──
+
+@supports (animation-timeline: view())
+  .molt-kicker
+    animation: molt-scan linear both
+    animation-timeline: view()
+    animation-range: cover 0% cover 28%
+
+@keyframes molt-scan
+  from
+    background-position: 100% 0
+  to
+    background-position: 0% 0
+
+// ── stilled æther ──
+
+@media (prefers-reduced-motion: reduce)
+  .molt-section
+    transform: none
+    clip-path: none
+    filter: none
+  .molt-head h1,
+  .molt-hermes,
+  .molt-transport
+    transform: none
+  .molt-forge::before,
+  .molt-kicker
+    animation: none

@@ -263,3 +263,47 @@ The waveform and gyro canvases use these accent colors for visual consistency:
 Canvas rendering uses hardcoded hex values (not CSS vars) since Canvas 2D
 doesn't support `var()`. These hex values must be kept in sync with the
 corresponding tokens.
+
+## ORGONE — Display-Type Gradient Language
+
+ORGONE is the typographic emanation of the ORNI theme: a slow
+periwinkle→cyan→orchid→rose gradient with a faint magical halo, breathed
+through display type. ORNI is the bird; ORGONE is the field it swims in.
+
+### Tokens (`_tokens.sass`, both themes)
+
+| Token | Meaning |
+|---|---|
+| `--orgone-a…-d` (+ `-rgb` variants) | The four gradient stops — periwinkle, cyan, orchid, rose-mist |
+| `--orgone-gradient` | The canonical 105° display gradient |
+| `--orgone-halo` / `--orgone-halo-strong` | drop-shadow glows for the halo |
+
+### Utility classes (`_orgone.sass`, global)
+
+| Class | Use |
+|---|---|
+| `.orgone-display` | Gradient fill + faint halo for large display headings |
+| `.orgone-display-shimmer` | Pairs with `.orgone-display` — slow gradient sweep + breathing halo |
+| `.orgone-kicker` | Small mono eyebrows in gradient |
+| `.orgone-rule` | Gradient hairline divider |
+
+All fill effects sit behind `@supports (background-clip: text)`; engines
+without it fall back to each component's solid color. `prefers-reduced-motion`
+stills the shimmer. Apply to view `h1`s, page kickers, and the brand wordmark
+— never to body copy.
+
+### Scroll transmorph choreography (`useMoltMorph`)
+
+Vertical parallax pages (The Molt) are choreographed through custom
+properties stamped per-section by `src/hooks/useMoltMorph.coffee`:
+
+| Property | Range | Effect |
+|---|---|---|
+| `--morph` | 0→1 | Curtain-rise entrance: lift, scale, blur-settle, glow |
+| `--exit` | 0→1 | Sections recede — dim and sink past the upper viewport |
+| `--depth` | px | Per-section lag — deeper cards scroll a touch slower |
+| `--head-morph` | 0→1 | Page head condenses into a sticky glass masthead |
+
+CSS consumes the properties with `var(--morph, 1)` fallbacks, so the page
+rests fully revealed without JS. A `@supports (animation-timeline: view())`
+block adds a native scroll-driven kicker scan where the engine allows.

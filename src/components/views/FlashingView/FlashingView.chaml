@@ -1,18 +1,22 @@
 ~~~
+import { useRef } from 'react'
 import useFlashController from '../../../hooks/useFlashController.coffee'
+import useMoltMorph from '../../../hooks/useMoltMorph.coffee'
 import { FLASH_OPTIONS, transportLabel } from '../../../firmware/flashUi.coffee'
 import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
 import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
 ~~~
 
 - ctrl = useFlashController()
+- moltRef = useRef(null)
+- useMoltMorph(moltRef)
 - transportWord = transportLabel(ctrl.transport)
 - pickOption = (key) -> (e) -> ctrl.onOption(key, e.target.checked)
-.molt-view.layout-flash
+.molt-view.layout-flash{ ref: moltRef }
   %header.molt-head
     %div.molt-head-copy
-      %span.molt-kicker SYSTEM · THE MOLT
-      %h1 The Molt
+      %span.molt-kicker.orgone-kicker SYSTEM · THE MOLT
+      %h1.orgone-display.orgone-display-shimmer The Molt
       %p.molt-hermes
         Strip the old plumage — forge a fitted build in the cloud,
         weave it onto the board over Serial or USB DFU.

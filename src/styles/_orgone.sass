@@ -1,0 +1,72 @@
+// ═══════════════════════════════════════════
+// ORNIFLIGHT STUDIO — ORGONE Display-Type Language
+//
+// ORNI is the bird; ORGONE is the æther it swims in. Where ORNI
+// carries the mechanical wordmark, ORGONE is the emanation of the
+// same force through type: a slow periwinkle→cyan→orchid→rose
+// gradient with a faint magical halo that breathes like a living
+// field. Applied as utility classes — no component coupling.
+//
+//   .orgone-display          gradient fill + faint halo
+//   .orgone-display-shimmer  adds the slow sweep + breathing glow
+//   .orgone-kicker           small mono eyebrows in gradient
+//   .orgone-rule             gradient hairline divider
+//
+// All fill effects sit behind an @supports guard so engines without
+// background-clip:text fall back to the component's solid color.
+// ═══════════════════════════════════════════
+
+=orgone-fill
+  background: var(--orgone-gradient)
+  background-size: 100% 100%
+  -webkit-background-clip: text
+  background-clip: text
+  -webkit-text-fill-color: transparent
+  color: transparent
+
+=orgone-halo
+  filter: var(--orgone-halo)
+
+@supports ((background-clip: text) or (-webkit-background-clip: text))
+  .orgone-display
+    +orgone-fill
+    +orgone-halo
+
+  // Shimmer pairs with .orgone-display — it re-sizes the gradient
+  // field so the sweep has room to travel.
+  .orgone-display-shimmer
+    background-size: 220% 100%
+    animation: orgone-sweep 9s var(--of-ease-in-out) infinite alternate, orgone-breathe 5.5s ease-in-out infinite
+
+  .orgone-kicker
+    +orgone-fill
+    background-size: 200% 100%
+    filter: drop-shadow(0 0 8px rgba(var(--orgone-a-rgb), 0.3))
+
+// ── the sweep — gradient drifts across the glyphs ──
+@keyframes orgone-sweep
+  0%
+    background-position: 0% 50%
+  100%
+    background-position: 100% 50%
+
+// ── the breath — the halo inhales and exhales ──
+@keyframes orgone-breathe
+  0%, 100%
+    filter: var(--orgone-halo)
+  50%
+    filter: var(--orgone-halo-strong)
+
+// ── hairline of light ──
+.orgone-rule
+  height: 1px
+  border: none
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(var(--orgone-a-rgb), 0.55) 28%,
+    rgba(var(--orgone-b-rgb), 0.55) 72%,
+    transparent)
+
+@media (prefers-reduced-motion: reduce)
+  .orgone-display-shimmer
+    animation: none

@@ -16,6 +16,22 @@
   --of-brand-flight: #e1e2f8
   --of-header-opacity: 0.04
 
+  // ── ORGONE — gradient æther for display type ──
+  // ORNI is the bird; ORGONE is the field it swims in. A slow
+  // periwinkle→cyan→orchid→rose gradient with a faint magical halo,
+  // breathed through display type — complementing, never fighting.
+  --orgone-a: #9fb1ff
+  --orgone-b: #4ae3d0
+  --orgone-c: #c9a6ff
+  --orgone-d: #ffd7ef
+  --orgone-a-rgb: 159, 177, 255
+  --orgone-b-rgb: 74, 227, 208
+  --orgone-c-rgb: 201, 166, 255
+  --orgone-d-rgb: 255, 215, 239
+  --orgone-gradient: linear-gradient(105deg, var(--orgone-a) 0%, var(--orgone-b) 38%, var(--orgone-c) 70%, var(--orgone-d) 100%)
+  --orgone-halo: 0 0 14px rgba(var(--orgone-a-rgb), 0.35), 0 0 44px rgba(var(--orgone-b-rgb), 0.18)
+  --orgone-halo-strong: 0 0 20px rgba(var(--orgone-a-rgb), 0.5), 0 0 60px rgba(var(--orgone-c-rgb), 0.25)
+
   // ── Palette (Dark) ──────────────────────
   --of-body-bg: #1a1a1c
   --of-surface-0: #1a1a1c
@@ -133,6 +149,18 @@
 // ── Light Theme ────────────────────────────
 [data-theme="light"]
   --of-header-opacity: 0.06
+
+  // ORGONE — deeper stops for contrast on bright fields
+  --orgone-a: #5a6fd8
+  --orgone-b: #17a894
+  --orgone-c: #8a5ccc
+  --orgone-d: #d88ab8
+  --orgone-a-rgb: 90, 111, 216
+  --orgone-b-rgb: 23, 168, 148
+  --orgone-c-rgb: 138, 92, 204
+  --orgone-d-rgb: 216, 138, 184
+  --orgone-halo: 0 0 14px rgba(var(--orgone-a-rgb), 0.22), 0 0 40px rgba(var(--orgone-b-rgb), 0.12)
+  --orgone-halo-strong: 0 0 18px rgba(var(--orgone-a-rgb), 0.3), 0 0 56px rgba(var(--orgone-c-rgb), 0.16)
   --of-body-bg: #f0f0f0
   --of-surface-0: #f0f0f0
   --of-surface-1: #ffffff
