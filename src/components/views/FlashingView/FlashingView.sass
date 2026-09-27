@@ -10,10 +10,11 @@
 //   --depth       per-section lag — deeper cards scroll a touch slower
 //   --head-morph  the big title dissolves as the control deck pins
 //
-// The control deck (.molt-deck) transmutes from a bare strip into a
-// glass command bar (.molt-stuck on the host) carrying live device,
-// forge, transport, phase and flash state. Actions elsewhere scroll
-// the flash deck into view (moltScrollTo) and spotlight it briefly.
+// The control deck (.molt-deck) is a bare strip — no background —
+// that docks flush under the toolbar once the big title has
+// dissolved, carrying live device, forge, transport, phase and flash
+// state. Actions elsewhere scroll the flash deck into view
+// (moltScrollTo) and spotlight it briefly.
 // Every effect rests at its revealed state without JS (fallbacks),
 // and honours prefers-reduced-motion.
 // ═══════════════════════════════════════════
@@ -70,36 +71,18 @@
   font-size: var(--of-text-sm)
   line-height: 1.55
 
-// ── the control deck — transmutes into the glass command bar ──
+// ── the control deck — a bare strip that docks flush under the
+// toolbar once the title has dissolved (no background) ──
 
 .molt-deck
   position: sticky
-  top: calc(var(--of-toolbar-height) + var(--of-space-8) + var(--of-space-2))
+  top: var(--of-toolbar-height)
   z-index: 8
   display: flex
   align-items: center
   gap: var(--of-space-4)
   flex-wrap: wrap
-  padding: var(--of-space-3) var(--of-space-4)
-  border-radius: var(--of-glass-radius)
-
-  // The glass layer transmutes in once the deck is pinned.
-  &::before
-    content: ''
-    position: absolute
-    inset: 0
-    z-index: -1
-    border-radius: inherit
-    background: var(--of-glass-bg)
-    backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
-    -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
-    border: 1px solid var(--of-glass-rim-soft)
-    box-shadow: var(--of-glass-shadow)
-    opacity: 0
-    transition: opacity var(--of-dur-slow) var(--of-ease-out)
-
-.molt-view.molt-stuck .molt-deck::before
-  opacity: 1
+  padding: var(--of-space-3) 0
 
 .deck-device
   display: inline-flex
@@ -228,7 +211,7 @@
   border-radius: var(--of-glass-radius)
   box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
   padding: var(--of-space-6)
-  scroll-margin-top: calc(var(--of-toolbar-height) + var(--of-space-8) + 64px)
+  scroll-margin-top: calc(var(--of-toolbar-height) + 60px)
   +of-glass-refract
   // Choreography — curtain rise, settle, recede.
   opacity: calc(1 - var(--exit, 0) * 0.55)

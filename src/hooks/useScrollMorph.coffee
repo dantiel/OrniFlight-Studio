@@ -13,7 +13,8 @@
 #
 # The host gains the travelled class once scrolled and the stuck
 # class once the big title has fully dissolved — the pin-point where
-# a control deck transmutes into glass. Options select the section/
+# a bare control deck docks flush under the toolbar. Options select
+# the section/
 # head selectors and class names so each view keeps its own
 # vocabulary (useMoltMorph delegates here).
 #

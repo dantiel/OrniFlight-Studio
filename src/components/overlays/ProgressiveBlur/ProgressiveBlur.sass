@@ -34,8 +34,13 @@ $pb-mask: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), tra
   mask-image: $pb-mask
   -webkit-mask-image: $pb-mask
 
+// The top curtain hugs the toolbar exactly — the blur is solid under
+// the toolbar strip and dies within 2px of its edge, so command decks
+// docked flush beneath stay completely crisp (no blurred chips).
 .progressive-blur-top .progressive-blur-layer
   top: 0
+  mask-image: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), transparent calc(var(--of-toolbar-height) + 2px))
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), transparent calc(var(--of-toolbar-height) + 2px))
 
 .progressive-blur-bottom .progressive-blur-layer
   bottom: 0
@@ -59,6 +64,8 @@ $pb-mask: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), tra
 
 .progressive-blur-top .progressive-blur-tint
   top: 0
+  mask-image: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), transparent calc(var(--of-toolbar-height) + 2px))
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), transparent calc(var(--of-toolbar-height) + 2px))
 
 .progressive-blur-bottom .progressive-blur-tint
   bottom: 0

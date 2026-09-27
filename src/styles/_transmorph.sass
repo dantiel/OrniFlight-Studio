@@ -66,36 +66,19 @@
   font-size: var(--of-text-sm)
   line-height: 1.55
 
-// ── optional command deck — transmutes into glass once pinned ──
+// ── optional command deck — a bare strip, no background; once the
+// title has dissolved it docks flush under the toolbar and floats
+// over the æther as pure controls (chips only) ──
 
 .morph-deck
   position: sticky
-  top: calc(var(--of-toolbar-height) + var(--of-space-8) + var(--of-space-2))
+  top: var(--of-toolbar-height)
   z-index: 8
   display: flex
   align-items: center
   gap: var(--of-space-3)
   flex-wrap: wrap
-  padding: var(--of-space-3) var(--of-space-4)
-  border-radius: var(--of-glass-radius)
-
-  // The glass layer transmutes in once the deck is pinned.
-  &::before
-    content: ''
-    position: absolute
-    inset: 0
-    z-index: -1
-    border-radius: inherit
-    background: var(--of-glass-bg)
-    backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
-    -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
-    border: 1px solid var(--of-glass-rim-soft)
-    box-shadow: var(--of-glass-shadow)
-    opacity: 0
-    transition: opacity var(--of-dur-slow) var(--of-ease-out)
-
-.morph-doc.morph-stuck .morph-deck::before
-  opacity: 1
+  padding: var(--of-space-3) 0
 
 // ── glass sections — the transmorphing cards ──
 
@@ -108,7 +91,7 @@
   border-radius: var(--of-glass-radius)
   box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
   padding: var(--of-space-6)
-  scroll-margin-top: calc(var(--of-toolbar-height) + var(--of-space-8) + 64px)
+  scroll-margin-top: calc(var(--of-toolbar-height) + 60px)
   +of-glass-refract
   // Choreography — curtain rise, settle, recede.
   opacity: calc(1 - var(--exit, 0) * 0.55)
