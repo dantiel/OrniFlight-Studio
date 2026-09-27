@@ -45,10 +45,13 @@ describe 'useTuningStore', ->
       'flap_P', expect.anything()
     )
 
-  it 'mirrors all ten ondas params on a draft edit', ->
+  it 'mirrors all fifteen ondas params on a draft edit', ->
     state().setField 'pid.roll.P', 1
-    expect(engine.setOndasParam).toHaveBeenCalledTimes 10
-    expect(engine.setOndasParam).toHaveBeenCalledWith 'anchor_gain', 50
+    expect(engine.setOndasParam).toHaveBeenCalledTimes 15
+    expect(engine.setOndasParam).toHaveBeenCalledWith 'anchor_gain', 10
+    expect(engine.setOndasParam).toHaveBeenCalledWith(
+      'ferocity_downstroke', 12
+    )
 
   it 'does not mirror rate or filter edits into the engine', ->
     state().setField 'rate.rcRate', 120
@@ -77,11 +80,17 @@ describe 'useTuningStore', ->
     state().setField 'rate.expo', 120
     expect(state().draft.rate.expo).toBe 100
 
-  it 'clamps ondas params to 0..100', ->
+  it 'clamps ondas params to their registry ranges', ->
     state().setField 'ondas.warp_gain', 150
     expect(state().draft.ondas.warp_gain).toBe 100
+    state().setField 'ondas.balance_gain', -150
+    expect(state().draft.ondas.balance_gain).toBe -100
     state().setField 'ondas.balance_gain', -5
-    expect(state().draft.ondas.balance_gain).toBe 0
+    expect(state().draft.ondas.balance_gain).toBe -5
+    state().setField 'ondas.ferocity_downstroke', 0
+    expect(state().draft.ondas.ferocity_downstroke).toBe 1
+    state().setField 'ondas.anchor_gain', 150
+    expect(state().draft.ondas.anchor_gain).toBe 100
 
   it 'clamps filter fields to their documented ranges', ->
     state().setField 'filter.gyroDlpfHz', 100000

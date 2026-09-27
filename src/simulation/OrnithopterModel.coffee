@@ -17,6 +17,7 @@ import {
   throttleSkewRateShift, aileronSkewRateShift
   SKEW_RATE_LPF_TAU
 } from './waveform.coffee'
+import { MATH_PARAMS } from '../lib/mathSuite.coffee'
 
 TWO_PI = 2 * Math.PI
 PI     = Math.PI
@@ -82,6 +83,11 @@ ONDAS_DEFAULTS =
   warp_yaw_gain: 15
   anchor_gain: 50
   resonance_gain: 10
+  ferocity_downstroke: 12
+  ferocity_upstroke: 12
+  prescience_gain: 0
+  espelho_gain: 0
+  saudade_gain: 0
 
 scaleGains = (gains) ->
   scaled = {}
@@ -158,20 +164,22 @@ export class OrnithopterModel
       amplitudeScale: 1.0
 
     @ondas =
-      cadence_gain:        30
-      ferocity_d_gain:     40
-      ferocity_p_gain:     20
-      balance_gain:        10
-      ferocity_roll_gain:  30
-      ferocity_yaw_gain:   25
-      warp_gain:           20
-      warp_yaw_gain:       15
-      anchor_gain:         50
-      resonance_gain:      10
-      prescience:          5
-      espelho:             0
-      saudade:             0
-      ssff:                20
+      cadence_gain:         30
+      ferocity_d_gain:      40
+      ferocity_p_gain:      20
+      balance_gain:         10
+      ferocity_roll_gain:   30
+      ferocity_yaw_gain:    25
+      warp_gain:            20
+      warp_yaw_gain:        15
+      anchor_gain:          50
+      resonance_gain:       10
+      ferocity_downstroke:  12
+      ferocity_upstroke:    12
+      prescience_gain:      0
+      espelho_gain:         0
+      saudade_gain:         0
+      ssff:                 20
 
     @pidGains =
       roll_P:  4.0
@@ -294,7 +302,11 @@ export class OrnithopterModel
     @
 
   setOndasParam: (name, value) ->
-    @ondas[name] = clamp 0, 100, value
+    meta = MATH_PARAMS[name]
+    @ondas[name] = if meta
+      clamp meta.min, meta.max, value
+    else
+      clamp 0, 100, value
     @
 
   # ── Waveform / flight-profile setters ─────────────────────

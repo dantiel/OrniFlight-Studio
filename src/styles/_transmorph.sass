@@ -43,7 +43,7 @@
   flex-direction: column
   gap: var(--of-space-3)
   opacity: calc(1 - var(--head-morph, 0))
-  transform: translate3d(0, calc(var(--head-morph, 0) * -32px), 0) scale(calc(1 - var(--head-morph, 0) * 0.04))
+  transform: translate3d(0, calc(var(--head-morph, 0) * -32px), 0)
   filter: blur(calc(var(--head-morph, 0) * 7px))
   transform-origin: 0% 100%
 
@@ -106,9 +106,10 @@
   padding: var(--of-space-6)
   scroll-margin-top: calc(var(--of-toolbar-height) + 60px)
   +of-glass-refract
-  // Choreography — curtain rise, settle, recede.
+  // Choreography — curtain rise, settle, recede (translation and
+  // dissolution only; no scale breathing, which reads as clumsy).
   opacity: calc(1 - var(--exit, 0) * 0.55)
-  transform: translate3d(0, calc(var(--depth, 0px) + (1 - var(--morph, 1)) * 56px), 0) scale(calc(1 - (1 - var(--morph, 1)) * 0.03 - var(--exit, 0) * 0.02))
+  transform: translate3d(0, calc(var(--depth, 0px) + (1 - var(--morph, 1)) * 56px), 0)
   clip-path: inset(0 0 calc((1 - var(--morph, 1)) * 100%) 0 round var(--of-glass-radius))
   filter: blur(calc((1 - var(--morph, 1)) * 9px)) saturate(calc(0.55 + var(--morph, 1) * 0.45))
   transform-origin: 50% 100%

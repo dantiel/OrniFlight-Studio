@@ -3,7 +3,7 @@ import { memo } from 'react'
 import AnimatedNumberInput from '../../controls/AnimatedNumberInput/AnimatedNumberInput.coffee'
 ~~~
 
-.param-row
+.param-row{ title: props.hint }
   %span.param-label
     = props.label
   - if props.min?

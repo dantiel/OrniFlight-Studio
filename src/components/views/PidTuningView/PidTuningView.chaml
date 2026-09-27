@@ -1,7 +1,9 @@
 ~~~
 import { memo } from 'react'
+import { NavLink } from 'react-router-dom'
 import { fmt2 } from '../../../lib/essential.coffee'
-import { ONDAS_KEYS, PID_AXES, PID_TERMS } from '../../../protocol/mspDecoders.coffee'
+import { PID_AXES, PID_TERMS } from '../../../protocol/mspDecoders.coffee'
+import { MATH_LAYERS, MATH_PARAMS, mathParamsOf } from '../../../lib/mathSuite.coffee'
 import useTuningStore, { PID_GAIN_MAX } from '../../../stores/useTuningStore.coffee'
 import { pidHandlers, ondasHandlers, rateHandlers, filterHandlers } from './fieldHandlers.coffee'
 import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
@@ -35,8 +37,15 @@ import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
     %ParamRow{ key: 'rate-superRate', label: 'Super rate', value: draft.rate.superRate, min: '0', max: '100', step: '1', display: String(draft.rate.superRate), onInput: rateHandlers.superRate }
     %ParamRow{ key: 'rate-expo', label: 'Expo', value: draft.rate.expo, min: '0', max: '100', step: '1', display: String(draft.rate.expo), onInput: rateHandlers.expo }
   %StudioAccordion{ title: 'ONDAS' }
-    - for key in ONDAS_KEYS
-      %ParamRow{ key: "ondas-#{key}", label: key.split('_').join(' '), value: draft.ondas[key], min: '0', max: '100', step: '1', display: String(draft.ondas[key]), onInput: ondasHandlers[key] }
+    - for layer in MATH_LAYERS
+      .ondas-layer
+        %span.ondas-layer-name
+          = "#{layer.glyph} #{layer.name}"
+        - for key in mathParamsOf(layer.id)
+          %ParamRow{ key: "ondas-#{key}", label: MATH_PARAMS[key].label, value: draft.ondas[key], min: String(MATH_PARAMS[key].min), max: String(MATH_PARAMS[key].max), step: '1', display: "#{draft.ondas[key]} #{MATH_PARAMS[key].unit}", hint: MATH_PARAMS[key].role, onInput: ondasHandlers[key] }
+    .ondas-more
+      %NavLink{ to: '/control/math' }
+        Vollständige ONDAS-Oberfläche → Math
   %StudioAccordion{ title: 'Filters' }
     %ParamRow{ key: 'filter-gyroDlpf', label: 'Gyro DLPF', value: draft.filter.gyroDlpfHz, min: '0', max: '1000', step: '1', display: "#{draft.filter.gyroDlpfHz} Hz", onInput: filterHandlers.gyroDlpfHz }
     %ParamRow{ key: 'filter-gyroNotch', label: 'Gyro notch', value: draft.filter.gyroNotchHz, min: '0', max: '1000', step: '1', display: "#{draft.filter.gyroNotchHz} Hz", onInput: filterHandlers.gyroNotchHz }

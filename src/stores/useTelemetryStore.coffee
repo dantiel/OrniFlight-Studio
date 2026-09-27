@@ -39,6 +39,9 @@ useTelemetryStore = create(
       rcChannels:      []
       acceleration:    { x: 0, y: 0, z: 0 }
       magnetometer:    { x: 0, y: 0, z: 0 }
+      # MSP_DEBUG (254) channels — DEBUG_ESPELHO carries
+      # skew ratio ×1000 (roll/pitch/yaw) + pitch phase °.
+      debug:           [0, 0, 0, 0]
       source:           'offline'
       connected:       false
 
@@ -61,6 +64,7 @@ useTelemetryStore = create(
           rcChannels = []
           accelX = 0, accelY = 0, accelZ = 0
           magnetometer = [0, 0, 0]
+          debug = [0, 0, 0, 0]
           source = 'offline'
         } = frame
 
@@ -99,6 +103,7 @@ useTelemetryStore = create(
           rcChannels
           acceleration: { x: accelX, y: accelY, z: accelZ }
           magnetometer: { x: magnetometer[0] or 0, y: magnetometer[1] or 0, z: magnetometer[2] or 0 }
+          debug
           source
           ringIndex: (ringIndex + 1) % RING_SIZE
           ringBuffer

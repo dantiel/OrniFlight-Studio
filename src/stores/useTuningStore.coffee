@@ -17,6 +17,7 @@ import { engine } from '../simulation/engine.coffee'
 import {
   ONDAS_DEFAULTS, ONDAS_KEYS, PID_AXES, PID_TERMS, TUNING_FALLBACKS
 } from '../protocol/mspDecoders.coffee'
+import { MATH_PARAMS } from '../lib/mathSuite.coffee'
 
 clone = (value) -> JSON.parse JSON.stringify value
 
@@ -39,7 +40,6 @@ clampInt = (lo, hi, value) ->
 
 RC_RATE_MAX = 250
 RATE_MAX = 100
-ONDAS_MAX = 100
 NOTCH_Q_MAX = 16
 HZ_MAX = 65535
 # PID gains ride a u16×1000 wire field (MSP 112/202), so the ceiling is
@@ -76,7 +76,8 @@ normalizeRate = (rate = {}) ->
 normalizeOndas = (ondas = {}) ->
   normalized = {}
   for key in ONDAS_KEYS
-    normalized[key] = clampInt 0, ONDAS_MAX, ondas[key] ? ONDAS_DEFAULTS[key]
+    { min, max } = MATH_PARAMS[key]
+    normalized[key] = clampInt min, max, ondas[key] ? ONDAS_DEFAULTS[key]
   normalized
 
 normalizeFilter = (filter = {}) ->

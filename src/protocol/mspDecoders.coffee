@@ -20,6 +20,9 @@ import {
 import {
   MAX_ADJUSTMENT_RANGE_COUNT
 } from '../lib/adjustmentsCatalog.coffee'
+import {
+  MATH_KEYS, MATH_DEFAULTS, MATH_PARAMS
+} from '../lib/mathSuite.coffee'
 
 SIGNATURE_LENGTH = 32
 
@@ -446,31 +449,24 @@ decodeFilterConfig = (payload) ->
   dTermDlpfHz: if reader.remaining() >= 2 then reader.u16() else 0
 
 # ── ONDAS profile (MSP 114 / 206) ───────────────────────────
-# Wire layout: 10 bytes — one u8 per key in ONDAS_KEYS order.
-ONDAS_DEFAULTS = Object.freeze
-  cadence_gain: 30
-  ferocity_d_gain: 40
-  ferocity_p_gain: 20
-  balance_gain: 10
-  ferocity_roll_gain: 30
-  ferocity_yaw_gain: 25
-  warp_gain: 20
-  warp_yaw_gain: 15
-  anchor_gain: 50
-  resonance_gain: 10
-ONDAS_KEYS = Object.keys ONDAS_DEFAULTS
+# Wire layout: 15 bytes — one u8 per key in ONDAS_KEYS order.
+# Signed params (−100..100) ride the s8 convention: wire = value + 128.
+ONDAS_DEFAULTS = Object.freeze MATH_DEFAULTS
+ONDAS_KEYS = MATH_KEYS
 
 encodeOndas = (ondas = {}) ->
   out = new Uint8Array ONDAS_KEYS.length
   for key, i in ONDAS_KEYS
-    out[i] = clampU8 ondas[key] ? ONDAS_DEFAULTS[key]
+    value = ondas[key] ? ONDAS_DEFAULTS[key]
+    out[i] = clampU8 if MATH_PARAMS[key].signed then value + 128 else value
   out
 
 decodeOndas = (payload) ->
   reader = new ByteReader payload
   result = {}
   for key in ONDAS_KEYS
-    result[key] = if reader.remaining() then reader.u8() else 0
+    byte = if reader.remaining() then reader.u8() else 0
+    result[key] = if MATH_PARAMS[key].signed then byte - 128 else byte
   result
 
 # ── Tuning fallbacks ────────────────────────────────────────

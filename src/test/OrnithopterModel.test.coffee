@@ -53,11 +53,15 @@ describe 'OrnithopterModel', ->
     model.setStick 'roll', 1600
     expect(model.targetRates.roll).not.toBe 0
 
-  it 'setOndasParam clamps to 0-100', ->
+  it 'setOndasParam clamps to registry ranges', ->
     model.setOndasParam 'cadence_gain', 150
     expect(model.ondas.cadence_gain).toBe 100
-    model.setOndasParam 'cadence_gain', -10
-    expect(model.ondas.cadence_gain).toBe 0
+    model.setOndasParam 'cadence_gain', -150
+    expect(model.ondas.cadence_gain).toBe -100
+    model.setOndasParam 'ferocity_downstroke', 0
+    expect(model.ondas.ferocity_downstroke).toBe 1
+    model.setOndasParam 'anchor_gain', 150
+    expect(model.ondas.anchor_gain).toBe 100
 
   it 'setPidGain updates gain value', ->
     model.setPidGain 'roll_P', 10.0

@@ -1,9 +1,22 @@
 # OrniFlight Studio — Math Suite View (TASK / DESIGN BRIEF)
 
-> **Status: OPEN.** Work order for the studio-grade surface of the ONDAS +
-> ESPELHO mathematics suite. This is a forward-looking brief, not a
-> magnum-opus record — implementation docs follow the pattern of
-> [`PID-TUNING-VIEW.md`](PID-TUNING-VIEW.md) once built.
+> **Status: IMPLEMENTED (T4 device path pending).** The studio-grade
+> surface of the ONDAS + ESPELHO mathematics suite is live as the
+> **Math view** (`/control/math`, `src/components/views/MathView/`).
+>
+> Delivered: T1 codec (15 keys, signed s8 wire, firmware reset
+> defaults), T2 registry (`src/lib/mathSuite.coffee` — single source
+> of truth for layers/params/ranges/units, consumed by the codec,
+> `useTuningStore`, `OrnithopterModel`, `PidTuningView` and MathView),
+> T3 nine layer cards + signal chain, T4 Espelho skew diagnostic
+> (sim-derived lock-in ratios + phase dial; device `MSP_DEBUG`/
+> `SET_DEBUG` codes reserved in `mspCodes.coffee`, debug[] field in
+> `useTelemetryStore`), T5 preview: down/up ferocity split rendered
+> live via the `strokePreviewPath` waveform (model-side split physics
+> still single-waveform — future work).
+>
+> Implementation notes follow the pattern of
+> [`PID-TUNING-VIEW.md`](PID-TUNING-VIEW.md).
 
 ## 1. Context
 

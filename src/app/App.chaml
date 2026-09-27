@@ -18,6 +18,7 @@ import OrnithopterView from '../components/views/OrnithopterView/OrnithopterView
 import FlightProfilesView from '../components/views/FlightProfilesView/FlightProfilesView.coffee'
 import ServosView from '../components/views/ServosView/ServosView.chaml'
 import PidTuningView from '../components/views/PidTuningView/PidTuningView.chaml'
+import MathView from '../components/views/MathView/MathView.chaml'
 import OsdEditorView from '../components/views/OsdEditorView/OsdEditorView.chaml'
 import ReceiverView from '../components/views/ReceiverView/ReceiverView.chaml'
 import ModesView from '../components/views/ModesView/ModesView.chaml'
@@ -41,6 +42,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - `const profilesEl = h(AnimatedPage, null, h(FlightProfilesView, null))`
 - `const servosEl = h(AnimatedPage, null, h(ServosView, null))`
 - `const controlEl = h(AnimatedPage, null, h(PidTuningView, null))`
+- `const mathEl = h(AnimatedPage, null, h(MathView, null))`
 - `const modesEl = h(AnimatedPage, null, h(ModesView, null))`
 - `const receiverEl = h(AnimatedPage, null, h(ReceiverView, null))`
 - `const adjustmentsEl = h(AnimatedPage, null, h(AdjustmentsView, null))`
@@ -79,6 +81,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/servos', element: servosEl }
         %Route{ path: '/control', element: controlRedirectEl }
         %Route{ path: '/control/pid', element: controlEl }
+        %Route{ path: '/control/math', element: mathEl }
         %Route{ path: '/control/modes', element: modesEl }
         %Route{ path: '/control/receiver', element: receiverEl }
         %Route{ path: '/control/adjustments', element: adjustmentsEl }

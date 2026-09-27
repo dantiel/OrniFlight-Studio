@@ -6,7 +6,7 @@ import OrniFlightSession, {
 } from '../protocol/orniFlightSession.coffee'
 import { MockMspTransport, scriptedResponder } from './mockMspTransport.coffee'
 import {
-  encodeServoConfiguration, ONDAS_DEFAULTS
+  encodeServoConfiguration, ONDAS_DEFAULTS, encodeOndas
   decodePidAdvanced, encodePidAdvanced, RX_CONFIG_BYTES
 } from '../protocol/mspDecoders.coffee'
 import { itemPos } from '../lib/osdCatalog.coffee'
@@ -98,7 +98,7 @@ tuningPayloads = {
   ]
   [MSP_CODES.RC_TUNING]: [100, 70, 35]
   [MSP_CODES.FILTER_CONFIG]: [u16(250)..., u16(400)..., 6, u16(50)...]
-  [MSP_CODES.ONDAS]: [30, 40, 20, 10, 30, 25, 20, 15, 50, 10]
+  [MSP_CODES.ONDAS]: Array.from(encodeOndas())
 }
 
 # Echoes written tuning sections on read-back so writeTuning's

@@ -29,7 +29,7 @@ describe 'ConfigTabs — Interaction', ->
 
   it 'renders the Steuerung sub-views', ->
     renderApp '/control/pid'
-    expect(labels()).toEqual ['PID', 'Modi', 'Empfänger', 'Justierung']
+    expect(labels()).toEqual ['PID', 'Math', 'Modi', 'Empfänger', 'Justierung']
 
   it 'navigates between sub-views of one module', ->
     renderApp '/basic/body'

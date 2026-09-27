@@ -348,24 +348,29 @@ describe 'mspDecoders', ->
 
   it 'round-trips ONDAS params in fixed key order', ->
     source = {
-      cadence_gain: 30, ferocity_d_gain: 40, ferocity_p_gain: 20
-      balance_gain: 10, ferocity_roll_gain: 30, ferocity_yaw_gain: 25
-      warp_gain: 20, warp_yaw_gain: 15, anchor_gain: 50, resonance_gain: 10
+      cadence_gain: -20, ferocity_p_gain: 30, ferocity_d_gain: 45
+      ferocity_roll_gain: 40, ferocity_yaw_gain: 35
+      ferocity_downstroke: 12, ferocity_upstroke: 24
+      balance_gain: -15, warp_gain: 30, warp_yaw_gain: -25
+      anchor_gain: 60, resonance_gain: 20, prescience_gain: 10
+      espelho_gain: 15, saudade_gain: 5
     }
     bytes = Array.from encodeOndas(source)
-    expect(bytes).toHaveLength 10
+    expect(bytes).toHaveLength 15
+    # Signed keys ride the s8 convention: wire = value + 128.
+    expect(bytes[0]).toBe 108
     expect(decodeOndas(bytes)).toEqual source
 
   it 'fills missing ONDAS bytes with zeros on truncation', ->
     partial = decodeOndas [90, 80]
-    expect(partial.cadence_gain).toBe 90
-    expect(partial.ferocity_d_gain).toBe 80
+    expect(partial.cadence_gain).toBe -38
+    expect(partial.ferocity_p_gain).toBe 80
     expect(partial.resonance_gain).toBe 0
 
-  it 'freezes ONDAS defaults with ten keys', ->
+  it 'freezes ONDAS defaults with fifteen keys', ->
     expect(Object.isFrozen ONDAS_DEFAULTS).toBe true
-    expect(ONDAS_KEYS).toHaveLength 10
-    expect(ONDAS_DEFAULTS.anchor_gain).toBe 50
+    expect(ONDAS_KEYS).toHaveLength 15
+    expect(ONDAS_DEFAULTS.anchor_gain).toBe 10
 
   it 'clamps negative and oversized PID gains on encode', ->
     source = {

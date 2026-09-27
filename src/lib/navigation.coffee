@@ -32,6 +32,7 @@ SUBTABS =
   servos:   [['/servos', 'Servos']]
   control: [
     ['/control/pid',         'PID']
+    ['/control/math',        'Math']
     ['/control/modes',       'Modi']
     ['/control/receiver',    'Empfänger']
     ['/control/adjustments', 'Justierung']

@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createElement as h } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import PidTuningView from '../components/views/PidTuningView/PidTuningView.chaml'
 import useTuningStore from '../stores/useTuningStore.coffee'
@@ -14,7 +15,7 @@ describe 'PidTuningView', ->
     vi.restoreAllMocks()
 
   renderView = ->
-    render h(PidTuningView, null)
+    render h(MemoryRouter, null, h(PidTuningView, null))
 
   it 'renders the four tuning sections in sim mode', ->
     renderView()
@@ -24,15 +25,16 @@ describe 'PidTuningView', ->
     expect(screen.getByText 'SIMULATION').toBeInTheDocument()
     expect(screen.getByText(/nicht persistiert/)).toBeInTheDocument()
 
-  it 'shows twelve PID rows and ten ONDAS rows', ->
+  it 'shows twelve PID rows and fifteen ONDAS rows', ->
     renderView()
     for trigger in document.querySelectorAll '.studio-accordion-trigger'
       fireEvent.click trigger
     rows = document.querySelectorAll '.param-row'
-    expect(rows.length).toBe 12 + 3 + 10 + 4
+    expect(rows.length).toBe 12 + 3 + 15 + 4
     expect(screen.getByText 'roll P').toBeInTheDocument()
     expect(screen.getByText 'flap D').toBeInTheDocument()
-    expect(screen.getByText 'anchor gain').toBeInTheDocument()
+    expect(screen.getByText 'Damping anchor').toBeInTheDocument()
+    expect(screen.getByText(/Cadence/)).toBeInTheDocument()
 
   it 'shows the UNSAVED badge after a draft edit', ->
     renderView()

@@ -1,0 +1,268 @@
+// MathView — the ONDAS mathematics suite (vertical transmorph document)
+// Nine layer cards + signal chain + Espelho skew diagnostic, ORGONE
+// language throughout.
+
+.layout-math
+  // display: contents keeps the layer sections in the morph-doc's
+  // flex gap flow (the wrapper exists for the chaml loop scoping).
+  .math-layers
+    display: contents
+
+  .math-mode-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    border: 1px solid var(--of-border-1)
+    color: var(--of-text-muted)
+
+    &.math-mode-sim
+      border-color: var(--of-accent-dim)
+      color: var(--of-accent)
+
+  .math-dirty-badge
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    background: var(--of-accent-dim)
+    color: var(--of-text-primary)
+
+  .math-actions
+    display: flex
+    gap: 8px
+    margin-left: auto
+
+  .math-action
+    flex: 0 0 auto
+    padding: 7px 10px
+    border-radius: 8px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-glass-bg)
+    color: var(--of-text-secondary)
+    cursor: pointer
+    font-family: inherit
+    font-size: 12px
+    letter-spacing: 0.06em
+
+    &:hover:not(:disabled)
+      border-color: var(--of-accent)
+      color: var(--of-accent)
+
+    &:disabled
+      opacity: 0.4
+      cursor: not-allowed
+
+  .math-action-spot
+    color: var(--of-accent-alt)
+    border-color: var(--of-accent-dim)
+
+  // ── signal chain — nine layers, one breath ──
+
+  .math-chain-row
+    display: flex
+    flex-wrap: wrap
+    gap: var(--of-space-3)
+
+  .math-chain-node
+    display: flex
+    flex-direction: column
+    align-items: flex-start
+    gap: 4px
+    min-width: 96px
+    padding: 10px 12px
+    border-radius: 12px
+    border: 1px solid var(--of-glass-rim-soft)
+    background: var(--of-glass-bg)
+    color: var(--of-text-secondary)
+    cursor: pointer
+    font-family: inherit
+    transition: border-color var(--of-dur-normal) var(--of-ease-out), transform var(--of-dur-normal) var(--of-ease-out)
+
+    &:hover
+      border-color: rgba(var(--orgone-a-rgb), 0.7)
+      color: var(--of-text-primary)
+      transform: translateY(-1px)
+
+  .math-chain-glyph
+    font-size: 16px
+    line-height: 1
+
+  .math-chain-name
+    font: 600 10px/1 var(--of-font-mono)
+    letter-spacing: 0.12em
+    text-transform: uppercase
+
+  .math-chain-bar
+    width: 100%
+    height: 3px
+    border-radius: 2px
+    background: var(--of-border-1)
+    overflow: hidden
+
+  .math-chain-fill
+    display: block
+    height: 100%
+    border-radius: inherit
+    background: var(--orgone-gradient)
+    transition: width var(--of-dur-normal) var(--of-ease-out)
+
+  // ── layer cards ──
+
+  .math-layer-head
+    margin-bottom: var(--of-space-4)
+
+  .math-layer-glyph
+    font-size: 18px
+    line-height: 1
+    margin-right: 6px
+
+  .math-layer-name
+    display: inline-block
+    font-family: var(--of-font-heading)
+    font-size: 20px
+    font-weight: 500
+    letter-spacing: 0.06em
+    margin: 0 0 4px
+
+  .math-layer-role
+    margin: 0
+    max-width: 56ch
+    font-size: 12px
+    line-height: 1.5
+    color: var(--of-text-muted)
+
+  // ── stroke preview (down/up ferocity split) ──
+
+  .math-stroke-wrap
+    margin-top: var(--of-space-4)
+    padding-top: var(--of-space-4)
+    border-top: 1px dashed var(--of-border-1)
+
+  .math-stroke
+    display: block
+    width: 100%
+    max-width: 420px
+    height: 56px
+    color: var(--orgone-b)
+    filter: drop-shadow(0 0 6px rgba(var(--orgone-b-rgb), 0.35))
+
+  .math-stroke-legend
+    display: flex
+    gap: var(--of-space-4)
+    margin-top: 6px
+    font: 600 10px/1 var(--of-font-mono)
+    letter-spacing: 0.14em
+    color: var(--of-text-muted)
+
+  .math-stroke-asym
+    color: var(--of-accent-alt)
+
+  // ── Espelho skew diagnostic ──
+
+  .espelho-source
+    margin-bottom: var(--of-space-4)
+
+  .espelho-source-badge
+    font: 650 10px/1 var(--of-font-mono)
+    letter-spacing: 0.16em
+    padding: 4px 10px
+    border-radius: 999px
+    border: 1px solid var(--of-border-1)
+    color: var(--of-text-muted)
+
+    &.espelho-source-sim
+      border-color: var(--of-accent-dim)
+      color: var(--of-accent)
+
+    &.espelho-source-device
+      border-color: rgba(var(--orgone-a-rgb), 0.6)
+      color: var(--orgone-a)
+
+  .espelho-grid
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))
+    gap: var(--of-space-4)
+    align-items: start
+
+  .espelho-gauge
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding: 12px
+    border-radius: 12px
+    border: 1px solid var(--of-glass-rim-soft)
+    background: var(--of-glass-bg)
+
+  .espelho-gauge-label
+    font: 650 10px/1 var(--of-font-mono)
+    letter-spacing: 0.16em
+    color: var(--of-text-muted)
+
+  .espelho-gauge-value
+    font: 600 20px/1 var(--of-font-mono)
+    letter-spacing: 0.04em
+    color: var(--of-text-primary)
+
+  .espelho-gauge-track
+    height: 4px
+    border-radius: 2px
+    background: var(--of-border-1)
+    overflow: hidden
+
+  .espelho-gauge-fill
+    display: block
+    height: 100%
+    border-radius: inherit
+    background: var(--orgone-gradient)
+    transition: width var(--of-dur-normal) var(--of-ease-out)
+
+  .espelho-dial-wrap
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 8px
+    padding: 12px
+    border-radius: 12px
+    border: 1px solid var(--of-glass-rim-soft)
+    background: var(--of-glass-bg)
+
+  .espelho-dial
+    position: relative
+    width: 84px
+    height: 84px
+    border-radius: 50%
+    border: 1px solid var(--of-glass-rim-soft)
+    box-shadow: inset 0 1px 0 var(--of-glass-rim)
+    background: conic-gradient(from var(--espelho-phase, 0deg),
+      rgba(var(--orgone-b-rgb), 0.85) 0deg,
+      rgba(var(--orgone-b-rgb), 0.15) 44deg,
+      transparent 44deg)
+
+  .espelho-dial-needle
+    position: absolute
+    left: 50%
+    bottom: 50%
+    width: 2px
+    height: 46%
+    border-radius: 1px
+    background: var(--orgone-a)
+    transform: translateX(-50%) rotate(var(--espelho-phase, 0deg))
+    transform-origin: 50% 100%
+
+  .espelho-dial-label
+    font: 650 10px/1 var(--of-font-mono)
+    letter-spacing: 0.16em
+    color: var(--of-text-muted)
+
+  .espelho-dial-value
+    font: 600 13px/1 var(--of-font-mono)
+    color: var(--of-text-secondary)
+
+@media (prefers-reduced-motion: reduce)
+  .math-chain-node,
+  .math-chain-fill,
+  .espelho-gauge-fill
+    transition: none

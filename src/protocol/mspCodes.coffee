@@ -46,6 +46,11 @@ MSP_CODES =
   SET_PID: 202
   SET_RC_TUNING: 204
   SET_ONDAS: 206
+  # MSP_DEBUG (254) reports debug[0..3] as u16 — DEBUG_ESPELHO carries
+  # skew ratio ×1000 (roll/pitch/yaw) + pitch phase °; SET_DEBUG (255)
+  # selects the debug mode. Reserved for the device telemetry path.
+  DEBUG: 254
+  SET_DEBUG: 255
   SET_SERVO_CONFIGURATION: 212
   SERVO_MIX_RULES: 241
   SET_SERVO_MIX_RULE: 242

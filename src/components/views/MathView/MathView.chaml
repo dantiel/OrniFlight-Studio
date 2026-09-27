@@ -1,0 +1,52 @@
+~~~
+import { useRef } from 'react'
+import './MathView.sass'
+import useTuningStore from '../../../stores/useTuningStore.coffee'
+import useScrollMorph, { scrollMorphTo } from '../../../hooks/useScrollMorph.coffee'
+import { ondasHandlers } from '../PidTuningView/fieldHandlers.coffee'
+import MathChain from './MathChain.coffee'
+import MathLayerStack from './MathLayerStack.coffee'
+import MathEspelho from './MathEspelho.coffee'
+~~~
+
+- store = useTuningStore()
+- hostRef = useRef(null)
+- useScrollMorph(hostRef)
+- draft = store.draft
+- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = store.mode != 'device' or !store.session
+- saveDisabled = store.mode == 'device' and !store.loadedSession
+.morph-doc.layout-math{ ref: hostRef }
+  %header.morph-head
+    %div.morph-head-title
+      %span.morph-kicker.orgone-kicker STEUERUNG · ONDAS MATHEMATIK
+      %h1.orgone-display.orgone-display-shimmer Math
+      %p.morph-hermes
+        = "Die Mathematik-Suite des Vogels: fünfzehn Parameter in neun gekoppelten Schichten — vom PID-Fehler zur phasengekoppelten Schlagbewegung. Jede Schicht trägt Vorzeichen, Einheit und ihre Rolle; der Espelho-Spiegel liest die Schlag-Asymmetrie live."
+  .morph-deck.math-deck
+    %span.math-mode-badge{ className: "math-mode-#{store.mode}" }
+      = modeLabel
+    - if store.dirty
+      %span.math-dirty-badge DIRTY
+    .math-actions
+      %button.math-action{ type: 'button',
+                            onClick: (-> store.loadFromDevice().catch (-> null)),
+                            disabled: readDisabled }
+        Read device
+      %button.math-action{ type: 'button',
+                            onClick: (-> store.save().catch (-> null)),
+                            disabled: saveDisabled }
+        Save
+      %button.math-action{ type: 'button',
+                            onClick: (-> store.revert()),
+                            disabled: !store.dirty }
+        Revert
+      %button.math-action.math-action-spot{ type: 'button',
+                                            onClick: (-> scrollMorphTo 'math-espelho-diag') }
+        → Espelho
+  .morph-section.math-chain
+    %Section{ heading: 'Signal Chain',
+              subheading: 'Neun Schichten in Flugrichtung — vom Regelfehler zur Schlagbewegung. Ein Klick bringt die Schicht in Sicht.' }
+      %MathChain{ draft: draft }
+  %MathLayerStack{ draft: draft, onInput: ondasHandlers }
+  %MathEspelho
