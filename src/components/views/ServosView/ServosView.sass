@@ -1,16 +1,14 @@
 // ServosView — Horus-centred servo & wing-mapping configuration
-.view-layout.layout-servos
+// Vertical transmorph document: ORGONE head dissolves, the command
+// deck pins into glass, sections curtain-rise (shared _transmorph).
+
+@use '../../../styles/glass' as *
+
+.layout-servos
   .servos-side
     display: flex
     flex-direction: column
     gap: 12px
-    padding: 12px
-
-  .servos-header
-    display: flex
-    align-items: center
-    gap: 8px
-    min-height: 20px
 
   .servos-mode-badge
     font-size: 10px
@@ -44,7 +42,6 @@
     display: flex
     flex-direction: column
     gap: 12px
-    padding: 12px
 
   .servos-preset
     display: flex
@@ -73,10 +70,10 @@
   .servos-actions
     display: flex
     gap: 8px
-    margin-top: auto
+    margin-left: auto
 
   .servos-action
-    flex: 1
+    flex: 0 0 auto
     padding: 7px 10px
     border-radius: 8px
     border: 1px solid var(--of-border-1)

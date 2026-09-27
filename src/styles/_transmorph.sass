@@ -1,0 +1,149 @@
+// ═══════════════════════════════════════════
+// Transmorph — shared scroll-choreography system
+//
+// The vertical parallax document language for migrated views:
+// .morph-doc (flowing column over the FeatherField) + .morph-head
+// (ORGONE page head that dissolves upward) + .morph-deck (optional
+// sticky command strip that transmutes into glass once pinned) +
+// .morph-section (curtain-rising cards that recede and lag at
+// per-section depth).
+//
+// Scroll choreography via useScrollMorph custom properties:
+//   --morph / --exit / --depth per section, --head-morph on host.
+// Everything rests at its revealed state without JS (fallbacks),
+// and honours prefers-reduced-motion.
+// ═══════════════════════════════════════════
+
+@use 'glass' as *
+
+.morph-doc
+  position: relative
+  z-index: 1
+  flex: 1
+  width: 100%
+  max-width: 1080px
+  margin: 0 auto
+  padding: var(--of-space-6) var(--of-space-6) calc(var(--of-dock-height) + var(--of-space-8) + var(--of-space-2))
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-6)
+  overflow-x: clip
+
+// ── page head — the big title dissolves on the way up ──
+
+.morph-head
+  position: relative
+  z-index: 1
+  margin: 0 calc(var(--of-space-3) * -1) var(--of-space-4)
+  padding: var(--of-space-2) var(--of-space-3)
+
+.morph-head-title
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-3)
+  opacity: calc(1 - var(--head-morph, 0))
+  transform: translate3d(0, calc(var(--head-morph, 0) * -32px), 0) scale(calc(1 - var(--head-morph, 0) * 0.04))
+  filter: blur(calc(var(--head-morph, 0) * 7px))
+  transform-origin: 0% 100%
+
+  h1
+    font-family: var(--of-font-heading)
+    font-size: 42px
+    letter-spacing: 0.14em
+    margin: 0
+    font-weight: 400
+
+.morph-kicker
+  color: var(--of-accent-alt)
+  font: 650 10px/1 var(--of-font-mono)
+  letter-spacing: 0.18em
+  display: inline-block
+
+.morph-hermes
+  margin: 0
+  max-width: 52ch
+  color: var(--of-text-muted)
+  font-size: var(--of-text-sm)
+  line-height: 1.55
+
+// ── optional command deck — transmutes into glass once pinned ──
+
+.morph-deck
+  position: sticky
+  top: calc(var(--of-toolbar-height) + var(--of-space-8) + var(--of-space-2))
+  z-index: 8
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  flex-wrap: wrap
+  padding: var(--of-space-3) var(--of-space-4)
+  border-radius: var(--of-glass-radius)
+
+  // The glass layer transmutes in once the deck is pinned.
+  &::before
+    content: ''
+    position: absolute
+    inset: 0
+    z-index: -1
+    border-radius: inherit
+    background: var(--of-glass-bg)
+    backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+    -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+    border: 1px solid var(--of-glass-rim-soft)
+    box-shadow: var(--of-glass-shadow)
+    opacity: 0
+    transition: opacity var(--of-dur-slow) var(--of-ease-out)
+
+.morph-doc.morph-stuck .morph-deck::before
+  opacity: 1
+
+// ── glass sections — the transmorphing cards ──
+
+.morph-section
+  position: relative
+  background: var(--of-glass-bg)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-glass-radius)
+  box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
+  padding: var(--of-space-6)
+  scroll-margin-top: calc(var(--of-toolbar-height) + var(--of-space-8) + 64px)
+  +of-glass-refract
+  // Choreography — curtain rise, settle, recede.
+  opacity: calc(1 - var(--exit, 0) * 0.55)
+  transform: translate3d(0, calc(var(--depth, 0px) + (1 - var(--morph, 1)) * 56px), 0) scale(calc(1 - (1 - var(--morph, 1)) * 0.03 - var(--exit, 0) * 0.02))
+  clip-path: inset(0 0 calc((1 - var(--morph, 1)) * 100%) 0 round var(--of-glass-radius))
+  filter: blur(calc((1 - var(--morph, 1)) * 9px)) saturate(calc(0.55 + var(--morph, 1) * 0.45))
+  transform-origin: 50% 100%
+  will-change: transform, opacity, clip-path
+
+// Action-driven arrival: a brief orgone halo rings the target.
+.morph-section.morph-spotlight
+  animation: morph-spotlight 1.8s var(--of-ease-out)
+
+@keyframes morph-spotlight
+  0%
+    border-color: var(--of-glass-rim-soft)
+    box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
+  25%
+    border-color: rgba(var(--orgone-a-rgb), 0.8)
+    box-shadow: inset 0 1px 0 var(--of-glass-rim), 0 0 0 3px rgba(var(--orgone-a-rgb), 0.25), 0 0 44px rgba(var(--orgone-b-rgb), 0.45)
+  100%
+    border-color: var(--of-glass-rim-soft)
+    box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
+
+// ── stilled æther ──
+
+@media (prefers-reduced-motion: reduce)
+  .morph-section
+    transform: none
+    clip-path: none
+    filter: none
+  .morph-section.morph-spotlight
+    animation: none
+  .morph-head-title
+    transform: none
+    filter: none
+  .morph-deck::before
+    transition: none

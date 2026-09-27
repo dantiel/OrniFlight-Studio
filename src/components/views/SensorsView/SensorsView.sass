@@ -1,37 +1,14 @@
 // SensorsView — sensor hardware | board alignment | calibration
-// sidebar (mode, actions) + stacked panel viewport
-.view-layout.layout-sensors
-  height: 100%
-  grid-template-columns: 260px 1fr
-  grid-template-rows: 1fr
-  grid-template-areas: "side vport"
+// Vertical transmorph document: ORGONE head dissolves, the command
+// deck pins into glass, sections curtain-rise (shared _transmorph).
 
-  .view-area-side
-    grid-area: side
-    background: var(--of-glass-bg)
-    backdrop-filter: blur(12px)
-    -webkit-backdrop-filter: blur(12px)
-    border: 1px solid var(--of-border-1)
-    border-right: none
-    border-top: none
-    border-bottom: none
-    overflow-y: auto
+@use '../../../styles/glass' as *
 
-  .view-area-vport
-    grid-area: vport
-    overflow-y: auto
-
+.layout-sensors
   .sensors-side
     display: flex
     flex-direction: column
     gap: 12px
-    padding: 12px
-
-  .sensors-header
-    display: flex
-    align-items: center
-    gap: 8px
-    min-height: 20px
 
   .sensors-mode-badge
     font-size: 10px
@@ -61,13 +38,11 @@
     display: flex
     flex-direction: column
     gap: 14px
-    padding: 14px
-    max-width: 860px
 
   .sensors-actions
     display: flex
-    flex-direction: column
     gap: 8px
+    margin-left: auto
 
   .sensors-action
     padding: 9px 12px
