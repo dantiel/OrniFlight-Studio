@@ -87,6 +87,7 @@ useFlashController = ->
     progress:   flash.progress
     error:      flash.error
     connected:  fwStore.transport in ['serial', 'webusb']
+    lastError:  fwStore.lastError
     serialSupported: fwStore.serialSupported
     webUsbSupported: fwStore.webUsbSupported
     detecting:  fwStore.detecting

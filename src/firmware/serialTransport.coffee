@@ -60,12 +60,14 @@ makePortIO = (port) ->
       try await port.close() catch e then null
   }
 
+# AN3155 mandates 8E1 — the USART bootloader drops frames with
+# parity errors, so 'none' guarantees a dead handshake.
 openPort = (port, baud = BAUD) ->
   await port.open
     baudRate: baud
     dataBits: 8
     stopBits: 1
-    parity: 'none'
+    parity: 'even'
     flowControl: 'none'
   makePortIO port
 
@@ -89,9 +91,15 @@ fetchFirmware = (fw) ->
 
 # ── detection ────────────────────────────────
 detect = (port, onLog = (->)) ->
+  onLog 'SYNC', 'Opening port (115200 8E1)…'
   io = await openPort port
   try
-    await syncWithRetry io
+    onLog 'SYNC', 'Sending 0x7F bootloader sync…'
+    try
+      await syncWithRetry io
+    catch e
+      onLog 'ERROR', "#{e.message} — is the board in bootloader mode?"
+      throw e
     idr = await withTimeout (dfu.getDeviceId io), 2000, 'getid'
     throw new Error idr.error unless idr.ok
     chipId = idr.value

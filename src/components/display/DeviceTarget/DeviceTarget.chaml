@@ -9,7 +9,8 @@ import { transportLabel } from '../../../firmware/flashUi.coffee'
 - serialSupported = props.serialSupported ? c.serialSupported ? false
 - webUsbSupported = props.webUsbSupported ? c.webUsbSupported ? false
 - anySupported = serialSupported or webUsbSupported
-- status = if isLive then 'BREATHING' else 'DRY-RUN'
+- lastError = props.lastError || c.lastError || null
+- status = if isLive then 'BREATHING' else if lastError then 'NO SYNC' else 'DRY-RUN'
 - transportName = transportLabel(transport)
 - detecting = props.detecting ? c.detecting ? false
 - detectLabel = if detecting then 'Scanning…' else 'Detect board'
@@ -42,6 +43,10 @@ import { transportLabel } from '../../../firmware/flashUi.coffee'
     .device-row
       %span.device-row-label Bootloader
       %span.device-row-value= d.bootloader || '—'
+    - if lastError and not isLive
+      .device-row.device-row-error
+        %span.device-row-label Sync
+        %span.device-row-value= lastError
   .device-foot
     %span.device-uid= d.uid || ''
     %span.device-status{ className: statusClass }
