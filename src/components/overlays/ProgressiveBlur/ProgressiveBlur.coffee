@@ -14,17 +14,16 @@
 import './ProgressiveBlur.sass'
 import h from '../../../app/h.coffee'
 
-# Gentle falloff — four tiers instead of seven. Each tier blurs less
-# and reaches less far from the edge, so the edge dissolves to nothing
-# progressively instead of slamming shut in a blue wall.
+# Strong blur ends nearest the safe area; softer tiers reach further.
+# The whole veil dies within 40px of the edge — it blends only what
+# is directly approaching the toolbar/dock, never what merely hovers
+# nearby. Beyond that band content stays completely crisp.
 LAYERS = [
-  { blur: 16, reach: '100%' }
-  { blur: 10, reach: '85%' }
-  { blur: 5,  reach: '73%' }
-  { blur: 2,  reach: '66%' }
+  { blur: 2, reach: '40px' }
+  { blur: 5, reach: '28px' }
+  { blur: 10, reach: '18px' }
+  { blur: 20, reach: '10px' }
 ]
-
-CURTAIN = 112
 
 ProgressiveBlur = (props) ->
   position = props.position or 'top'
@@ -41,6 +40,6 @@ ProgressiveBlur = (props) ->
           '--pb-reach': layer.reach
     h 'div',
       className: 'progressive-blur-tint'
-      style: { '--pb-reach': '100%' }
+      style: { '--pb-reach': '40px' }
 
 export default ProgressiveBlur

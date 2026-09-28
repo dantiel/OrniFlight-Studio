@@ -1,7 +1,4 @@
-// ═══════════════════════════════════════════
-// ProgressiveBlur — absolute safe-area curtains
-// ═══════════════════════════════════════════
-
+// A single transparent curtain behind both toolbar rows and docked controls.
 .progressive-blur
   position: absolute
   left: 0
@@ -10,77 +7,36 @@
   z-index: 20
   pointer-events: none
   overflow: visible
+  --pb-safe: var(--of-safe-area-bar, var(--of-toolbar-height))
 
   &-top
     top: 0
 
   &-bottom
     bottom: 0
+    --pb-safe: var(--of-dock-height)
 
-// Each tier blurs only what it overlaps; the mask holds the blur at
-// full strength through the entire toolbar (primary row + submenu),
-// then dissolves in a smooth, continuous ramp below it — masked in
-// sync with the blur, never a slab of frost over the title.
-$pb-mask: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), transparent var(--pb-reach))
+$pb-mask: linear-gradient(to bottom, #000 0, #000 var(--pb-safe), transparent calc(var(--pb-safe) + var(--pb-reach)))
 
-.progressive-blur-layer
-  position: absolute
-  left: 0
-  right: 0
-  height: 112px
-  // Neutral blur — no saturate() here, that was the blue overdrive.
-  backdrop-filter: blur(var(--pb-blur))
-  -webkit-backdrop-filter: blur(var(--pb-blur))
-  mask-image: $pb-mask
-  -webkit-mask-image: $pb-mask
-
-// The top curtain breathes progressively: solid under the toolbar
-// strip, then a smooth tiered falloff below it — content passing
-// under the toolbar dissolves like water losing its memory.
-.progressive-blur-top .progressive-blur-layer
-  top: 0
-  mask-image: $pb-mask
-  -webkit-mask-image: $pb-mask
-
-// When a command deck docks flush under the toolbar it carries its
-// own frost — the curtain withdraws to the toolbar edge so the bare
-// chips stay crisp while the deck's backdrop-filter extends the
-// progressive area over the docked strip.
-.studio-shell:has(.molt-view.molt-stuck) .progressive-blur-top .progressive-blur-layer,
-.studio-shell:has(.morph-doc.morph-stuck) .progressive-blur-top .progressive-blur-layer
-  mask-image: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), transparent calc(var(--of-toolbar-height) + 2px))
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), transparent calc(var(--of-toolbar-height) + 2px))
-
-.progressive-blur-bottom .progressive-blur-layer
-  bottom: 0
-  transform: rotate(180deg)
-
-// Iridescent periwinkle wash — a faint magical tint that rides the same
-// mask as the blur, so it breathes out progressively instead of tinting
-// the whole edge. Pure garnish, never obscures content.
+.progressive-blur-layer,
 .progressive-blur-tint
   position: absolute
   left: 0
   right: 0
-  height: 112px
-  background: linear-gradient(to bottom,
-    rgba(var(--of-accent-rgb), 0.10),
-    rgba(var(--of-accent-rgb), 0.04) 60%,
-    rgba(var(--of-accent-rgb), 0) 100%)
-  mix-blend-mode: screen
+  height: calc(var(--pb-safe) + 40px)
   mask-image: $pb-mask
   -webkit-mask-image: $pb-mask
 
-.progressive-blur-top .progressive-blur-tint
+.progressive-blur-layer
+  backdrop-filter: blur(var(--pb-blur))
+  -webkit-backdrop-filter: blur(var(--pb-blur))
+
+.progressive-blur-tint
+  background: linear-gradient(to bottom, rgba(var(--of-accent-rgb), 0.035), transparent)
+
+.progressive-blur-top > *
   top: 0
-  mask-image: $pb-mask
-  -webkit-mask-image: $pb-mask
 
-.studio-shell:has(.molt-view.molt-stuck) .progressive-blur-top .progressive-blur-tint,
-.studio-shell:has(.morph-doc.morph-stuck) .progressive-blur-top .progressive-blur-tint
-  mask-image: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), transparent calc(var(--of-toolbar-height) + 2px))
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 var(--of-toolbar-height), transparent calc(var(--of-toolbar-height) + 2px))
-
-.progressive-blur-bottom .progressive-blur-tint
+.progressive-blur-bottom > *
   bottom: 0
   transform: rotate(180deg)
