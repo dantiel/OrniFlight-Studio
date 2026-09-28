@@ -98,9 +98,14 @@ One hook, two behaviors. `mode` lives in the store; the hook branches on it.
 
 ### `device` (controller attached)
 
-- `enter()` runs the takeover: stop the MSP session, `client.detach(onData)`,
-  subscribe `onError → failConnection`, wait out the firmware's 100 ms idle
-  guard, then send raw `#` (`0x23`).
+- `enter()` prefers the takeover over a connected MSP session: stop the
+  session, `client.detach(onData)`, subscribe `onError → failConnection`,
+  wait out the firmware's 100 ms idle guard, then send raw `#` (`0x23`).
+- Without a session, `enter()` opens a dedicated runtime port and drives the
+  CLI directly — the firmware's MSP parser enters CLI on a bare `#` outside
+  any frame, so no handshake is needed. This keeps legacy targets reachable
+  even when the config surface cannot negotiate (pre-rename BTFL builds).
+  `onClose` fires when that port drops (controller reboot on `exit`).
 - `submit(cmd)` writes `cmd\r`; the firmware echoes back, landing in `pending`
   until a line end finalizes it (live echo without local duplication).
 - `complete(draft)` sends `\t` (firmware-side completion).

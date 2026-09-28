@@ -73,6 +73,7 @@ class OrniFlightSession
     @lastAnalog = { voltage: 0, rssiRaw: 0, amperage: 0, consumedMah: 0 }
     @lastBattery = null
     @rxMap = []
+    @statusCommand = MSP_CODES.STATUS_EX
 
   handshake: ->
     api = decodeApiVersion await @client.request MSP_CODES.API_VERSION, [], { timeoutMs: 1500 }
@@ -80,21 +81,38 @@ class OrniFlightSession
       throw new FirmwareCompatibilityError "Unsupported MSP API major #{api.major}", { api }
 
     variant = decodeVariant await @client.request MSP_CODES.FC_VARIANT
-    unless variant == 'ORNI'
+    # Pre-rename builds identify as BTFL — same lineage, older API.
+    unless variant in ['ORNI', 'BTFL']
       throw new FirmwareCompatibilityError "Expected OrniFlight firmware, received #{variant}", { variant, api }
+    legacy = variant != 'ORNI'
 
     firmware = decodeVersion await @client.request MSP_CODES.FC_VERSION
-    build = decodeBuildInfo await @client.request MSP_CODES.BUILD_INFO
+    buildPayload = await @client.requestOptional MSP_CODES.BUILD_INFO
+    build = if buildPayload then decodeBuildInfo(buildPayload) else null
     board = decodeBoardInfo await @client.request MSP_CODES.BOARD_INFO
     uidPayload = await @client.requestOptional MSP_CODES.UID
     namePayload = await @client.requestOptional MSP_CODES.NAME
-    status = decodeStatus await @client.request(MSP_CODES.STATUS_EX), true
+    # MSP_STATUS_EX (150) entered the fork 2026-08; legacy builds
+    # answer MSP $M!. Fall back to the ancient MSP_STATUS (101),
+    # which shares the cpuLoad layout but appends gyro cycle time.
+    statusExPayload = null
+    try
+      statusExPayload = await @client.request MSP_CODES.STATUS_EX, [], { timeoutMs: 800 }
+    catch error
+      null
+    if statusExPayload
+      @statusCommand = MSP_CODES.STATUS_EX
+      status = decodeStatus statusExPayload, true
+    else
+      @statusCommand = MSP_CODES.STATUS
+      status = decodeStatus (await @client.request MSP_CODES.STATUS), false
     rxMapPayload = await @client.requestOptional MSP_CODES.RX_MAP
     @rxMap = if rxMapPayload then decodeRxMap(rxMapPayload) else []
     @lastStatus = status
 
     @identity = {
       api, variant, firmware, build, board, status
+      compat: if legacy then 'legacy' else 'orni'
       uid: if uidPayload then decodeUid(uidPayload) else null
       name: if namePayload then decodeName(namePayload) else ''
       rxMap: @rxMap
@@ -634,7 +652,8 @@ class OrniFlightSession
       servos = if servoPayload then decodeServos(servoPayload) else []
 
       if @round % STATUS_EVERY_ROUNDS == 0
-        @lastStatus = decodeStatus await @client.request(MSP_CODES.STATUS_EX), true
+        @lastStatus = decodeStatus await @client.request(@statusCommand),
+          @statusCommand == MSP_CODES.STATUS_EX
         analogPayload = await @client.requestOptional MSP_CODES.ANALOG
         @lastAnalog = decodeAnalog(analogPayload) if analogPayload
         batteryPayload = await @client.requestOptional MSP_CODES.BATTERY_STATE

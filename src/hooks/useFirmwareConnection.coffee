@@ -20,6 +20,7 @@ import OrniFlightSession from '../protocol/orniFlightSession.coffee'
 
 _session = null
 _client = null
+_cliDirect = null
 _closing = false
 _cliErrorUnsubscribe = null
 CLI_ENTER_GUARD_MS = 300
@@ -35,8 +36,10 @@ publishTelemetry = (frame) ->
 cleanup = ->
   session = _session
   client = _client
+  direct = _cliDirect
   _session = null
   _client = null
+  _cliDirect = null
   _cliErrorUnsubscribe?()
   _cliErrorUnsubscribe = null
   useConfigurationStore.getState().attachSession null
@@ -61,6 +64,7 @@ cleanup = ->
   useAdjustmentsStore.getState().setMode 'sim'
   session?.stop()
   try
+    await direct?.transport.close()
     if session then await session.close() else await client?.close()
   catch error
     null
@@ -145,9 +149,25 @@ disconnectFirmware = ->
 # idle guard, then sends the raw '#' that enters CLI mode.
 # Disconnects while the CLI owns the stream route through
 # failConnection — the session is stopped and cannot see them.
-enterCli = (onData) ->
+enterCli = (onData, onClose = null) ->
+  # Without an MSP session the CLI opens its own runtime port: the
+  # firmware's parser enters CLI on a bare '#' outside any frame, so
+  # no handshake is needed — legacy targets stay reachable even when
+  # the config surface cannot negotiate.
   unless _session and _client
-    throw new Error 'No flight controller is connected'
+    port = await requestRuntimePort()
+    transport = new WebSerialRuntimeTransport port
+    transport.onData onData
+    transport.onDisconnect ->
+      direct = _cliDirect
+      _cliDirect = null
+      try await direct?.transport.close() catch error then null
+      onClose?()
+    await transport.open()
+    _cliDirect = { transport }
+    await delay CLI_ENTER_GUARD_MS
+    await transport.write new Uint8Array [0x23]
+    return true
   _session.stop()
   _client.detach onData
   _cliErrorUnsubscribe = _client.onError (error) -> failConnection error
@@ -159,6 +179,11 @@ enterCli = (onData) ->
 # connection is already gone (the firmware reboots on CLI exit,
 # so the common return path is a transport disconnect instead).
 leaveCli = ->
+  if _cliDirect
+    direct = _cliDirect
+    _cliDirect = null
+    try await direct.transport.close() catch error then null
+    return true
   _cliErrorUnsubscribe?()
   _cliErrorUnsubscribe = null
   client = _client
@@ -169,6 +194,9 @@ leaveCli = ->
   true
 
 writeCliBytes = (bytes) ->
+  if _cliDirect
+    await _cliDirect.transport.write bytes
+    return
   unless _client?.isDetached?()
     throw new Error 'CLI channel is not open'
   await _client.transport.write bytes

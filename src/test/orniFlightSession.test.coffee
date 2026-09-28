@@ -237,6 +237,26 @@ describe 'orniFlightSession', ->
     expect(error).toBeInstanceOf FirmwareCompatibilityError
     expect(error.variant).toBe 'BETA'
 
+  it 'accepts legacy BTFL builds as OrniFlight heritage', ->
+    script = { handshakeScript..., [MSP_CODES.FC_VARIANT]: asciiBytes 'BTFL' }
+    { session } = await openSession script
+    identity = await session.handshake()
+    expect(identity.variant).toBe 'BTFL'
+    expect(identity.compat).toBe 'legacy'
+    expect(identity.firmware.version).toBe '1.49.0'
+    expect(identity.status.armed).toBe false
+
+  it 'falls back to MSP_STATUS when the legacy target lacks STATUS_EX', ->
+    script = {
+      handshakeScript...
+      [MSP_CODES.STATUS_EX]: 'unsupported'
+      [MSP_CODES.STATUS]: statusPayload
+    }
+    { session } = await openSession script
+    identity = await session.handshake()
+    expect(identity.status.armed).toBe false
+    expect(session.statusCommand).toBe MSP_CODES.STATUS
+
   it 'refuses to start polling before handshake', ->
     { session } = await openSession handshakeScript
     expect((-> session.start())).toThrow(

@@ -107,22 +107,27 @@ useCliSession = (deps = {}) ->
     # A fresh session must not inherit a partial UTF-8 sequence from
     # a previous one — the decoder buffers stream-mode leftovers.
     decoderRef.current = null
-    unless useDeviceStore.getState().source == 'device'
-      store.appendLines [{
-        text: '###ERROR: no flight controller connected'
-        kind: 'error'
-      }]
-      return false
+    # The enter bridge prefers the MSP takeover; without a session it
+    # opens a dedicated port and drives the CLI directly. onClose
+    # fires when that port drops (controller reboot on CLI exit).
     try
-      await enterDevice (bytes) -> processBytes bytes
+      await enterDevice ((bytes) -> processBytes bytes), (->
+        foldToSim '⚠️ connection closed by controller ⚠️', 'info'
+      )
       useCliStore.getState().setMode 'device'
       ownedRef.current = true
       true
     catch error
-      useCliStore.getState().appendLines [{
-        text: "###ERROR: #{error?.message or error}"
-        kind: 'error'
-      }]
+      if error?.name == 'NotFoundError'
+        useCliStore.getState().appendLines [{
+          text: '### port picker cancelled — staying in simulation'
+          kind: 'info'
+        }]
+      else
+        useCliStore.getState().appendLines [{
+          text: "###ERROR: #{error?.message or error}"
+          kind: 'error'
+        }]
       false
   , [enterDevice, processBytes]
 
@@ -242,7 +247,7 @@ useCliSession = (deps = {}) ->
 
   {
     lines, pending, mode, rxBytes, txBytes
-    canEnter: mode == 'sim' and source == 'device'
+    canEnter: mode == 'sim'
     enter, exit, submit, complete, clear
     history: -> historyRef.current.slice()
   }

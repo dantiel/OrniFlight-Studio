@@ -72,13 +72,41 @@ describe 'useCliSession — simulation mode', ->
     completion = await act -> result.current.complete 'help'
     expect(completion).toBeNull()
 
-  it 'stays in sim mode and refuses to enter without a device', ->
+  it 'offers device entry without a connected session', ->
     { result } = makeSimHook()
+    expect(result.current.canEnter).toBe true
+
+  it 'enters device mode directly through the enter bridge', ->
+    deps = makeDeviceDeps()
+    { result } = makeSimHook deps
+    entered = await act -> result.current.enter()
+    expect(entered).toBe true
+    expect(result.current.mode).toBe 'device'
+    expect(deps._captured()).toBeTypeOf 'function'
+
+  it 'surfaces a failed direct connect as an error line', ->
+    deps = makeDeviceDeps()
+    deps.enterDevice = -> Promise.reject new Error 'port busy'
+    { result } = makeSimHook deps
     entered = await act -> result.current.enter()
     expect(entered).toBe false
     expect(result.current.mode).toBe 'sim'
     error = result.current.lines.find (l) -> l.kind == 'error'
-    expect(error.text).toBe '###ERROR: no flight controller connected'
+    expect(error.text).toBe '###ERROR: port busy'
+
+  it 'treats a cancelled port picker as an informational return', ->
+    deps = makeDeviceDeps()
+    deps.enterDevice = ->
+      error = new Error 'picker dismissed'
+      error.name = 'NotFoundError'
+      Promise.reject error
+    { result } = makeSimHook deps
+    entered = await act -> result.current.enter()
+    expect(entered).toBe false
+    expect(result.current.mode).toBe 'sim'
+    expect(result.current.lines.some (l) ->
+      l.text == '### port picker cancelled — staying in simulation'
+    ).toBe true
 
   it 'ignores whitespace-only submission', ->
     { result } = makeSimHook()

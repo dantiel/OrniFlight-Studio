@@ -45,6 +45,10 @@ class WebSerialRuntimeTransport
     @reading = true
     @serialApi?.addEventListener? 'disconnect', @disconnectListener
     @_readLoop()
+    # The read loop parks on reader.read() forever — open() must not
+    # return its promise (CoffeeScript's implicit return would make
+    # every await of open() deadlock until the port closes).
+    null
 
   write: (bytes) ->
     throw new Error 'Runtime serial transport is not open' unless @opened and @writer

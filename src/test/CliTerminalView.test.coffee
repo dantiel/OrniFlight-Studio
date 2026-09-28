@@ -67,11 +67,11 @@ describe 'CliTerminalView', ->
     fireEvent.click screen.getByRole 'button', { name: 'Clear' }
     expect(screen.queryByText(SIM_VERSION)).toBeNull()
 
-  it 'disables device entry without a connection', ->
+  it 'offers device entry without a connection', ->
     render h(CliTerminalView, null)
     expect(
       screen.getByRole 'button', { name: 'Open device CLI' }
-    ).toBeDisabled()
+    ).toBeEnabled()
 
   it 'renders hostile device output as inert text — no XSS', ->
     useCliStore.getState().appendLines [
