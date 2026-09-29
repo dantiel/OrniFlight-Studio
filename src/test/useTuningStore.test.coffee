@@ -45,12 +45,16 @@ describe 'useTuningStore', ->
       'flap_P', expect.anything()
     )
 
-  it 'mirrors all fifteen ondas params on a draft edit', ->
+  it 'mirrors all eighteen ondas params on a draft edit', ->
     state().setField 'pid.roll.P', 1
-    expect(engine.setOndasParam).toHaveBeenCalledTimes 15
+    expect(engine.setOndasParam).toHaveBeenCalledTimes 18
     expect(engine.setOndasParam).toHaveBeenCalledWith 'anchor_gain', 10
     expect(engine.setOndasParam).toHaveBeenCalledWith(
       'ferocity_downstroke', 12
+    )
+    expect(engine.setOndasParam).toHaveBeenCalledWith 'ssff_gain', 0
+    expect(engine.setOndasParam).toHaveBeenCalledWith(
+      'aeroelastic_flap_coefficient', 40
     )
 
   it 'does not mirror rate or filter edits into the engine', ->

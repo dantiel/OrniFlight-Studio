@@ -5,12 +5,13 @@ import {
 } from '../lib/mathSuite.coffee'
 
 describe 'mathSuite registry', ->
-  it 'carries the fifteen-parameter suite in layer order', ->
-    expect(MATH_KEYS).toHaveLength 15
+  it 'carries the eighteen-parameter suite in layer order', ->
+    expect(MATH_KEYS).toHaveLength 18
     expect(MATH_KEYS[0]).toBe 'cadence_gain'
     expect(MATH_KEYS[6]).toBe 'ferocity_upstroke'
-    expect(MATH_KEYS[14]).toBe 'saudade_gain'
-    expect(MATH_LAYERS).toHaveLength 9
+    expect(MATH_KEYS[14]).toBe 'espelho_gain'
+    expect(MATH_KEYS[16]).toBe 'aeroelastic_glide_coefficient'
+    expect(MATH_LAYERS).toHaveLength 10
 
   it 'marks signed params and their ranges', ->
     expect(MATH_PARAMS.cadence_gain.signed).toBe true

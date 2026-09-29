@@ -31,8 +31,6 @@ MSP_CODES =
   SENSOR_ALIGNMENT: 126
   SET_SENSOR_ALIGNMENT: 220
   ACC_CALIBRATION: 205
-  # 206 is both SET_ONDAS and MAG_CALIBRATION in the firmware — the
-  # keys coexist here; consumers must never dispatch by 206 alone.
   MAG_CALIBRATION: 206
   STATUS_EX: 150
   # MSP_REBOOT (68) payload u8 mode: 0 = firmware reset,
@@ -40,15 +38,19 @@ MSP_CODES =
   REBOOT: 68
   UID: 160
   FILTER_CONFIG: 92
+  # ONDAS rides the MSP_PID_ADVANCED envelope (94 / 95) in the
+  # firmware — the ten modulation gains are appendix fields, the
+  # per-profile tail carries stroke shape and aeroelastic scaling.
+  # ONDAS/SET_ONDAS are aliases of that same envelope pair.
   PID_ADVANCED: 94
+  ONDAS: 94
   RC_TUNING: 111
   PID: 112
-  ONDAS: 114
   SET_PID_ADVANCED: 95
+  SET_ONDAS: 95
   SET_FILTER_CONFIG: 193
   SET_PID: 202
   SET_RC_TUNING: 204
-  SET_ONDAS: 206
   # MSP_DEBUG (254) reports debug[0..3] as u16 — DEBUG_ESPELHO carries
   # skew ratio ×1000 (roll/pitch/yaw) + pitch phase °; SET_DEBUG (255)
   # selects the debug mode. Reserved for the device telemetry path.

@@ -20,6 +20,12 @@ describe 'OrnithopterView', ->
     expect(screen.getByText 'Körperplan').toBeInTheDocument()
     expect(screen.getByText 'GPIO-Map').toBeInTheDocument()
 
+  it 'shows the firmware-owned craft identity instead of a local field', ->
+    renderAt()
+    expect(screen.getByText(/Orni I/)).toBeInTheDocument()
+    expect(screen.getByText 'In System → Gerät bearbeiten').toBeInTheDocument()
+    expect(screen.queryByText 'Modellname').toBeNull()
+
   it 'shows Flugwerk on the airframe sub-view', ->
     renderAt '/basic/airframe'
     expect(screen.getByText 'Flugwerk').toBeInTheDocument()

@@ -16,14 +16,23 @@
     bottom: 0
     --pb-safe: var(--of-dock-height)
 
-$pb-mask: linear-gradient(to bottom, #000 0, #000 var(--pb-safe), transparent calc(var(--pb-safe) + var(--pb-reach)))
+// The veil lives entirely inside the safe-area bar: each layer holds
+// its strength from the window edge to its own --pb-hold, then fades
+// to nothing exactly at the bar's lower edge. Content below the bar
+// stays completely crisp — the bar blends only what it covers.
+$pb-mask: linear-gradient(
+  to bottom,
+  #000 0,
+  #000 var(--pb-hold),
+  transparent var(--pb-safe)
+)
 
 .progressive-blur-layer,
 .progressive-blur-tint
   position: absolute
   left: 0
   right: 0
-  height: calc(var(--pb-safe) + 40px)
+  height: var(--pb-safe)
   mask-image: $pb-mask
   -webkit-mask-image: $pb-mask
 
@@ -32,7 +41,8 @@ $pb-mask: linear-gradient(to bottom, #000 0, #000 var(--pb-safe), transparent ca
   -webkit-backdrop-filter: blur(var(--pb-blur))
 
 .progressive-blur-tint
-  background: linear-gradient(to bottom, rgba(var(--of-accent-rgb), 0.035), transparent)
+  --pb-hold: 0%
+  background: linear-gradient(to bottom, rgba(var(--of-accent-rgb), 0.03), transparent)
 
 .progressive-blur-top > *
   top: 0

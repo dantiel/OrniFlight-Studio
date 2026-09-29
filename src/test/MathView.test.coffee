@@ -1,13 +1,14 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import MathView from '../components/views/MathView/MathView.chaml'
 import useTuningStore from '../stores/useTuningStore.coffee'
 import useTelemetryStore from '../stores/useTelemetryStore.coffee'
 
 LAYER_NAMES = [
   'Cadence', 'Ferocity', 'Balance', 'Warp', 'Anchor'
-  'Resonance', 'Prescience', 'Espelho', 'Saudade'
+  'Resonance', 'Prescience', 'Espelho', 'Saudade', 'Aeroelastic'
 ]
 
 rowFor = (label) ->
@@ -29,7 +30,7 @@ describe 'MathView', ->
     vi.restoreAllMocks()
 
   renderView = ->
-    render h(MathView, null)
+    render h(MemoryRouter, null, h(MathView, null))
 
   it 'renders the ORGONE head and the deck', ->
     renderView()
@@ -40,11 +41,12 @@ describe 'MathView', ->
     expect(screen.getByText 'Revert').toBeInTheDocument()
     expect(screen.getByText '→ Espelho').toBeInTheDocument()
 
-  it 'renders nine layer cards and fifteen param rows', ->
+  it 'renders ten layer cards and eighteen param rows', ->
     renderView()
     for name in LAYER_NAMES
       expect(screen.getAllByText(name).length).toBeGreaterThan 0
-    expect(document.querySelectorAll '.param-row').toHaveLength 15
+    expect(document.querySelectorAll '.param-row').toHaveLength 18
+    expect(screen.getByText(/Profil 1/)).toBeInTheDocument()
 
   it 'honours signed registry ranges on the sliders', ->
     renderView()

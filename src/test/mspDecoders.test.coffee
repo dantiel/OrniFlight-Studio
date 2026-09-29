@@ -11,7 +11,7 @@ import {
   encodePidTuning, decodePidTuning
   encodeRcTuning, decodeRcTuning
   encodeFilterConfig, decodeFilterConfig
-  encodeOndas, decodeOndas, ONDAS_DEFAULTS, ONDAS_KEYS
+  encodeOndasEnvelope, decodeOndas, ONDAS_DEFAULTS, ONDAS_KEYS
   decodeOsdConfig, encodeOsdItem
   decodeRxConfig, encodeRxConfig, RX_CONFIG_BYTES
   channelMapFromRxMap, rxMapFromChannelMap
@@ -164,10 +164,10 @@ describe 'mspDecoders', ->
     expect(battery.state).toBe 1
     expect(battery.voltage).toBeCloseTo 11.75
 
-  it 'encodes craft names without padding and truncates at 24 bytes', ->
+  it 'encodes craft names without padding and truncates at 16 bytes', ->
     bytes = encodeName 'ORNICOPTER'
     expect(Array.from bytes).toEqual asciiBytes('ORNICOPTER')
-    expect(encodeName('A'.repeat 40).length).toBe 24
+    expect(encodeName('A'.repeat 40).length).toBe 16
     expect(encodeName('')).toHaveLength 0
 
   it 'round-trips servo configurations through the wire format', ->
@@ -346,31 +346,43 @@ describe 'mspDecoders', ->
       gyroDlpfHz: 250, gyroNotchHz: 0, gyroNotchQ: 0, dTermDlpfHz: 0
     }
 
-  it 'round-trips ONDAS params in fixed key order', ->
+  it 'round-trips ONDAS params through the PID_ADVANCED envelope', ->
     source = {
       cadence_gain: -20, ferocity_p_gain: 30, ferocity_d_gain: 45
       ferocity_roll_gain: 40, ferocity_yaw_gain: 35
       ferocity_downstroke: 12, ferocity_upstroke: 24
       balance_gain: -15, warp_gain: 30, warp_yaw_gain: -25
       anchor_gain: 60, resonance_gain: 20, prescience_gain: 10
-      espelho_gain: 15, saudade_gain: 5
+      espelho_gain: 15, saudade_gain: 5, ssff_gain: 40
+      aeroelastic_glide_coefficient: -10
+      aeroelastic_flap_coefficient: 55
     }
-    bytes = Array.from encodeOndas(source)
-    expect(bytes).toHaveLength 15
-    # Signed keys ride the s8 convention: wire = value + 128.
-    expect(bytes[0]).toBe 108
+    envelope = {
+      prefix: new Array(46).fill 7
+      appendix: { cadence: 0, flapBaseAmplitude: 4, freqMax: 9 }
+      tail: [12, 12, 148, 168, 11, 22]
+    }
+    bytes = encodeOndasEnvelope envelope, source
+    # Legacy prefix, foreign appendix fields and the geometry tail
+    # survive byte-exact.
+    expect(Array.from(bytes).slice(0, 46).every((b) -> b == 7)).toBe true
+    # flapBaseAmplitude is signed: wire = value + 128.
+    expect(bytes[47]).toBe 132
+    expect(Array.from(bytes).slice(-2)).toEqual [11, 22]
     expect(decodeOndas(bytes)).toEqual source
 
-  it 'fills missing ONDAS bytes with zeros on truncation', ->
-    partial = decodeOndas [90, 80]
-    expect(partial.cadence_gain).toBe -38
-    expect(partial.ferocity_p_gain).toBe 80
-    expect(partial.resonance_gain).toBe 0
+  it 'degrades to defaults for envelopes without the ONDAS appendix', ->
+    partial = decodeOndas new Array(46).fill 0
+    expect(partial.cadence_gain).toBe ONDAS_DEFAULTS.cadence_gain
+    expect(partial.ferocity_downstroke).toBe ONDAS_DEFAULTS.ferocity_downstroke
 
-  it 'freezes ONDAS defaults with fifteen keys', ->
+  it 'freezes ONDAS defaults with eighteen keys', ->
     expect(Object.isFrozen ONDAS_DEFAULTS).toBe true
-    expect(ONDAS_KEYS).toHaveLength 15
+    expect(ONDAS_KEYS).toHaveLength 18
     expect(ONDAS_DEFAULTS.anchor_gain).toBe 10
+    expect(ONDAS_DEFAULTS.ssff_gain).toBe 0
+    expect(ONDAS_DEFAULTS.aeroelastic_glide_coefficient).toBe 20
+    expect(ONDAS_DEFAULTS.aeroelastic_flap_coefficient).toBe 40
 
   it 'clamps negative and oversized PID gains on encode', ->
     source = {

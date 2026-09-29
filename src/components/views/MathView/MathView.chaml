@@ -1,7 +1,9 @@
 ~~~
 import { useRef } from 'react'
+import { Link } from 'react-router-dom'
 import './MathView.sass'
 import useTuningStore from '../../../stores/useTuningStore.coffee'
+import useOrnithopterStore from '../../../stores/useOrnithopterStore.coffee'
 import useScrollMorph, { scrollMorphTo } from '../../../hooks/useScrollMorph.coffee'
 import { ondasHandlers } from '../PidTuningView/fieldHandlers.coffee'
 import MathChain from './MathChain.coffee'
@@ -10,9 +12,11 @@ import MathEspelho from './MathEspelho.coffee'
 ~~~
 
 - store = useTuningStore()
+- orni = useOrnithopterStore()
 - hostRef = useRef(null)
 - useScrollMorph(hostRef)
 - draft = store.draft
+- profileIndex = orni.draft.activeProfile
 - modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
 - readDisabled = store.mode != 'device' or !store.session
 - saveDisabled = store.mode == 'device' and !store.loadedSession
@@ -22,10 +26,13 @@ import MathEspelho from './MathEspelho.coffee'
       %span.morph-kicker.orgone-kicker STEUERUNG · ONDAS MATHEMATIK
       %h1.orgone-display.orgone-display-shimmer Math
       %p.morph-hermes
-        = "Die Mathematik-Suite des Vogels: fünfzehn Parameter in neun gekoppelten Schichten — vom PID-Fehler zur phasengekoppelten Schlagbewegung. Jede Schicht trägt Vorzeichen, Einheit und ihre Rolle; der Espelho-Spiegel liest die Schlag-Asymmetrie live."
+        = "Die Mathematik-Suite des Vogels: achtzehn Parameter in zehn gekoppelten Schichten — vom PID-Fehler zur phasengekoppelten Schlagbewegung. Jede Schicht trägt Vorzeichen, Einheit und ihre Rolle; der Espelho-Spiegel liest die Schlag-Asymmetrie live."
   .morph-deck.math-deck
     %span.math-mode-badge{ className: "math-mode-#{store.mode}" }
       = modeLabel
+    %span.math-profile-chip
+      %Link{ to: '/profiles', className: 'math-profile-link' }
+        = "Profil #{profileIndex + 1} · ONDAS-Ziel"
     - if store.dirty
       %span.math-dirty-badge DIRTY
     .math-actions
@@ -46,7 +53,7 @@ import MathEspelho from './MathEspelho.coffee'
         → Espelho
   .morph-section.math-chain
     %Section{ heading: 'Signal Chain',
-              subheading: 'Neun Schichten in Flugrichtung — vom Regelfehler zur Schlagbewegung. Ein Klick bringt die Schicht in Sicht.' }
+              subheading: 'Zehn Schichten in Flugrichtung — vom Regelfehler zur Schlagbewegung. Ein Klick bringt die Schicht in Sicht.' }
       %MathChain{ draft: draft }
   %MathLayerStack{ draft: draft, onInput: ondasHandlers }
   %MathEspelho

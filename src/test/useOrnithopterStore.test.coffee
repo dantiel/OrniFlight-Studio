@@ -14,7 +14,7 @@ describe 'useOrnithopterStore', ->
     expect(state().draft.kernel).toBe 'servo'
     expect(state().draft.profileId).toBe 1
     expect(state().draft.servoSpeed).toBe 220
-    expect(state().draft.profiles).toHaveLength 3
+    expect(state().draft.profiles).toHaveLength 4
     expect(state().draft.activeProfile).toBe 0
 
   it 'switching kernel jumps to the first profile of that kernel', ->
@@ -31,9 +31,9 @@ describe 'useOrnithopterStore', ->
 
   it 'clamps servo speed and applies tempo presets', ->
     state().setServoSpeed 9000
-    expect(state().draft.servoSpeed).toBe 400
+    expect(state().draft.servoSpeed).toBe 500
     state().setServoSpeed 1
-    expect(state().draft.servoSpeed).toBe 40
+    expect(state().draft.servoSpeed).toBe 30
     state().applySpeedPreset 'violent'
     expect(state().draft.servoSpeed).toBe 60
 
@@ -49,9 +49,13 @@ describe 'useOrnithopterStore', ->
 
   it 'clamps glide angles per face with index bounds', ->
     state().setGlideAngle 0, 90
-    expect(state().draft.profiles[0].glideAngle).toBe 15
+    expect(state().draft.profiles[0].glideAngle).toBe 90
+    state().setGlideAngle 0, -120
+    expect(state().draft.profiles[0].glideAngle).toBe -90
     state().setGlideAngle 5, 90
     expect(state().draft.profiles[5]).toBeUndefined()
+    state().setActiveProfile 9
+    expect(state().draft.activeProfile).toBe 3
 
   it 'clamps waveform params and mirrors them into the engine', ->
     state().setWaveformParam 0, 'strokeSkew', 400

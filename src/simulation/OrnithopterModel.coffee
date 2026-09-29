@@ -88,6 +88,9 @@ ONDAS_DEFAULTS =
   prescience_gain: 0
   espelho_gain: 0
   saudade_gain: 0
+  ssff_gain: 0
+  aeroelastic_glide_coefficient: 20
+  aeroelastic_flap_coefficient: 40
 
 scaleGains = (gains) ->
   scaled = {}

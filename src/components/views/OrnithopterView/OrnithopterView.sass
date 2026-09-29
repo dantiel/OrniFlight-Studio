@@ -141,10 +141,58 @@ $white-rim: inset 0 1px 0 rgba(255, 255, 255, 0.18)
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))
   gap: var(--of-space-4)
 
+// Firmware-owned identity: the controller's MSP_NAME, maintained in
+// System → Gerät. The Grundkonfiguration only displays it.
+.orni-identity
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: var(--of-space-4)
+  flex-wrap: wrap
+  padding: var(--of-space-4) var(--of-space-5)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-radius-sm)
+  background: var(--of-glass-card)
+
+.orni-identity-main
+  display: flex
+  flex-direction: column
+  gap: 2px
+
+  strong
+    font-family: var(--of-font-heading)
+    font-weight: 400
+    letter-spacing: 0.06em
+    font-size: 18px
+
+.orni-identity-label
+  color: var(--of-accent-alt)
+  font: 650 9px/1 var(--of-font-mono)
+  letter-spacing: 0.18em
+
+.orni-identity-link
+  color: var(--of-accent-alt)
+  font-size: var(--of-text-sm)
+  text-decoration: none
+  white-space: nowrap
+
+  &:hover
+    color: var(--of-link-color)
+
 .orni-field
   display: flex
   flex-direction: column
   gap: var(--of-space-2)
+
+.orni-field-meta
+  align-self: flex-start
+  padding: 1px 6px
+  border-radius: 999px
+  border: 1px solid var(--of-glass-rim-soft)
+  background: rgba(var(--of-accent-rgb), 0.08)
+  color: var(--of-text-soft)
+  font: 600 8px/1.6 var(--of-font-mono)
+  letter-spacing: 0.14em
 
 .orni-field-label
   display: flex

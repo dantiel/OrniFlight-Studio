@@ -3,8 +3,10 @@
 #
 # The unified body-plan document: kernel (Direktantrieb /
 # Getriebe), mixer profile (firmware MixerProfile enum
-# 0…7), servo speed, per-servo trims, the three flight
-# profiles (CH7 → active index) with their glide degrees.
+# 0…7), servo speed, per-servo trims, the four firmware
+# flight profiles (ORNITHOPTER_PROFILE_COUNT, switched by
+# the BOXORNITHOPTERPROFILE AUX box) with their glide
+# degrees (-90..+90°, int8) and stroke shapes.
 #
 # Polymorphic — sim mode holds full authority and mirrors
 # mappable fields into the engine singleton; device mode rides
@@ -27,10 +29,12 @@ import {
   AIRFRAME_LIMITS, MOUNT_LIMITS, MOUNT_PAIRS, defaultAirframe
 } from '../lib/airframeCatalog.coffee'
 
-SPEED_LIMITS = [40, 400]
+# servo_travel_time_ms: firmware constrains 30..500 ms per 60°.
+SPEED_LIMITS = [30, 500]
 TRIM_LIMITS = [-50, 50]
-GLIDE_LIMITS = [-15, 15]
+GLIDE_LIMITS = [-90, 90]
 PROFILE_IDS = [0..7]
+export PROFILE_COUNT = 4
 WAVEFORM_KEYS = Object.keys WAVEFORM_DEFAULTS
 AIRFRAME_FIELD_NAMES = Object.keys AIRFRAME_LIMITS
 MOUNT_FIELD_NAMES = Object.keys MOUNT_LIMITS
@@ -55,7 +59,7 @@ clampInt = (lo, hi, value) ->
   Math.max lo, Math.min hi, Math.round finiteOr lo, value
 
 defaultProfile = ->
-  glideAngle: 0
+  glideAngle: -30
   flappingAngle: 0
   waveform: { WAVEFORM_DEFAULTS... }
 
@@ -73,7 +77,7 @@ defaultDraft = ->
     vtailRight: 0
     elevator: 0
   airframe: defaultAirframe()
-  profiles: [defaultProfile(), defaultProfile(), defaultProfile()]
+  profiles: (defaultProfile() for i in [0...PROFILE_COUNT])
   activeProfile: 0
 
 # Airframe → engine: geometry/mass/mounts mirror into the 3D viewport.
@@ -104,7 +108,7 @@ mirrorToEngine = (draft) ->
   engine.applyArrangement name if name
   mirrorAirframe draft.airframe
   # Waveform + flight profiles — the stroke's shape soul mirrors live.
-  for i in [0...3]
+  for i in [0...PROFILE_COUNT]
     engine.setGlideAngle i, draft.profiles[i].glideAngle
     engine.setFlappingAngle i, draft.profiles[i].flappingAngle
     for k in WAVEFORM_KEYS
@@ -169,7 +173,7 @@ useOrnithopterStore = create (set, get) ->
       dirty: true
 
   setGlideAngle: (index, value) ->
-    return unless 0 <= index < 3
+    return unless 0 <= index < PROFILE_COUNT
     profiles = clone get().draft.profiles
     profiles[index].glideAngle = clampInt GLIDE_LIMITS..., value
     set
@@ -178,7 +182,7 @@ useOrnithopterStore = create (set, get) ->
     engine.setGlideAngle index, profiles[index].glideAngle
 
   setFlappingAngle: (index, value) ->
-    return unless 0 <= index < 3
+    return unless 0 <= index < PROFILE_COUNT
     profiles = clone get().draft.profiles
     profiles[index].flappingAngle = clampInt GLIDE_LIMITS..., value
     set
@@ -187,7 +191,7 @@ useOrnithopterStore = create (set, get) ->
     engine.setFlappingAngle index, profiles[index].flappingAngle
 
   setWaveformParam: (index, key, value) ->
-    return unless 0 <= index < 3
+    return unless 0 <= index < PROFILE_COUNT
     return unless key in WAVEFORM_KEYS
     limits = WAVEFORM_LIMITS[key]
     profiles = clone get().draft.profiles
@@ -200,7 +204,7 @@ useOrnithopterStore = create (set, get) ->
     engine.applyFlightProfile index if index is get().draft.activeProfile
 
   setActiveProfile: (index) ->
-    index = clampInt 0, 2, index
+    index = clampInt 0, PROFILE_COUNT - 1, index
     set
       draft: { get().draft..., activeProfile: index }
       dirty: true

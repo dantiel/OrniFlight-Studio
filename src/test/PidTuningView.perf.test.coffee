@@ -8,7 +8,7 @@ import useTuningStore from '../stores/useTuningStore.coffee'
 
 # Render-count probe for the ParamRow memo contract. The real ParamRow is
 # memoized; PidTuningView must hand it stable handler references (see
-# fieldHandlers.coffee), otherwise every keystroke re-renders all 34 rows.
+# fieldHandlers.coffee), otherwise every keystroke re-renders all 37 rows.
 # The mock factory is synchronous — async factories break under the
 # CoffeeScript transform; imports are already evaluated when it runs.
 renderCount = 0
@@ -51,7 +51,7 @@ describe 'PidTuningView render efficiency', ->
   afterEach ->
     vi.restoreAllMocks()
 
-  it 'only re-renders the edited row, not all 34', ->
+  it 'only re-renders the edited row, not all 37', ->
     render h(MemoryRouter, null, h(PidTuningView, null))
     # Open only the closed sections. PID Bank is defaultOpen — clicking
     # its trigger would close it, and the mocked rAF never completes the
@@ -61,7 +61,7 @@ describe 'PidTuningView render efficiency', ->
       if trigger.getAttribute('aria-expanded') == 'false'
         fireEvent.click trigger
     baseline = renderCount
-    expect(baseline).toBe 12 + 3 + 15 + 4
+    expect(baseline).toBe 12 + 3 + 18 + 4
     slider = document.querySelector '.param-slider'
     fireEvent.input slider, { target: { value: '6.5' } }
     expect(useTuningStore.getState().draft.pid.roll.P).toBe 6.5

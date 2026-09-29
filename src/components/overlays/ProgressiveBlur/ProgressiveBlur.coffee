@@ -14,15 +14,15 @@
 import './ProgressiveBlur.sass'
 import h from '../../../app/h.coffee'
 
-# Strong blur ends nearest the safe area; softer tiers reach further.
-# The whole veil dies within 40px of the edge — it blends only what
-# is directly approaching the toolbar/dock, never what merely hovers
-# nearby. Beyond that band content stays completely crisp.
+# The veil is confined to the safe-area bar itself: the strongest
+# tier only covers what lies deepest under the toolbar, every tier
+# dissolves before the bar's lower edge. Content below the bar is
+# never blurred — the bar blends only what it actually covers.
 LAYERS = [
-  { blur: 2, reach: '40px' }
-  { blur: 5, reach: '28px' }
-  { blur: 10, reach: '18px' }
-  { blur: 20, reach: '10px' }
+  { blur: 2, hold: '86%' }
+  { blur: 4, hold: '68%' }
+  { blur: 8, hold: '46%' }
+  { blur: 14, hold: '22%' }
 ]
 
 ProgressiveBlur = (props) ->
@@ -37,9 +37,8 @@ ProgressiveBlur = (props) ->
         className: 'progressive-blur-layer'
         style:
           '--pb-blur': "#{layer.blur}px"
-          '--pb-reach': layer.reach
+          '--pb-hold': layer.hold
     h 'div',
       className: 'progressive-blur-tint'
-      style: { '--pb-reach': '40px' }
 
 export default ProgressiveBlur

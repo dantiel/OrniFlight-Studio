@@ -6,7 +6,7 @@ import OrniFlightSession, {
 } from '../protocol/orniFlightSession.coffee'
 import { MockMspTransport, scriptedResponder } from './mockMspTransport.coffee'
 import {
-  encodeServoConfiguration, ONDAS_DEFAULTS, encodeOndas
+  encodeServoConfiguration, ONDAS_DEFAULTS
   decodePidAdvanced, encodePidAdvanced, RX_CONFIG_BYTES
 } from '../protocol/mspDecoders.coffee'
 import { itemPos } from '../lib/osdCatalog.coffee'
@@ -89,6 +89,21 @@ tuningDoc = {
   filter: { gyroDlpfHz: 250, gyroNotchHz: 400, gyroNotchQ: 6, dTermDlpfHz: 50 }
 }
 
+# The firmware's ONDAS envelope (MSP_PID_ADVANCED): a legacy prefix,
+# an appendix carrying the modulation gains, and a per-profile tail
+# (downstroke, upstroke, aeroelastic glide, aeroelastic flap).
+ondasEnvelopePayload = ->
+  encodePidAdvanced {
+    prefix: new Array(46).fill 0
+    appendix: {
+      cadence: 0, ferocityD: 10, balance: 10, ferocityP: 10
+      ferocityRoll: 10, ferocityYaw: 10, warpGain: 10, warpYawGain: 10
+      anchorGain: 10, resonanceGain: 0, prescience: 0, espelho: 0
+      saudade: 0, ssff: 0
+    }
+    tail: [12, 12, 20 + 128, 40 + 128]
+  }
+
 tuningPayloads = {
   [MSP_CODES.PID]: [
     u16(4000)..., u16(30)..., u16(23000)...
@@ -98,7 +113,7 @@ tuningPayloads = {
   ]
   [MSP_CODES.RC_TUNING]: [100, 70, 35]
   [MSP_CODES.FILTER_CONFIG]: [u16(250)..., u16(400)..., 6, u16(50)...]
-  [MSP_CODES.ONDAS]: Array.from(encodeOndas())
+  [MSP_CODES.ONDAS]: Array.from(ondasEnvelopePayload())
 }
 
 # Echoes written tuning sections on read-back so writeTuning's
@@ -107,12 +122,15 @@ tuningPayloads = {
 # payloads are stored under their read codes.
 tuningStoreResponder = (script) ->
   stored = {}
+  # The device already carries an ONDAS envelope — read-modify-write
+  # in writeTuning reads it before splicing.
+  stored[MSP_CODES.PID_ADVANCED] = Array.from ondasEnvelopePayload()
   fallback = scriptedResponder script
   writeToRead = {
     [MSP_CODES.SET_PID]: MSP_CODES.PID
     [MSP_CODES.SET_RC_TUNING]: MSP_CODES.RC_TUNING
     [MSP_CODES.SET_FILTER_CONFIG]: MSP_CODES.FILTER_CONFIG
-    [MSP_CODES.SET_ONDAS]: MSP_CODES.ONDAS
+    [MSP_CODES.SET_PID_ADVANCED]: MSP_CODES.PID_ADVANCED
   }
   (bytes) ->
     command = bytes[4] | bytes[5] << 8
@@ -374,11 +392,11 @@ describe 'orniFlightSession', ->
     finally
       vi.useRealTimers()
 
-  it 'rejects craft names at the boundary (empty and over 24)', ->
+  it 'rejects craft names at the boundary (empty and over 16)', ->
     { session } = await openSession handshakeScript
     await session.handshake()
     await expect(session.setCraftName '').rejects.toThrow 'Craft name must contain'
-    await expect(session.setCraftName('A'.repeat 25)).rejects.toThrow(
+    await expect(session.setCraftName('A'.repeat 17)).rejects.toThrow(
       'Craft name must contain'
     )
 
@@ -484,8 +502,8 @@ describe 'orniFlightSession', ->
     # to the tuning conversation before asserting the exact order.
     tuningCodes = [
       MSP_CODES.SET_PID, MSP_CODES.SET_RC_TUNING
-      MSP_CODES.SET_FILTER_CONFIG, MSP_CODES.SET_ONDAS
-      MSP_CODES.EEPROM_WRITE
+      MSP_CODES.SET_FILTER_CONFIG, MSP_CODES.PID_ADVANCED
+      MSP_CODES.SET_PID_ADVANCED, MSP_CODES.EEPROM_WRITE
       MSP_CODES.PID, MSP_CODES.RC_TUNING
       MSP_CODES.FILTER_CONFIG, MSP_CODES.ONDAS
     ]
@@ -509,10 +527,18 @@ describe 'orniFlightSession', ->
 
   it 'throws when a tuning section read-back diverges', ->
     base = tuningStoreResponder handshakeScript
+    diverge = Array.from encodePidAdvanced {
+      prefix: new Array(46).fill 0
+      appendix: { resonanceGain: 99 }
+      tail: [12, 12, 148, 168]
+    }
+    written = false
     responder = (bytes) ->
       command = bytes[4] | bytes[5] << 8
-      if command == MSP_CODES.ONDAS
-        return { command, direction: '>', payload: (0 for _ in [0...10]) }
+      if command == MSP_CODES.SET_PID_ADVANCED
+        written = true
+      if command == MSP_CODES.ONDAS and written
+        return { command, direction: '>', payload: diverge }
       base bytes
     transport = new MockMspTransport { autoRespond: true, responder }
     client = new MspClient transport, { timeoutMs: 500 }

@@ -1,8 +1,8 @@
 ###
 # ORNIFLIGHT STUDIO — Math Suite Registry (ONDAS + ESPELHO)
 #
-# Single source of truth for the 15-parameter mathematics suite on
-# ornithopterProfile_t (firmware settings.c). Nine coupled layers
+# Single source of truth for the 18-parameter mathematics suite on
+# ornithopterProfile_t (firmware settings.c). Ten coupled layers
 # transform raw PID terms into the wing's phase-locked motion.
 #
 # Consumers:
@@ -37,6 +37,8 @@ MATH_LAYERS = [
     role: 'wing-self-noise cancellation' }
   { id: 'saudade', name: 'Saudade', glyph: '🌘'
     role: 'per-stroke learning → trim bias' }
+  { id: 'aeroelastic', name: 'Aeroelastic', glyph: '🌬'
+    role: 'PID scaling for glide vs. flapping flight' }
 ]
 
 MATH_PARAMS =
@@ -100,6 +102,18 @@ MATH_PARAMS =
     layer: 'saudade', min: 0, max: 100, unit: '%', signed: false
     label: 'Stroke memory'
     role: 'Per-stroke learning → persistent trim bias.'
+  ssff_gain:
+    layer: 'prescience', min: 0, max: 100, unit: '%', signed: false
+    label: 'SSFF'
+    role: 'Stroke-synchronous feed-forward; prescience removes its delay.'
+  aeroelastic_glide_coefficient:
+    layer: 'aeroelastic', min: -100, max: 100, unit: '%', signed: true
+    label: 'Glide scaling'
+    role: 'Aeroelastic PID scaling while gliding.'
+  aeroelastic_flap_coefficient:
+    layer: 'aeroelastic', min: -100, max: 100, unit: '%', signed: true
+    label: 'Flap scaling'
+    role: 'Aeroelastic PID scaling while flapping.'
 
 MATH_KEYS = []
 MATH_DEFAULTS = {}
@@ -111,7 +125,9 @@ for layer in MATH_LAYERS
       MATH_DEFAULTS[key] =
         if key in ['ferocity_downstroke', 'ferocity_upstroke'] then 12
         else if key in ['resonance_gain', 'prescience_gain', 'espelho_gain',
-                        'saudade_gain', 'cadence_gain'] then 0
+                        'saudade_gain', 'ssff_gain', 'cadence_gain'] then 0
+        else if key is 'aeroelastic_glide_coefficient' then 20
+        else if key is 'aeroelastic_flap_coefficient' then 40
         else 10
 
 mathLayerOf = (key) -> MATH_PARAMS[key]?.layer

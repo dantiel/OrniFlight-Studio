@@ -9,8 +9,9 @@
 ###
 import './OrnithopterView.sass'
 import h from '../../../app/h.coffee'
-import { useLocation } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import useOrnithopterStore from '../../../stores/useOrnithopterStore.coffee'
+import useDeviceStore from '../../../stores/useDeviceStore.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import {
   KERNELS, profilesForKernel, profileById
@@ -38,6 +39,8 @@ Field = (props) ->
   h 'div', { className: 'orni-field' },
     h 'div', { className: 'orni-field-label' },
       h 'b', null, props.label
+      if props.meta?
+        h 'span', { className: 'orni-field-meta' }, props.meta
       if props.hermes?
         h 'small', { className: 'orni-hermes' }, props.hermes
     h 'div', { className: 'orni-field-control' }, props.children
@@ -94,6 +97,7 @@ WaveformWidget = (props) ->
 OrnithopterView = ->
   orni = useOrnithopterStore()
   tele = useTelemetryStore()
+  identity = useDeviceStore (state) -> state.identity
   draft = orni.draft
   profile = profileById draft.profileId
   trims = trimsForProfile profile
@@ -162,21 +166,27 @@ OrnithopterView = ->
           'Kernel und Mixer: wie der Antrieb den Flügel spannt — ' +
           'direkt ins Gelenk oder über ein Getriebe.'
       ,
+        h 'div', { className: 'orni-identity' },
+          h 'div', { className: 'orni-identity-main' },
+            h 'span', { className: 'orni-identity-label' }, 'CRAFT NAME'
+            h 'strong', null,
+              identity?.name ? "#{draft.modelName} (Simulation)"
+            h 'span', { className: 'orni-hermes' },
+              'Der Systemname wird vom Controller geführt (MSP_NAME, ' +
+              '16 Zeichen) und in System → Gerät gepflegt.'
+          h Link, { to: '/system/device', className: 'orni-identity-link' },
+            'In System → Gerät bearbeiten'
         h 'div', { className: 'orni-grid' },
           h Field,
-            { label: 'Modellname', hermes: 'Freitext, 32 Zeichen.' },
-            h 'input',
-              className: 'orni-input'
-              type: 'text'
-              maxLength: 32
-              value: draft.modelName
-              onChange: (e) -> orni.setModelName e.target.value
-          h Field, { label: 'Kernel', hermes: 'Direktantrieb oder Getriebe.' },
+            { label: 'Kernel',
+              hermes: 'Direktantrieb oder Getriebe.',
+              meta: 'STUDIO' },
             h 'div', { className: 'orni-segments' },
               kernelOptions k for k in KERNELS
           h Field,
             { label: 'Mixer-Profil',
-              hermes: 'GPIO-Belegung laut Firmware.' },
+              hermes: 'GPIO-Belegung laut Firmware.',
+              meta: 'STUDIO' },
             h 'select',
               className: 'orni-input'
               value: draft.profileId
@@ -189,14 +199,16 @@ OrnithopterView = ->
             h 'div', { className: 'orni-map' }, profile.map
           h Field,
             label: 'Schlagzeit'
-            hermes: 'Zeit eines 60°-Schlags.'
+            hermes:
+              'servo_travel_time_ms der Firmware — Millisekunden ' +
+              'pro 60°-Schlag (30–500).'
           ,
             h 'div', { className: 'orni-slider-row' },
               h 'input',
                 className: 'orni-slider'
                 type: 'range'
-                min: 40
-                max: 400
+                min: 30
+                max: 500
                 value: draft.servoSpeed
                 onChange: (e) -> orni.setServoSpeed Number e.target.value
               h 'span', { className: 'orni-value' },

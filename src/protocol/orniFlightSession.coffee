@@ -11,7 +11,7 @@ import {
   decodePidTuning, encodePidTuning, PID_AXES, PID_TERMS
   decodeRcTuning, encodeRcTuning
   decodeFilterConfig, encodeFilterConfig
-  decodeOndas, encodeOndas, ONDAS_DEFAULTS, TUNING_FALLBACKS
+  decodeOndas, encodeOndasEnvelope, ONDAS_DEFAULTS, TUNING_FALLBACKS
   decodeOsdConfig, encodeOsdItem
   decodeVtxConfig, encodeVtxConfig
   decodeSerialConfig, encodeSerialConfig
@@ -144,7 +144,7 @@ class OrniFlightSession
   setCraftName: (name) ->
     throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
     value = String(name or '').trim()
-    throw new Error 'Craft name must contain 1–24 characters' unless value.length in [1..24]
+    throw new Error 'Craft name must contain 1–16 characters' unless value.length in [1..16]
     await @client.request MSP_CODES.SET_NAME, encodeName(value)
     await @client.request MSP_CODES.EEPROM_WRITE
     readBack = decodeName await @client.request MSP_CODES.NAME
@@ -280,7 +280,11 @@ class OrniFlightSession
     await @client.request MSP_CODES.SET_PID, encodePidTuning tuning.pid
     await @client.request MSP_CODES.SET_RC_TUNING, encodeRcTuning tuning.rate
     await @client.request MSP_CODES.SET_FILTER_CONFIG, encodeFilterConfig tuning.filter
-    await @client.request MSP_CODES.SET_ONDAS, encodeOndas tuning.ondas
+    envelope = await @readWingMapping()
+    ondasPayload = encodeOndasEnvelope envelope, tuning.ondas
+    unless ondasPayload?
+      throw new Error 'Firmware does not expose the ONDAS envelope'
+    await @client.request MSP_CODES.SET_PID_ADVANCED, ondasPayload
     await @client.request MSP_CODES.EEPROM_WRITE
     readBack = await @readTuning()
     for section in ['pid', 'rate', 'ondas', 'filter']

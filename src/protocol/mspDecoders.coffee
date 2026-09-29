@@ -360,7 +360,8 @@ encodePidAdvanced = (envelope = {}) ->
   out
 
 encodeName = (name) ->
-  value = String(name or '').slice 0, 24
+  # Firmware pilotConfig name is MAX_NAME_LENGTH (16) + NUL.
+  value = String(name or '').slice 0, 16
   Uint8Array.from Array.from(value).map((character) -> character.charCodeAt(0) & 0xff)
 
 finiteOr = (fallback, value) ->
@@ -448,26 +449,90 @@ decodeFilterConfig = (payload) ->
   gyroNotchQ: if reader.remaining() then reader.u8() else 0
   dTermDlpfHz: if reader.remaining() >= 2 then reader.u16() else 0
 
-# ── ONDAS profile (MSP 114 / 206) ───────────────────────────
-# Wire layout: 15 bytes — one u8 per key in ONDAS_KEYS order.
-# Signed params (−100..100) ride the s8 convention: wire = value + 128.
+# ── ONDAS profile (MSP 94 / 95 — the PID_ADVANCED envelope) ──
+# The firmware carries ONDAS inside MSP_PID_ADVANCED (msp.c, API
+# 1.42+): the ten modulation gains are appendix fields, and the
+# per-profile tail starts at envelope offset 83 with downstroke,
+# upstroke and the two aeroelastic coefficients. decodeOndas is
+# envelope-aware; encodeOndasEnvelope splices an existing envelope
+# read-modify-write so the legacy prefix and foreign tail fields
+# survive byte-exact.
 ONDAS_DEFAULTS = Object.freeze MATH_DEFAULTS
 ONDAS_KEYS = MATH_KEYS
 
-encodeOndas = (ondas = {}) ->
-  out = new Uint8Array ONDAS_KEYS.length
-  for key, i in ONDAS_KEYS
-    value = ondas[key] ? ONDAS_DEFAULTS[key]
-    out[i] = clampU8 if MATH_PARAMS[key].signed then value + 128 else value
-  out
-
 decodeOndas = (payload) ->
-  reader = new ByteReader payload
+  envelope = decodePidAdvanced payload
+  unless envelope.appendix?
+    return { ONDAS_DEFAULTS... }
+  a = envelope.appendix
+  tail = envelope.tail
+  table =
+    cadence_gain: a.cadence
+    ferocity_d_gain: a.ferocityD
+    balance_gain: a.balance
+    ferocity_p_gain: a.ferocityP
+    ferocity_roll_gain: a.ferocityRoll
+    ferocity_yaw_gain: a.ferocityYaw
+    warp_gain: a.warpGain
+    warp_yaw_gain: a.warpYawGain
+    anchor_gain: a.anchorGain
+    resonance_gain: a.resonanceGain
+    prescience_gain: a.prescience
+    espelho_gain: a.espelho
+    saudade_gain: a.saudade
+    ssff_gain: a.ssff
+    ferocity_downstroke:
+      if tail.length >= 1 then clampInt(1, 100, tail[0])
+      else ONDAS_DEFAULTS.ferocity_downstroke
+    ferocity_upstroke:
+      if tail.length >= 2 then clampInt(1, 100, tail[1])
+      else ONDAS_DEFAULTS.ferocity_upstroke
+    aeroelastic_glide_coefficient:
+      if tail.length >= 3 then clampInt(-100, 100, tail[2] - 128)
+      else ONDAS_DEFAULTS.aeroelastic_glide_coefficient
+    aeroelastic_flap_coefficient:
+      if tail.length >= 4 then clampInt(-100, 100, tail[3] - 128)
+      else ONDAS_DEFAULTS.aeroelastic_flap_coefficient
+  # Registry key order — JSON read-back comparison is order-sensitive.
   result = {}
   for key in ONDAS_KEYS
-    byte = if reader.remaining() then reader.u8() else 0
-    result[key] = if MATH_PARAMS[key].signed then byte - 128 else byte
+    result[key] = table[key]
   result
+
+# Splice ONDAS values into an existing PID_ADVANCED envelope. The
+# legacy prefix, geometry appendix fields and foreign tail bytes are
+# preserved; returns null when the envelope carries no appendix.
+encodeOndasEnvelope = (envelope, ondas = {}) ->
+  return null unless envelope?.appendix?
+  a = envelope.appendix
+  merged = {
+    a...
+    cadence: ondas.cadence_gain ? a.cadence
+    ferocityD: ondas.ferocity_d_gain ? a.ferocityD
+    balance: ondas.balance_gain ? a.balance
+    ferocityP: ondas.ferocity_p_gain ? a.ferocityP
+    ferocityRoll: ondas.ferocity_roll_gain ? a.ferocityRoll
+    ferocityYaw: ondas.ferocity_yaw_gain ? a.ferocityYaw
+    warpGain: ondas.warp_gain ? a.warpGain
+    warpYawGain: ondas.warp_yaw_gain ? a.warpYawGain
+    anchorGain: ondas.anchor_gain ? a.anchorGain
+    resonanceGain: ondas.resonance_gain ? a.resonanceGain
+    prescience: ondas.prescience_gain ? a.prescience
+    espelho: ondas.espelho_gain ? a.espelho
+    saudade: ondas.saudade_gain ? a.saudade
+    ssff: ondas.ssff_gain ? a.ssff
+  }
+  raw = Array.from envelope.tail ? []
+  head = [0, 1, 2, 3].map (i) -> if i < raw.length then raw[i] else 0
+  head[0] = clampInt 1, 100, (ondas.ferocity_downstroke ? head[0])
+  head[1] = clampInt 1, 100, (ondas.ferocity_upstroke ? head[1])
+  head[2] = clampU8((ondas.aeroelastic_glide_coefficient ? head[2] - 128) + 128)
+  head[3] = clampU8((ondas.aeroelastic_flap_coefficient ? head[3] - 128) + 128)
+  encodePidAdvanced {
+    prefix: envelope.prefix
+    appendix: merged
+    tail: head.concat raw.slice 4
+  }
 
 # ── Tuning fallbacks ────────────────────────────────────────
 # ── OSD configuration (MSP 84 / 85) ─────────────────────────────────
@@ -1139,7 +1204,7 @@ export {
   encodePidTuning, decodePidTuning, PID_AXES, PID_TERMS
   encodeRcTuning, decodeRcTuning
   encodeFilterConfig, decodeFilterConfig
-  encodeOndas, decodeOndas, ONDAS_DEFAULTS, ONDAS_KEYS
+  encodeOndasEnvelope, decodeOndas, ONDAS_DEFAULTS, ONDAS_KEYS
   decodeOsdConfig, encodeOsdItem
   decodeVtxConfig, encodeVtxConfig
   decodeSerialConfig, encodeSerialConfig

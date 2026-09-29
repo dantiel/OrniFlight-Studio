@@ -81,7 +81,7 @@ ConfigurationHub = (props) ->
         h 'form', { onSubmit: saveName },
           h('input', {
             value: nameDraft
-            maxLength: 24
+            maxLength: 16
             disabled: not hardwareConnected or status?.armed or saveState == 'saving'
             'aria-label': 'Craft name'
             onChange: (event) -> setNameDraft event.target.value
@@ -91,7 +91,14 @@ ConfigurationHub = (props) ->
             disabled: not hardwareConnected or status?.armed or saveState == 'saving' or not nameDraft.trim()
           }, if saveState == 'saving' then 'Saving…' else 'Apply')
         h('small', { className: if saveState not in ['idle', 'saved'] then 'error' else '' },
-          if status?.armed then 'Writes locked while armed' else if saveState == 'saved' then 'Verified on device' else if saveState not in ['idle', 'saving'] then saveState else 'EEPROM write + read-back verification')
+          if status?.armed
+            'Writes locked while armed'
+          else if saveState == 'saved'
+            'Verified on device'
+          else if saveState not in ['idle', 'saving']
+            saveState
+          else
+            '16 characters max (firmware) · EEPROM write + read-back')
       h 'div', { className: 'hub-device-field' },
         h('span', null, 'FIRMWARE'),
         h('strong', null, "#{identity.variant} #{identity.firmware.version}"),
