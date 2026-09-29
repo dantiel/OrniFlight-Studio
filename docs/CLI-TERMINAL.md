@@ -98,14 +98,19 @@ One hook, two behaviors. `mode` lives in the store; the hook branches on it.
 
 ### `device` (controller attached)
 
+- **Auto-takeover**: `useCliSession({ autoEnter: true })` takes the channel
+  over the moment a device session is live (`source == 'device'`) — the CLI
+  shares the global connection, no picker, no second port. The guard re-arms
+  when the craft leaves, so a reconnect takes over again.
 - `enter()` prefers the takeover over a connected MSP session: stop the
   session, `client.detach(onData)`, subscribe `onError → failConnection`,
-  wait out the firmware's 100 ms idle guard, then send raw `#` (`0x23`).
+  wait out the firmware's 300 ms idle guard, then send raw `#` (`0x23`).
 - Without a session, `enter()` opens a dedicated runtime port and drives the
   CLI directly — the firmware's MSP parser enters CLI on a bare `#` outside
   any frame, so no handshake is needed. This keeps legacy targets reachable
   even when the config surface cannot negotiate (pre-rename BTFL builds).
   `onClose` fires when that port drops (controller reboot on `exit`).
+  (This path is the fallback — the shared-connection takeover is primary.)
 - `submit(cmd)` writes `cmd\r`; the firmware echoes back, landing in `pending`
   until a line end finalizes it (live echo without local duplication).
 - `complete(draft)` sends `\t` (firmware-side completion).
