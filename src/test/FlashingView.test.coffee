@@ -3,6 +3,8 @@ import { createElement as h } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import App from '../app/App.chaml'
+import useDeviceStore from '../stores/useDeviceStore.coffee'
+import useFirmwareStore from '../stores/useFirmwareStore.coffee'
 
 MANIFEST = { images: [
   { name: 'OrniFlight', target: 'ORNI-F4', version: '2.1.0', channel: 'stable', size: 262144 }
@@ -15,6 +17,7 @@ describe 'FlashingView', ->
       Promise.resolve { ok: true, json: -> Promise.resolve MANIFEST }
 
   afterEach ->
+    useDeviceStore.getState().setSimulation()
     vi.unstubAllGlobals()
 
   renderApp = (route = '/system/flash') ->
@@ -54,6 +57,24 @@ describe 'FlashingView', ->
     expect(deck).toBeInTheDocument()
     # The deck always carries its own action label.
     expect(deck.textContent).toContain 'FLASH'
+
+  it 'offers the bootloader bridge when a device session is live', ->
+    # Serial capability is captured at store creation — seed it, since
+    # jsdom has no navigator.serial.
+    useFirmwareStore.setState { serialSupported: true }
+    useDeviceStore.getState().setDevice {
+      name: 'tiny-bird'
+      board: { targetName: 'TINYFISH' }
+      firmware: { version: '1.46.0' }
+    }
+    renderApp()
+    btn = await screen.findByText 'Enter bootloader'
+    expect(btn).toBeEnabled()
+    expect(screen.getByText 'CONNECTED').toBeInTheDocument()
+    # The deck arms the bridge as its primary action.
+    deck = document.querySelector '.deck-flash'
+    expect(deck.textContent).toContain 'BOOTLOADER'
+    expect(deck.disabled).toBe false
 
   it 'pairs the flash stage with the console side by side', ->
     renderApp()

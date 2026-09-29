@@ -31,6 +31,9 @@ makeDeviceDeps = ->
 makeSimHook = (deps = {}) ->
   renderHook (-> useCliSession deps)
 
+makeAutoHook = (deps = {}) ->
+  renderHook (-> useCliSession { deps..., autoEnter: true })
+
 describe 'useCliSession — simulation mode', ->
   beforeEach ->
     useCliStore.getState().reset()
@@ -83,6 +86,22 @@ describe 'useCliSession — simulation mode', ->
     expect(entered).toBe true
     expect(result.current.mode).toBe 'device'
     expect(deps._captured()).toBeTypeOf 'function'
+
+  it 'auto-enters the shared connection when a device session is live', ->
+    useDeviceStore.getState().setDevice { name: 'auto-bird' }
+    deps = makeDeviceDeps()
+    { result } = makeAutoHook deps
+    await act -> Promise.resolve()
+    expect(result.current.mode).toBe 'device'
+    expect(deps._captured()).toBeTypeOf 'function'
+
+  it 'stays in simulation without a device session', ->
+    useDeviceStore.getState().setSimulation()
+    deps = makeDeviceDeps()
+    { result } = makeAutoHook deps
+    await act -> Promise.resolve()
+    expect(result.current.mode).toBe 'sim'
+    expect(deps._captured()).toBeNull()
 
   it 'surfaces a failed direct connect as an error line', ->
     deps = makeDeviceDeps()

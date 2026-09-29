@@ -9,7 +9,7 @@ import {
   fetchCatalog, sha256Hex, localFirmware, MANIFEST_PATH
 } from '../firmware/firmwareCatalog.coffee'
 import {
-  detectDevice, detectSerial, detectWebUsb
+  detectDevice, detectSerial, detectWebUsb, detectOnPort
   clearDevice, isSerialSupported, isWebUsbSupported
 } from '../firmware/flashService.coffee'
 
@@ -90,6 +90,20 @@ useFirmwareStore = create (set, get) ->
       device
     catch e
       set { detecting: false, lastError: e.message }
+      throw e
+
+  # Adopts the live-session port after the reboot-to-bootloader
+  # bridge. On sync failure the port stays adopted (transport stays
+  # 'serial'): run() re-syncs inside the flash sequence, so the user
+  # retries with FLASH — no second picker.
+  detectRuntimePort: (port, onLog = (->)) ->
+    set { detecting: true, lastError: null }
+    try
+      info = await detectOnPort port, onLog
+      set { device: info, transport: 'serial', detecting: false }
+      info
+    catch e
+      set { detecting: false, transport: 'serial', lastError: e.message }
       throw e
 
   disconnect: ->

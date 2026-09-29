@@ -25,7 +25,7 @@ vi.mock '../firmware/webUsbTransport.coffee', ->
   }
 
 import {
-  run, reboot, detectDevice, detectSerial, detectWebUsb
+  run, reboot, detectDevice, detectSerial, detectWebUsb, detectOnPort
   setDevice, clearDevice, getDevice
   isSerialSupported, isWebUsbSupported
 } from '../firmware/flashService.coffee'
@@ -61,6 +61,13 @@ describe 'flashService dispatcher', ->
     { device, transport } = getDevice()
     expect(device).toEqual { usb: true }
     expect(transport).toBe 'webusb'
+
+  it 'detectOnPort adopts the handed-over port and syncs on it', ->
+    info = await detectOnPort { handed: true }
+    expect(info.mcu).toBe 'STM32F405RGT6'
+    { device, transport } = getDevice()
+    expect(device).toEqual { handed: true }
+    expect(transport).toBe 'serial'
 
   it 'reports WebSerial support from the transport', ->
     expect(isSerialSupported()).toBe true

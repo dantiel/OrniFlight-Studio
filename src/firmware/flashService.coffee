@@ -61,12 +61,20 @@ detectDevice = (onLog = (->), transportHint = 'serial') ->
   else
     await detectSerial onLog
 
+# Detect the bootloader on a port already held by the live MSP
+# session (handed over after MSP_REBOOT). The port is adopted before
+# the AN3155 sync: a failed detect keeps the device registered, so a
+# FLASH retry re-syncs inside run() instead of demanding a picker.
+detectOnPort = (port, onLog = (->)) ->
+  setDevice port, 'serial'
+  await serial.detect port, onLog
+
 isSerialSupported = -> serial.isSupported()
 isWebUsbSupported = -> webusb.isSupported()
 
 export {
   run, reboot
-  detectDevice, detectSerial, detectWebUsb
+  detectDevice, detectSerial, detectWebUsb, detectOnPort
   isSerialSupported, isWebUsbSupported
   setDevice, clearDevice, getDevice
 }

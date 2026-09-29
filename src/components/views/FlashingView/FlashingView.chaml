@@ -18,7 +18,7 @@ import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
 - wrapSelect = (id) -> ctrl.onSelect(id); moltScrollTo('molt-flash-deck')
 - wrapLoad = (id) -> ctrl.forge.onLoad(id); moltScrollTo('molt-flash-deck')
 - deckForge = Object.assign({}, ctrl.forge, { onLoad: wrapLoad })
-- deck = moltDeck(ctrl)
+- deck = moltDeck(ctrl, ctrl.pendingBoot)
 - deckTarget = deck.target
 - deckFwWord = deck.fw
 - forgeWord = deck.forge

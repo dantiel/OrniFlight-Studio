@@ -9,11 +9,15 @@ import { useEffect } from 'react'
 import useFlasher, { getFlashActor } from './useFlasher.coffee'
 import useFirmwareStore from '../stores/useFirmwareStore.coffee'
 import useCloudForgeStore from '../stores/useCloudForgeStore.coffee'
+import useDeviceStore from '../stores/useDeviceStore.coffee'
+import { handFirmwarePortToFlasher } from './useFirmwareConnection.coffee'
 import { run, reboot } from '../firmware/flashService.coffee'
 import { phaseLabel, buttonFor } from '../firmware/flashUi.coffee'
 
 useFlashController = ->
   loadCatalog = useFirmwareStore (s) -> s.loadCatalog
+  runtimeConnected = useDeviceStore (s) -> s.source == 'device'
+  runtimeIdentity = useDeviceStore (s) -> s.identity
   useEffect ->
     loadCatalog()
     undefined
@@ -74,19 +78,43 @@ useFlashController = ->
     fwStore.disconnect()
     fwStore.appendLog 'INFO', 'Device released — back to dry-run.'
 
+  # The live MSP session hands its port to the bootloader: one
+  # connection end to end. On sync failure the port stays adopted,
+  # so a FLASH retry re-syncs inside run().
+  onBridge = ->
+    fwStore.appendLog 'INFO', 'Reboot-to-bootloader over the live connection…'
+    try
+      { port, identity } = await handFirmwarePortToFlasher()
+      name = identity?.name or identity?.board?.targetName or 'controller'
+      fwStore.appendLog 'INFO', "#{name} handed over — syncing the bootloader…"
+      try
+        await fwStore.detectRuntimePort port, onLog
+      catch detectError
+        fwStore.appendLog 'ERROR', detectError.message
+        fwStore.appendLog 'HINT',
+          'If the board stayed in app mode, hold BOOT0 and retry Serial.'
+    catch e
+      handleError e
+
   onReset = ->
     flash.send { type: 'RESET' }
     fwStore.clearLog()
     fwStore.appendLog 'INFO', 'Console cleared — ready to transmigrate.'
 
-  btn = buttonFor phase, selectedFw?
+  liveTransport = fwStore.transport in ['serial', 'webusb']
+  pendingBoot = runtimeConnected and not liveTransport
+
+  btn = buttonFor phase, selectedFw?, pendingBoot
 
   {
     phase
     label:      phaseLabel phase
     progress:   flash.progress
     error:      flash.error
-    connected:  fwStore.transport in ['serial', 'webusb']
+    connected:  liveTransport
+    runtimeConnected
+    runtimeIdentity
+    pendingBoot
     lastError:  fwStore.lastError
     serialSupported: fwStore.serialSupported
     webUsbSupported: fwStore.webUsbSupported
@@ -108,9 +136,11 @@ useFlashController = ->
     onDetectWebUsb
     onDetect     # Legacy: alias for onDetectSerial
     onDisconnect
+    onBridge
     onClick:
       if phase == 'done' then onReboot
       else if phase == 'error' then onReset
+      else if pendingBoot then onBridge
       else onFlash
     onClearLog: ->
       fwStore.clearLog()

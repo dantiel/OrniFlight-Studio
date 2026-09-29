@@ -14,6 +14,7 @@ import { engine } from './engine.coffee'
 import { pushTelemetry } from '../streams/telemetryStream.coffee'
 import useTelemetryStore from '../stores/useTelemetryStore.coffee'
 import useDeviceStore from '../stores/useDeviceStore.coffee'
+import useCliStore from '../stores/useCliStore.coffee'
 import { getActor } from '../hooks/useConnection.coffee'
 
 # Pure projection: simulation engine → one telemetry frame
@@ -39,14 +40,16 @@ snapshot = (engine) ->
   linkQuality:     0
 
 useSimulation = ->
-  console.log 'SIM-HOOK-BODY'
   rafRef  = useRef null
   lastRef = useRef performance.now()
   source = useDeviceStore (state) -> state.source
+  cliMode = useCliStore (state) -> state.mode
 
   useEffect ->
-    console.log 'SIM-EFFECT source=', source
-    return unless source == 'simulation'
+    # Real hardware owns the channel when a device session is live or
+    # the CLI holds a direct link — simulated frames must never mix
+    # with craft truth.
+    return unless source == 'simulation' and cliMode != 'device'
     # The simulation is a polymorphic transport like WebSerial: when it
     # becomes the active source it drives the connection machine to
     # streaming, exactly as a real device handshake would.
@@ -67,7 +70,7 @@ useSimulation = ->
     rafRef.current = requestAnimationFrame tick
     ->
       cancelAnimationFrame rafRef.current if rafRef.current
-  , [source]
+  , [source, cliMode]
 
   null
 

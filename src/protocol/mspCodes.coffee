@@ -35,6 +35,9 @@ MSP_CODES =
   # keys coexist here; consumers must never dispatch by 206 alone.
   MAG_CALIBRATION: 206
   STATUS_EX: 150
+  # MSP_REBOOT (68) payload u8 mode: 0 = firmware reset,
+  # 1 = jump to ROM bootloader (the flasher's AN3155 handshake).
+  REBOOT: 68
   UID: 160
   FILTER_CONFIG: 92
   PID_ADVANCED: 94

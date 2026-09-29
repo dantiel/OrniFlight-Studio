@@ -1,5 +1,15 @@
 ~~~
 import { transportLabel } from '../../../firmware/flashUi.coffee'
+statusFor = (isLive, lastError, runtimeConnected) ->
+  if isLive and not lastError then 'BREATHING'
+  else if lastError then 'NO SYNC'
+  else if runtimeConnected then 'CONNECTED'
+  else 'DRY-RUN'
+firmwareFor = (runtimeConnected, ri, fallback) ->
+  if runtimeConnected and ri?.firmware?.version
+    "app #{ri.firmware.version}"
+  else
+    fallback or '—'
 ~~~
 
 - c = props.ctrl || {}
@@ -10,24 +20,35 @@ import { transportLabel } from '../../../firmware/flashUi.coffee'
 - webUsbSupported = props.webUsbSupported ? c.webUsbSupported ? false
 - anySupported = serialSupported or webUsbSupported
 - lastError = props.lastError || c.lastError || null
-- status = if isLive then 'BREATHING' else if lastError then 'NO SYNC' else 'DRY-RUN'
-- transportName = transportLabel(transport)
 - detecting = props.detecting ? c.detecting ? false
+- runtimeConnected = props.runtimeConnected ? c.runtimeConnected ? false
+- runtimeIdentity = props.runtimeIdentity || c.runtimeIdentity || null
+- ri = runtimeIdentity || null
+- rc = runtimeConnected
+- onBridge = props.onBridge || c.onBridge || (->)
+- hasLastError = lastError and not detecting
+- status = statusFor isLive, lastError, runtimeConnected
+- transportName = transportLabel(transport)
+- dName = rc and ri?.name or d.name or 'OrniFlight'
+- dTarget = rc and ri?.board?.targetName or d.target or 'ORNI-F4'
+- dFirmware = firmwareFor rc, ri, d.firmware
 - detectLabel = if detecting then 'Scanning…' else 'Detect board'
+- bridgeLabel = if detecting then 'Scanning…' else 'Enter bootloader'
 - detectDisabled = !!detecting
 - onDetectSerial = props.onDetectSerial || c.onDetectSerial || (->)
 - onDetectWebUsb = props.onDetectWebUsb || c.onDetectWebUsb || (->)
 - releaseOnClick = props.onDisconnect || c.onDisconnect || (->)
 - targetClass = "device-target#{if isLive then ' live' else ''}"
 - transportClass = "device-transport#{if isLive then ' live' else ''}"
-- statusClass = "device-status#{if isLive then ' live' else ''}"
+- liveStatus = isLive or runtimeConnected
+- statusClass = "device-status#{if liveStatus then ' live' else ''}"
 .device-target{ className: targetClass }
   .device-head
     %span.device-glyph
       = '🐦'
     .device-name
-      %div.device-title= d.name || 'OrniFlight'
-      %div.device-sub= d.target || 'ORNI-F4'
+      %div.device-title= dName
+      %div.device-sub= dTarget
     %span.device-transport{ className: transportClass }
       = transportName
   .device-body
@@ -39,11 +60,11 @@ import { transportLabel } from '../../../firmware/flashUi.coffee'
       %span.device-row-value= d.flash || '—'
     .device-row
       %span.device-row-label Firmware
-      %span.device-row-value= d.firmware || '—'
+      %span.device-row-value= dFirmware
     .device-row
       %span.device-row-label Bootloader
       %span.device-row-value= d.bootloader || '—'
-    - if lastError and not isLive
+    - if hasLastError
       .device-row.device-row-error
         %span.device-row-label Sync
         %span.device-row-value= lastError
@@ -56,6 +77,9 @@ import { transportLabel } from '../../../firmware/flashUi.coffee'
       - if isLive
         %button.device-btn{ onClick: releaseOnClick }
           = 'Release'
+      - else if runtimeConnected
+        %button.device-btn{ onClick: onBridge, disabled: detectDisabled }
+          = bridgeLabel
       - else
         - if serialSupported
           %button.device-btn{ onClick: onDetectSerial, disabled: detectDisabled }

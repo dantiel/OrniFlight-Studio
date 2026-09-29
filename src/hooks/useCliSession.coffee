@@ -44,6 +44,7 @@ useCliSession = (deps = {}) ->
   enterDevice = deps.enterDevice ? enterCli
   writeDevice = deps.writeDevice ? writeCliBytes
   leaveDevice = deps.leaveDevice ? leaveCli
+  autoEnter = deps.autoEnter ? false
 
   lines = useCliStore (s) -> s.lines
   pending = useCliStore (s) -> s.pending
@@ -56,6 +57,7 @@ useCliSession = (deps = {}) ->
   assemblerRef = useRef emptyState()
   historyRef = useRef []
   ownedRef = useRef false
+  autoEnterRef = useRef false
 
   processBytes = useCallback (bytes) ->
     return unless bytes?.length
@@ -130,6 +132,25 @@ useCliSession = (deps = {}) ->
         }]
       false
   , [enterDevice, processBytes]
+
+  # The live MSP session is the CLI's transport. With a connected
+  # craft the terminal takes the channel over on its own — no
+  # picker, no second port. The guard re-arms when the craft leaves,
+  # so a later reconnect takes over again. (The async work is fenced
+  # in `do ->` — an effect must return undefined, not a promise.)
+  useEffect ->
+    if autoEnter and source == 'device' and
+       useCliStore.getState().mode == 'sim' and not autoEnterRef.current
+      autoEnterRef.current = true
+      do ->
+        try
+          await enter()
+        catch error
+          null
+    else if source != 'device'
+      autoEnterRef.current = false
+    undefined
+  , [autoEnter, source, enter]
 
   submit = (command) ->
     store = useCliStore.getState()

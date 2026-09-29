@@ -11,6 +11,7 @@ import useSensorsStore from '../stores/useSensorsStore.coffee'
 import usePowerStore from '../stores/usePowerStore.coffee'
 import useAdjustmentsStore from '../stores/useAdjustmentsStore.coffee'
 import useTelemetryStore from '../stores/useTelemetryStore.coffee'
+import MSP_CODES from '../protocol/mspCodes.coffee'
 import { pushTelemetry } from '../streams/telemetryStream.coffee'
 import WebSerialRuntimeTransport, {
   isWebSerialSupported, requestRuntimePort
@@ -33,6 +34,17 @@ publishTelemetry = (frame) ->
   useTelemetryStore.getState().setConnected true
   useDeviceStore.getState().setLiveData frame.rcChannels, frame.servos
 
+SESSION_STORES = [
+  useConfigurationStore, useTuningStore, useReceiverStore
+  useModesStore, useVtxStore, usePortsStore, useSafetyStore
+  useSensorsStore, usePowerStore, useAdjustmentsStore
+]
+
+detachStores = ->
+  for store in SESSION_STORES
+    store.getState().attachSession null
+    store.getState().setMode 'sim'
+
 cleanup = ->
   session = _session
   client = _client
@@ -42,26 +54,7 @@ cleanup = ->
   _cliDirect = null
   _cliErrorUnsubscribe?()
   _cliErrorUnsubscribe = null
-  useConfigurationStore.getState().attachSession null
-  useConfigurationStore.getState().setMode 'sim'
-  useTuningStore.getState().attachSession null
-  useTuningStore.getState().setMode 'sim'
-  useReceiverStore.getState().attachSession null
-  useReceiverStore.getState().setMode 'sim'
-  useModesStore.getState().attachSession null
-  useModesStore.getState().setMode 'sim'
-  useVtxStore.getState().attachSession null
-  useVtxStore.getState().setMode 'sim'
-  usePortsStore.getState().attachSession null
-  usePortsStore.getState().setMode 'sim'
-  useSafetyStore.getState().attachSession null
-  useSafetyStore.getState().setMode 'sim'
-  useSensorsStore.getState().attachSession null
-  useSensorsStore.getState().setMode 'sim'
-  usePowerStore.getState().attachSession null
-  usePowerStore.getState().setMode 'sim'
-  useAdjustmentsStore.getState().attachSession null
-  useAdjustmentsStore.getState().setMode 'sim'
+  detachStores()
   session?.stop()
   try
     await direct?.transport.close()
@@ -142,6 +135,38 @@ disconnectFirmware = ->
   finally
     _closing = false
   true
+
+# ═══ Reboot-to-bootloader bridge ══════════════════════════════
+# MSP_REBOOT (68) mode 1 makes the craft jump into its ROM
+# bootloader. The app session dies with the firmware; the very port
+# it held is handed to the flasher, which reopens it at 115200 8E1
+# and speaks AN3155 — one connection end to end, no second picker.
+handFirmwarePortToFlasher = ->
+  throw new Error 'No flight controller is connected' unless _session and _client
+  client = _client
+  port = client.transport.port
+  identity = _session.identity
+  _closing = true
+  try
+    client.send MSP_CODES.REBOOT, [1]
+  catch error
+    null
+  await delay 250
+  try
+    _session?.stop()
+    await client.close()
+  catch error
+    null
+  _session = null
+  _client = null
+  _cliErrorUnsubscribe?()
+  _cliErrorUnsubscribe = null
+  detachStores()
+  useDeviceStore.getState().setSimulation()
+  useTelemetryStore.getState().setConnected false
+  getActor().send { type: 'DISCONNECTED' }
+  _closing = false
+  { port, identity }
 
 # ═══ CLI takeover bridge ══════════════════════════════════════
 # enterCli stops the MSP session, detaches the MspClient's byte
@@ -236,6 +261,7 @@ export default useFirmwareConnection
 export {
   connectFirmware, disconnectFirmware, setConnectedCraftName
   readConnectedServoConfigurations, writeConnectedServoConfiguration
+  handFirmwarePortToFlasher
   enterCli, leaveCli, writeCliBytes, isCliOwned
   publishTelemetry
 }

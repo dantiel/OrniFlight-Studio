@@ -28,31 +28,39 @@ transportLabel = (transport) ->
 
 phaseLabel = (phase) -> PHASE_LABELS[phase] || phase
 
-buttonFor = (phase, hasFirmware) ->
+buttonFor = (phase, hasFirmware, pendingBoot = false) ->
   flashing = phase in ['erasing', 'writing', 'verifying']
   variant =
     if flashing then 'flashing'
     else if phase == 'done' then 'done'
     else if phase == 'error' then 'error'
+    else if pendingBoot then 'boot'
     else 'idle'
   glyph =
     if phase == 'done' then '🐣'
     else if phase == 'error' then '♻️'
     else if flashing then '⚡'
+    else if pendingBoot then '🚪'
     else '🪶'
   label =
     if phase == 'done' then 'REBOOT'
     else if phase == 'error' then 'RESET'
     else if flashing then 'TRANSMIGRATING…'
+    else if pendingBoot then 'ENTER BOOTLOADER'
     else 'FLASH FIRMWARE'
-  disabled = flashing or ((phase == 'idle' or phase == 'ready') and not hasFirmware)
+  # The bootloader bridge needs no image selected — the image matters
+  # only once the port speaks AN3155.
+  disabled = flashing or (
+    not pendingBoot and (phase == 'idle' or phase == 'ready') and
+    not hasFirmware
+  )
   { variant, glyph, label, disabled }
 
 ###
 # The Molt control deck — compact live lexicon for the sticky command
 # bar. Pure derivation of deck strings from the flash controller.
 ###
-moltDeck = (ctrl) ->
+moltDeck = (ctrl, pendingBoot = false) ->
   sel = ctrl.selectedId
   special =
     local: ctrl.localImage?.name ? 'local'
@@ -71,10 +79,12 @@ moltDeck = (ctrl) ->
   btn =
     if flashing then 'TRANSMUTING…'
     else if ctrl.phase == 'done' then 'REBOOT'
+    else if pendingBoot then 'BOOTLOADER'
     else '⚡ FLASH'
   state =
     if flashing then ctrl.label
     else if ctrl.phase == 'done' then 'hatched'
+    else if pendingBoot then 'link live'
     else 'armed'
   {
     target: ctrl.device?.target or 'ORNI-F4'

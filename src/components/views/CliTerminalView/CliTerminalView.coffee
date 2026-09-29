@@ -11,7 +11,9 @@ import useCliSession from '../../../hooks/useCliSession.coffee'
 # ═══════════════════════════════════════════════════════════════
 
 CliTerminalView = ->
-  cli = useCliSession()
+  # autoEnter: a connected craft takes the channel over on view
+  # mount — the CLI shares the global connection, no picker.
+  cli = useCliSession({ autoEnter: true })
   [command, setCommand] = useState ''
   [histIdx, setHistIdx] = useState -1
   draftRef = useRef ''
