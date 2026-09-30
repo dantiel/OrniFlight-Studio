@@ -1,20 +1,9 @@
-###
-# ORNIFLIGHT STUDIO — FeatherField (ætheric scroll layer)
-#
-# The feather pattern breathes beneath every panel: a full-viewport
-# layer pinned inside the #main-content scroll container, while a
-# rAF loop tracks scroll and drives a gentle parallax — the field
-# drifts slower than the panels above.
-#
-# The feathers stay plain and sharp. Glass panels carry their own
-# blur (backdrop-filter), so the æther reads crisp and ubiquitous,
-# frosting only where a panel sits on top of it.
-###
+# The background follows the native scroll timeline where supported.
+# Layout observers update its travel distance; scrolling only changes transform.
 import './FeatherField.sass'
 import h from '../../../app/h.coffee'
 import { useEffect, useRef } from 'react'
 
-# Parallax — the field recedes at a fraction of the glass' speed.
 PARALLAX = 0.16
 
 FeatherField = ->
@@ -22,30 +11,40 @@ FeatherField = ->
 
   useEffect ->
     scrollHost = document.getElementById 'main-content'
-    return unless scrollHost and layerRef.current
-
-    ticking = false
-
-    frame = ->
-      ticking = false
-      top = scrollHost.scrollTop
-
-      # Parallax — the æther drifts slower than the panels above.
-      layerRef.current.style.transform =
-        "translate3d(0, #{-top * PARALLAX}px, 0) scale(1.18)"
+    layer = layerRef.current
+    return unless scrollHost and layer
+    nativeScroll = window.CSS?.supports('animation-timeline: scroll()') and
+      window.CSS?.supports('timeline-scope: --studio-scroll')
+    media = window.matchMedia?('(prefers-reduced-motion: reduce)')
 
     onScroll = ->
-      unless ticking
-        ticking = true
-        requestAnimationFrame frame
+      top = if media?.matches then 0 else scrollHost.scrollTop
+      layer.style.transform = "translate3d(0, #{-top * PARALLAX}px, 0) scale(1.18)"
 
-    onResize = -> onScroll()
-    scrollHost.addEventListener 'scroll', onScroll, passive: true
-    window.addEventListener 'resize', onResize
-    frame()
+    measure = ->
+      travel = Math.max(0, scrollHost.scrollHeight - scrollHost.clientHeight) * PARALLAX
+      layer.style.setProperty '--feather-travel', "#{travel}px"
+      onScroll() unless nativeScroll
+
+    observer = if typeof ResizeObserver isnt 'undefined' then new ResizeObserver(measure) else null
+    observeContent = ->
+      observer?.disconnect()
+      observer?.observe scrollHost
+      observer?.observe child for child in scrollHost.children
+      measure()
+    mutations = new MutationObserver observeContent
+    mutations.observe scrollHost, childList: true
+    observeContent()
+    unless nativeScroll
+      scrollHost.addEventListener 'scroll', onScroll, passive: true
+      media?.addEventListener? 'change', onScroll
+    window.addEventListener 'resize', measure
     ->
+      observer?.disconnect()
+      mutations.disconnect()
       scrollHost.removeEventListener 'scroll', onScroll
-      window.removeEventListener 'resize', onResize
+      media?.removeEventListener? 'change', onScroll
+      window.removeEventListener 'resize', measure
 
   h 'div', { className: 'feather-field-anchor', 'aria-hidden': true },
     h 'div', { className: 'feather-field', ref: layerRef }

@@ -101,11 +101,20 @@
   overflow-x: hidden
   scroll-behavior: smooth
   position: relative
-  z-index: 1
   background: transparent
   // The transparent toolbar floats over the scroll surface; pad the
   // top so content starts below it, then scrolls beneath its glass.
-  // Bottom padding clears the floating Dock so trailing buttons can
-  // scroll fully into view instead of hiding under the shelf.
+  // A non-shrinking trailing spacer gives every route real scrollable
+  // clearance for the dock, its raised label, and breathing room.
   padding-top: var(--of-toolbar-height)
-  padding-bottom: calc(var(--of-dock-height) + var(--of-space-8))
+  --of-dock-clearance: calc(var(--of-dock-height) + 14px + var(--of-space-8) + var(--of-space-6))
+  scroll-padding-bottom: var(--of-dock-clearance)
+
+  > *
+    flex-shrink: 0
+
+  &::after
+    content: ''
+    display: block
+    flex: 0 0 var(--of-dock-clearance)
+    pointer-events: none

@@ -48,7 +48,7 @@ import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
         %span.deck-fw= deckFwWord
     %span.deck-status{ className: "deck-status#{deckStatusClass}" }
       %span.deck-dot
-      = forgeWord
+      = forgeWord 
     %span.deck-transport{ className: deckTransportClass }
       = transportWord
     %span.deck-state= deckStateWord

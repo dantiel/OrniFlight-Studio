@@ -18,21 +18,38 @@
   top: 0
   left: 0
   width: 100%
-  height: 100%
+  height: calc(100% + var(--feather-travel, 0px))
   background-image: var(--of-feathers)
   background-repeat: repeat
   // Tile sized so the æther never repeats more than ~2.1× across the
-  // viewport (the rAF parallax scales the layer 1.18× for bleed, so the
+  // viewport (the parallax scales the layer 1.18× for bleed, so the
   // visible tile is the CSS size × 1.18).
   background-size: clamp(460px, 42vw, 1600px)
-  opacity: calc(var(--of-feather-opacity) * 0.9)
-  opacity: 1.0
+  opacity: 1
   will-change: transform
-  // Feathers whisper in the wind — a slow breathing drift.
-  animation: feather-drift 46s ease-in-out infinite alternate
+  transform: translate3d(0, 0, 0) scale(1.18)
+  transform-origin: center top
 
-@keyframes feather-drift
+// The compositor owns the scroll progress; no deferred JS frame or
+// independent background-position animation competes with the gesture.
+@supports (animation-timeline: scroll()) and (timeline-scope: --studio-scroll)
+  .studio-shell
+    timeline-scope: --studio-scroll
+
+  #main-content
+    scroll-timeline: --studio-scroll block
+
+  .feather-field
+    animation: feather-scroll linear both
+    animation-timeline: --studio-scroll
+
+@keyframes feather-scroll
   from
-    background-position: 0 0
+    transform: translate3d(0, 0, 0) scale(1.18)
   to
-    background-position: 24px 14px
+    transform: translate3d(0, calc(-1 * var(--feather-travel, 0px)), 0) scale(1.18)
+
+@media (prefers-reduced-motion: reduce)
+  .feather-field
+    animation: none
+    transform: none
