@@ -58,31 +58,37 @@ The button is positioned in the toolbar via `ConnectionBar.chaml`:
 
 | Token                    | Dark Value     | Light Value    | Usage                    |
 |--------------------------|---------------|---------------|--------------------------|
-| `--of-surface-0`         | `#0d1117`     | `#f0f2f5`     | Shell background         |
-| `--of-surface-1`         | `#161b22`     | `#ffffff`     | Toolbar, sidebar         |
-| `--of-surface-2`         | `#1c2333`     | `#f5f6f8`     | Panel backgrounds        |
-| `--of-surface-3`         | `#21283a`     | `#e8eaef`     | Elevated surfaces        |
-| `--of-surface-4`         | `#2a3347`     | `#dde0e6`     | Input backgrounds        |
-| `--of-border-1`          | `#30363d`     | `#d0d5dd`     | Primary borders          |
-| `--of-border-2`          | `#3a4458`     | `#c0c5ce`     | Secondary borders        |
-| `--of-border-accent`     | `#4a5568`     | `#a0a8b4`     | Focus/active borders     |
-| `--of-text-primary`      | `#e6edf3`     | `#1a1e27`     | Body text                |
-| `--of-text-secondary`    | `#8b949e`     | `#5a6070`     | Supplemental text        |
-| `--of-text-muted`        | `#5c6670`     | `#8a909c`     | Headings, labels         |
-| `--of-text-accent`       | `#f0a040`     | `#c07020`     | Highlighted text         |
+| `--of-surface-0`         | `#1a1a1c`     | `#eef0f7`     | Shell background         |
+| `--of-surface-1`         | `#202020`     | `#ffffff`     | Panels, cards            |
+| `--of-surface-2`         | `#26262a`     | `#f7f8fc`     | Panel backgrounds        |
+| `--of-surface-3`         | `#3a3a3a`     | `#e2e5f2`     | Elevated surfaces        |
+| `--of-surface-4`         | `#4e4e4e`     | `#cfd4e8`     | Input backgrounds        |
+| `--of-border-1`          | `rgba(255,255,255,.06)` | `rgba(58,65,146,.12)` | Primary borders |
+| `--of-border-2`          | `rgba(255,255,255,.10)` | `rgba(58,65,146,.22)` | Secondary borders |
+| `--of-border-accent`     | `rgba(137,152,254,.15)` | `rgba(59,79,217,.20)` | Focus/active borders |
+| `--of-text-primary`      | `#e0e0e0`     | `#25319c`     | Body text, headings      |
+| `--of-text-secondary`    | `#c0c0c8`     | `#3947c9`     | Supplemental text        |
+| `--of-text-soft`         | `#9c9ca4`     | `#5f6cd8`     | Recessed labels          |
+| `--of-text-muted`        | `#6e6e78`     | `#838edf`     | Most distant, hints      |
+
+The light theme follows the impressionist distance law: the more
+color, the more foreground (saturated azure); the more gray-blue,
+the more the text recedes into the porcelain background. Blue is
+always a little distant — gray-blue is the most distant of all.
 
 ### Accent Colors
 
 | Token                    | Dark Value     | Light Value    | Semantic Meaning         |
 |--------------------------|---------------|---------------|--------------------------|
-| `--of-accent-orange`     | `#f0883e`     | `#d06820`     | Primary brand, Wing L    |
+| `--of-accent`            | `#8998fe`     | `#3b4fd9`     | Primary accent, focus    |
+| `--of-accent-alt`        | `#aeb6f7`     | `#6a7bf0`     | Accent hover/active      |
+| `--of-accent-dim`        | `#4a51b0`     | `#3a4192`     | Accent shadow depth      |
 | `--of-accent-amber`      | `#f0a040`     | `#c07020`     | Simulation mode, glow    |
-| `--of-accent-gold`       | `#e2b04a`     | `#b89030`     | Accent highlights        |
-| `--of-accent-blue`       | `#58a6ff`     | `#3070cc`     | Wing R, pitch            |
-| `--of-accent-cyan`       | `#39d2c0`     | `#1a9e8e`     | Info/status              |
+| `--of-accent-blue`       | `#58a6ff`     | `#2563d8`     | Wing R, pitch            |
+| `--of-accent-cyan`       | `#39d2c0`     | `#0d9488`     | Info/status              |
 | `--of-accent-green`      | `#3fb950`     | `#2a8e3e`     | Connected, yaw           |
 | `--of-accent-red`        | `#f85149`     | `#c83030`     | Disconnected, roll       |
-| `--of-accent-purple`     | `#bc8cff`     | `#8a5ccc`     | Yaw gyro                 |
+| `--of-accent-purple`     | `#bc8cff`     | `#7a5cd0`     | Yaw gyro                 |
 
 ### RGB Variants (for `rgba()` usage)
 

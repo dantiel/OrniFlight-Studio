@@ -24,6 +24,21 @@ html, body, #root
   -webkit-font-smoothing: antialiased
   -moz-osx-font-smoothing: grayscale
 
+// ── Light Theme — impressionist display treatment ──
+// Foreground is the most colorful blue; gray recedes into the
+// porcelain. Large display type carries a soft orgone glow — the
+// text-shadow must never touch gradient-filled orgone type or it
+// would bleed through the transparent fill.
+[data-theme="light"]
+  h1, h2, h3
+    color: var(--of-text-primary)
+
+  h1, h2
+    text-shadow: 0 0 18px rgba(var(--of-accent-rgb), 0.30), 0 0 2px rgba(var(--of-accent-rgb), 0.22)
+
+  h1.orgone-display, h2.orgone-display
+    text-shadow: none
+
 // ── Scrollbar ──────────────────────────────
 ::-webkit-scrollbar
   width: 5px

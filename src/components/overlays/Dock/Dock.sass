@@ -39,13 +39,13 @@
   min-width: 44px
   padding: 4px 6px
   text-decoration: none
-  color: rgba(255, 255, 255, 0.6)
+  color: var(--of-text-soft)
   border-radius: 12px
   transition: color var(--of-dur-fast), background var(--of-dur-fast)
 
   &:hover
-    color: #fff
-    background: rgba(255, 255, 255, 0.06)
+    color: var(--of-text-primary)
+    background: rgba(var(--of-accent-rgb), 0.08)
 
   &.active
     color: var(--of-accent-alt)
@@ -59,9 +59,9 @@
   font-size: 19px
   font-family: var(--of-font-mono)
   border-radius: 10px
-  background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02) 60%)
+  background: radial-gradient(circle at 30% 25%, rgba(var(--of-accent-rgb), 0.16), rgba(var(--of-accent-rgb), 0.03) 60%)
   will-change: transform
-  -webkit-box-reflect: below 4px linear-gradient(transparent 62%, rgba(255, 255, 255, 0.16))
+  -webkit-box-reflect: below 4px linear-gradient(transparent 62%, rgba(var(--of-accent-rgb), 0.12))
 
 .dock-item.active .dock-icon
   color: var(--of-accent-alt)

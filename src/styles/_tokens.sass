@@ -147,74 +147,104 @@
   color-scheme: dark
 // ── Light Theme ────────────────────────────
 [data-theme="light"]
+  // The impressionist law: the more gray, the more background —
+  // the more color, the more foreground. Blue is always a little
+  // distant; gray-blue is the most distant of all. Foreground text
+  // is therefore the most saturated azure, and every step back
+  // loses color and gains the gray of the porcelain behind it.
   --of-header-opacity: 0.06
 
-  // ORGONE — deeper stops for contrast on bright fields
-  --orgone-a: #5a6fd8
-  --orgone-b: #17a894
-  --orgone-c: #8a5ccc
-  --orgone-d: #d88ab8
-  --orgone-a-rgb: 90, 111, 216
-  --orgone-b-rgb: 23, 168, 148
-  --orgone-c-rgb: 138, 92, 204
-  --orgone-d-rgb: 216, 138, 184
-  --orgone-halo: 0 0 14px rgba(var(--orgone-a-rgb), 0.22), 0 0 40px rgba(var(--orgone-b-rgb), 0.12)
-  --orgone-halo-strong: 0 0 18px rgba(var(--orgone-a-rgb), 0.3), 0 0 56px rgba(var(--orgone-c-rgb), 0.16)
-  --of-body-bg: #f0f0f0
-  --of-surface-0: #f0f0f0
+  // ORGONE — blue radiation (Reich saw orgone as blue-violet, the
+  // sky's color): azure → sky → periwinkle-violet. On bright fields
+  // the halo must stay saturated or the magic washes out.
+  --orgone-a: #3b57e8
+  --orgone-b: #58a6ff
+  --orgone-c: #7f6ff0
+  --orgone-d: #a8b8ff
+  --orgone-a-rgb: 59, 87, 232
+  --orgone-b-rgb: 88, 166, 255
+  --orgone-c-rgb: 127, 111, 240
+  --orgone-d-rgb: 168, 184, 255
+  --orgone-halo: 0 0 16px rgba(var(--orgone-a-rgb), 0.42), 0 0 44px rgba(var(--orgone-b-rgb), 0.24)
+  --orgone-halo-strong: 0 0 22px rgba(var(--orgone-a-rgb), 0.55), 0 0 64px rgba(var(--orgone-c-rgb), 0.32)
+
+  // Surfaces — porcelain blue-gray; background is where gray lives
+  --of-body-bg: #eef0f7
+  --of-surface-0: #eef0f7
   --of-surface-1: #ffffff
-  --of-surface-2: #f9f9f9
-  --of-surface-3: #e0e0e4
-  --of-surface-4: #d0d0d8
-  --of-header-bg: #5a62c4
-  --of-border-1: rgba(0,0,0,0.06)
-  --of-border-2: rgba(0,0,0,0.10)
-  --of-border-accent: rgba(74, 81, 176, 0.12)
-  --of-text-primary: #2a2a2a
-  --of-text-secondary: #484850
-  --of-text-muted: #a8a8b0
-  --of-text-soft: #787880
-  --of-accent: #4a51b0
-  --of-accent-alt: #5a61b0
+  --of-surface-2: #f7f8fc
+  --of-surface-3: #e2e5f2
+  --of-surface-4: #cfd4e8
+  --of-header-bg: #4a55c9
+
+  // Text — the distance ramp: saturated azure in front, gray-blue
+  // receding behind it. Every step down is a step away.
+  --of-text-primary: #25319c
+  --of-text-secondary: #3947c9
+  --of-text-soft: #5f6cd8
+  --of-text-muted: #838edf
+
+  // Accents — the palette's most colorful blues, now foreground-safe
+  --of-accent: #3b4fd9
+  --of-accent-alt: #6a7bf0
   --of-accent-dim: #3a4192
   --of-accent-green: #2a8e3e
   --of-accent-red: #c83030
   --of-accent-amber: #c07020
-  --of-accent-blue: #3070cc
-  --of-accent-cyan: #1a9e8e
-  --of-accent-purple: #8a5ccc
-  --of-link-color: #3a4192
+  --of-accent-blue: #2563d8
+  --of-accent-cyan: #0d9488
+  --of-accent-purple: #7a5cd0
+  --of-link-color: #2f3ec2
+
+  // Borders — orgone clings to life in shade: edges carry blue, not gray
+  --of-border-1: rgba(58, 65, 146, 0.12)
+  --of-border-2: rgba(58, 65, 146, 0.22)
+  --of-border-accent: rgba(59, 79, 217, 0.20)
+
   // RGB
   --of-header-rgb: 58, 65, 146
-  --of-accent-rgb: 74, 81, 176
+  --of-accent-rgb: 59, 79, 217
   --of-accent-green-rgb: 42, 142, 62
   --of-accent-amber-rgb: 192, 112, 32
-  --of-surface-2-rgb: 249, 249, 249
-  --of-body-rgb: 240, 240, 240
-  // Glass — specular gradient baked in for a water-surface sheen
+  --of-surface-2-rgb: 247, 248, 252
+  --of-body-rgb: 238, 240, 247
+
+  // Glass — specular sheen with a blue edge refraction
   --of-glass-sheen: linear-gradient(#FFFFFFCC, transparent 40%)
-  --of-glass-bg: var(--of-glass-sheen), rgba(248, 248, 250, 0.16)
-  --of-glass-card: var(--of-glass-sheen), rgba(255, 255, 255, 0.12)
-  --of-glass-card-hover: var(--of-glass-sheen), rgba(255, 255, 255, 0.30)
-  --of-glass-edge: rgba(74, 81, 176, 0.08)
-  --of-glass-edge-hover: rgba(74, 81, 176, 0.20)
+  --of-glass-bg: var(--of-glass-sheen), rgba(250, 251, 255, 0.16)
+  --of-glass-card: var(--of-glass-sheen), rgba(255, 255, 255, 0.14)
+  --of-glass-card-hover: var(--of-glass-sheen), rgba(255, 255, 255, 0.32)
+  --of-glass-edge: rgba(59, 79, 217, 0.10)
+  --of-glass-edge-hover: rgba(59, 79, 217, 0.24)
+
   // Glows
-  --of-simulation-glow: rgba(74, 81, 176, 0.12)
+  --of-simulation-glow: rgba(59, 79, 217, 0.16)
   --of-connected-glow: rgba(42, 142, 62, 0.2)
   --of-disconnected-bg: rgba(200, 48, 48, 0.08)
+
   // Feathers — visible periwinkle/indigo æther in bright mode
   --of-feathers: url('/feathers_light.png')
   --of-feather-opacity: 0.6
+
   // Liquid Glass — light water surface
   --of-glass-specular: rgba(255, 255, 255, 0.55)
   --of-glass-specular-strong: rgba(255, 255, 255, 0.78)
   --of-glass-rim: rgba(255, 255, 255, 0.72)
   --of-glass-rim-soft: rgba(255, 255, 255, 0.4)
   --of-glass-refract-hi: rgba(255, 255, 255, 0.85)
-  --of-glass-refract-lo: rgba(74, 81, 176, 0.14)
-  --of-glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.16), 0 2px 10px rgba(0, 0, 0, 0.1)
-  // Shadows
-  --of-shadow-panel: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)
-  --of-shadow-elevated: 0 4px 12px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05)
+  --of-glass-refract-lo: rgba(59, 79, 217, 0.16)
+
+  // Shadows — orgone pools in shade: blue-tinted, never black
+  --of-glass-shadow: 0 12px 40px rgba(58, 65, 146, 0.16), 0 2px 10px rgba(58, 65, 146, 0.10)
+  --of-shadow-panel: 0 1px 3px rgba(58, 65, 146, 0.10), 0 0 0 1px rgba(58, 65, 146, 0.05)
+  --of-shadow-elevated: 0 4px 12px rgba(58, 65, 146, 0.14), 0 0 0 1px rgba(58, 65, 146, 0.06)
   --of-shadow-glow: 0 0 8px var(--of-simulation-glow)
+
+  // Big-blue light type — a touch larger, more presence
+  --of-text-xs: 0.75rem
+  --of-text-sm: 0.8125rem
+  --of-text-base: 0.875rem
+  --of-text-md: 0.9375rem
+  --of-text-lg: 1.0625rem
+  --of-text-xl: 1.25rem
   color-scheme: light
