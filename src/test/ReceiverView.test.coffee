@@ -1,4 +1,4 @@
-import { render, fireEvent, within } from '@testing-library/react'
+import { render, fireEvent, screen, within } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -20,7 +20,6 @@ describe 'ReceiverView', { timeout: 20000 }, ->
     render h(MemoryRouter, { initialEntries: ['/control/receiver'] }, h(App, null))
 
   view = -> within document.querySelector '.layout-receiver'
-  modes = -> within document.querySelector '.layout-modes'
 
   it 'renders the receiver panels with a SIMULATION badge', ->
     renderView()
@@ -32,12 +31,6 @@ describe 'ReceiverView', { timeout: 20000 }, ->
     expect(view().getByText 'Channel Map').toBeInTheDocument()
     expect(view().getByText 'Failsafe Channels').toBeInTheDocument()
     expect(view().getByText 'Live Channels').toBeInTheDocument()
-
-  it 'embeds the ModesView with 20 range rows', ->
-    renderView()
-    expect(document.querySelector '.layout-modes').toBeInTheDocument()
-    expect(modes().getByText 'AUX Mode Ranges').toBeInTheDocument()
-    expect(document.querySelectorAll '.mode-range-row').toHaveLength 20
 
   it 'disables Read device in sim mode and shows no DIRTY badge', ->
     renderView()
@@ -67,13 +60,6 @@ describe 'ReceiverView', { timeout: 20000 }, ->
     expect(view().queryByText 'DIRTY').not.toBeInTheDocument()
     expect(useReceiverStore.getState().draft.rxFail[2].mode).toBe 0
 
-  it 'edits a mode-range box from the embedded ModesView', ->
-    renderView()
-    boxSelects = document.querySelectorAll '.mode-range-box'
-    fireEvent.change boxSelects[0], { target: { value: '28' } }
-    expect(useModesStore.getState().draft.ranges[0].permanentId).toBe 28
-    expect(modes().getByText 'DIRTY').toBeInTheDocument()
-
   it 'logs a failed device save instead of rejecting silently', ->
     session =
       readRxConfig: -> Promise.resolve null
@@ -93,6 +79,6 @@ describe 'ReceiverView', { timeout: 20000 }, ->
     useModesStore.getState().attachSession session
     await useModesStore.getState().loadFromDevice session
     errorSpy = vi.spyOn(console, 'error').mockImplementation -> null
-    renderView()
-    fireEvent.click modes().getAllByText('Save')[0]
+    render h(MemoryRouter, { initialEntries: ['/control/modes'] }, h(App, null))
+    fireEvent.click screen.getByText('Save')
     await vi.waitFor -> expect(errorSpy).toHaveBeenCalled()

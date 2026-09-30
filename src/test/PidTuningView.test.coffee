@@ -19,22 +19,23 @@ describe 'PidTuningView', ->
 
   it 'renders the four tuning sections in sim mode', ->
     renderView()
-    expect(document.querySelector '.layout-control').toBeInTheDocument()
+    expect(document.querySelector '.layout-pid').toBeInTheDocument()
     for title in ['PID Bank', 'Rates', 'ONDAS', 'Filters']
       expect(screen.getByText title).toBeInTheDocument()
     expect(screen.getByText 'SIMULATION').toBeInTheDocument()
     expect(screen.getByText(/nicht persistiert/)).toBeInTheDocument()
 
-  it 'shows twelve PID rows and eighteen ONDAS rows', ->
+  it 'shows twelve PID rows and links ONDAS to the math suite', ->
     renderView()
-    for trigger in document.querySelectorAll '.studio-accordion-trigger'
-      fireEvent.click trigger
     rows = document.querySelectorAll '.param-row'
-    expect(rows.length).toBe 12 + 3 + 18 + 4
+    expect(rows.length).toBe 12 + 3 + 4
     expect(screen.getByText 'roll P').toBeInTheDocument()
     expect(screen.getByText 'flap D').toBeInTheDocument()
-    expect(screen.getByText 'Damping anchor').toBeInTheDocument()
-    expect(screen.getByText(/Cadence/)).toBeInTheDocument()
+    expect(screen.getByText 'ROLL').toBeInTheDocument()
+    # The ONDAS parameters live only in the Math view — no doubling.
+    expect(document.querySelectorAll '.ondas-layer').toHaveLength 0
+    link = screen.getByText 'ONDAS öffnen → Math'
+    expect(link.getAttribute('href')).toBe '/control/math'
 
   it 'shows the UNSAVED badge after a draft edit', ->
     renderView()

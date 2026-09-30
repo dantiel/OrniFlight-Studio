@@ -1,53 +1,7 @@
-// ReceiverView — RX protocol, channel map, failsafe slots
-// sidebar | failsafe table | embedded modes | live channel stream
-.view-layout.layout-receiver
-  grid-template-columns: 240px 1fr 320px
-  grid-template-rows: 1fr 200px
-  grid-template-areas: "side vport insp" "tele tele tele"
+// ReceiverView — RX document in the vertical transmorph layout:
+// half-width protocol/map pair + failsafe table + live channel strip.
 
-  .view-area-side
-    grid-area: side
-    background: var(--of-glass-bg)
-    backdrop-filter: blur(12px)
-    -webkit-backdrop-filter: blur(12px)
-    border: 1px solid var(--of-border-1)
-    border-right: none
-    border-top: none
-    border-bottom: none
-    overflow-y: auto
-
-  .view-area-vport
-    grid-area: vport
-    overflow-y: auto
-
-  .view-area-insp
-    grid-area: insp
-    background: var(--of-glass-bg)
-    backdrop-filter: blur(12px)
-    -webkit-backdrop-filter: blur(12px)
-    border: 1px solid var(--of-border-1)
-    border-left: none
-    border-top: none
-    border-bottom: none
-    overflow-y: auto
-
-  .view-area-tele
-    grid-area: tele
-    border-top: 1px solid var(--of-border-1)
-    overflow-y: auto
-
-  .receiver-side
-    display: flex
-    flex-direction: column
-    gap: 12px
-    padding: 12px
-
-  .receiver-header
-    display: flex
-    align-items: center
-    gap: 8px
-    min-height: 20px
-
+.layout-receiver
   .receiver-mode-badge
     font-size: 10px
     font-weight: 600
@@ -73,9 +27,10 @@
   .receiver-actions
     display: flex
     gap: 8px
+    margin-left: auto
 
   .receiver-action
-    flex: 1
+    flex: 0 0 auto
     padding: 7px 10px
     border-radius: 8px
     border: 1px solid var(--of-border-1)
@@ -90,6 +45,19 @@
       opacity: 0.4
       cursor: not-allowed
 
+  // ── half-width protocol/map pair ──
+
+  .receiver-split
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: var(--of-space-6)
+    align-items: start
+
+  .receiver-side
+    display: flex
+    flex-direction: column
+    gap: var(--of-space-3)
+
   .receiver-provider
     width: 100%
     padding: 6px 8px
@@ -99,6 +67,7 @@
     color: var(--of-text-primary)
     font-family: inherit
     font-size: 12px
+    margin-bottom: var(--of-space-3)
 
   .channel-map-row
     display: grid
@@ -122,11 +91,12 @@
     font-family: inherit
     font-size: 11px
 
-  .receiver-main
+  // ── failsafe slots ──
+
+  .receiver-failsafe
     display: flex
     flex-direction: column
     gap: 4px
-    padding: 12px
 
   .rxfail-row
     display: grid
@@ -161,11 +131,12 @@
     font-family: var(--of-font-mono)
     color: var(--of-text-muted)
 
+  // ── live channel stream ──
+
   .receiver-tele
     display: flex
     flex-direction: column
     gap: 8px
-    padding: 12px
 
   .channel-bars
     display: grid
@@ -200,3 +171,7 @@
     right: 0
     background: linear-gradient(to top, var(--of-accent-dim), var(--of-accent))
     border-radius: 4px
+
+@media (max-width: 760px)
+  .receiver-split
+    grid-template-columns: 1fr

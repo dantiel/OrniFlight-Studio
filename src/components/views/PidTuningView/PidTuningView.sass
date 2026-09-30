@@ -1,24 +1,9 @@
-// PidTuningView — polymorphic PID/Rate/ONDAS/Filter tuning workspace.
-// Co-located .sass is injected automatically for .chaml components.
-.layout-control
-  display: flex
-  flex-direction: column
-  gap: 8px
-  padding: 12px
+// PidTuningView — flight control in the vertical transmorph document.
+// PID bank = four axis blocks, Rates + Filters = half-width pair,
+// ONDAS = a link to the math suite (single source of truth).
 
-  .tuning-header
-    display: flex
-    align-items: center
-    gap: 8px
-    min-height: 24px
-
-  .tuning-title
-    font-size: 14px
-    font-weight: 600
-    letter-spacing: 0.08em
-    margin-right: 4px
-
-  .tuning-mode-badge
+.layout-pid
+  .pid-mode-badge
     font-size: 10px
     font-weight: 600
     letter-spacing: 0.14em
@@ -27,11 +12,11 @@
     border: 1px solid var(--of-border-1)
     color: var(--of-text-muted)
 
-    &.tuning-mode-sim
+    &.pid-mode-sim
       border-color: var(--of-accent-dim)
       color: var(--of-accent)
 
-  .tuning-dirty-badge
+  .pid-dirty-badge
     font-size: 10px
     font-weight: 600
     letter-spacing: 0.14em
@@ -40,27 +25,13 @@
     background: var(--of-accent-dim)
     color: var(--of-text-primary)
 
-  .tuning-sim-banner
-    font-size: 11px
-    letter-spacing: 0.08em
-    padding: 6px 10px
-    border-radius: 8px
-    border: 1px dashed var(--of-border-1)
-    color: var(--of-text-muted)
-
-  .tuning-error
-    font-size: 11px
-    padding: 6px 10px
-    border-radius: 8px
-    border: 1px solid var(--of-danger, #b3543c)
-    color: var(--of-danger, #b3543c)
-
-  .tuning-actions
+  .pid-actions
     display: flex
     gap: 8px
+    margin-left: auto
 
-  .tuning-action
-    flex: 1
+  .pid-action
+    flex: 0 0 auto
     padding: 7px 10px
     border-radius: 8px
     border: 1px solid var(--of-border-1)
@@ -79,29 +50,84 @@
       opacity: 0.4
       cursor: not-allowed
 
-  // ONDAS layers — grouped by the math-suite registry.
-  .ondas-layer
-    margin-top: 10px
+  .pid-sim-banner
+    font-size: 11px
+    letter-spacing: 0.08em
+    padding: 6px 10px
+    border-radius: 8px
+    border: 1px dashed var(--of-border-2)
+    color: var(--of-text-muted)
 
-    &:first-child
-      margin-top: 0
+  .pid-error
+    font-size: 11px
+    padding: 6px 10px
+    border-radius: 8px
+    border: 1px solid var(--of-danger, #b3543c)
+    color: var(--of-danger, #b3543c)
 
-    &-name
-      display: block
-      font: 650 10px/1 var(--of-font-mono)
-      letter-spacing: 0.16em
-      color: var(--of-accent-alt)
-      margin-bottom: 6px
+  // ── PID bank — four axis blocks, one breath ──
 
-  .ondas-more
-    margin-top: 12px
-    text-align: right
+  .pid-bank-grid
+    display: grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+    gap: var(--of-space-4)
 
-    a
-      font-size: 11px
-      letter-spacing: 0.08em
-      color: var(--of-accent)
-      text-decoration: none
+  .pid-axis
+    display: flex
+    flex-direction: column
+    gap: var(--of-space-2)
+    padding: 10px 12px
+    border-radius: 12px
+    border: 1px solid var(--of-glass-rim-soft)
+    background: var(--of-glass-card)
 
-      &:hover
-        text-decoration: underline
+  .pid-axis-name
+    font: 650 10px/1 var(--of-font-mono)
+    letter-spacing: 0.16em
+    color: var(--of-accent-alt)
+    margin-bottom: 2px
+
+  // ── half-width pair ──
+
+  .pid-split
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: var(--of-space-6)
+    align-items: start
+
+  // ── ONDAS link card ──
+
+  .pid-ondas-body
+    display: flex
+    flex-direction: column
+    gap: var(--of-space-4)
+
+  .pid-ondas-note
+    margin: 0
+    max-width: 56ch
+    font-size: 12px
+    line-height: 1.5
+    color: var(--of-text-muted)
+
+  .pid-ondas-cta
+    align-self: flex-start
+    padding: 8px 14px
+    border-radius: 8px
+    border: 1px solid var(--of-border-accent)
+    background: rgba(var(--of-accent-rgb), 0.06)
+    color: var(--of-accent)
+    text-decoration: none
+    font-size: 12px
+    letter-spacing: 0.06em
+
+    &:hover
+      background: rgba(var(--of-accent-rgb), 0.12)
+      color: var(--of-link-color)
+
+@media (max-width: 900px)
+  .pid-bank-grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+
+@media (max-width: 760px)
+  .pid-split
+    grid-template-columns: 1fr

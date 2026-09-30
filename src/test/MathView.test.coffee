@@ -41,6 +41,19 @@ describe 'MathView', ->
     expect(screen.getByText 'Revert').toBeInTheDocument()
     expect(screen.getByText '→ Espelho').toBeInTheDocument()
 
+  it 'anchors the layer flow to the fixed waveform rail', ->
+    renderView()
+    rail = document.querySelector '.math-rail'
+    expect(rail).toBeInTheDocument()
+    expect(rail.querySelector '.math-wave-svg').toBeInTheDocument()
+    expect(screen.getByText 'Waveform').toBeInTheDocument()
+    # The layers live in a half-width parallax field beside the rail.
+    layers = document.querySelectorAll '.math-layers .math-layer'
+    expect(layers.length).toBe 10
+    depths = Array.from(layers).map (el) ->
+      el.style.getPropertyValue '--plx'
+    expect(depths.some (d) -> d.trim() isnt '0px').toBe true
+
   it 'renders ten layer cards and eighteen param rows', ->
     renderView()
     for name in LAYER_NAMES

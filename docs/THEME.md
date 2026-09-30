@@ -63,26 +63,28 @@ The button is positioned in the toolbar via `ConnectionBar.chaml`:
 | `--of-surface-2`         | `#26262a`     | `#f7f8fc`     | Panel backgrounds        |
 | `--of-surface-3`         | `#3a3a3a`     | `#e2e5f2`     | Elevated surfaces        |
 | `--of-surface-4`         | `#4e4e4e`     | `#cfd4e8`     | Input backgrounds        |
-| `--of-border-1`          | `rgba(255,255,255,.06)` | `rgba(58,65,146,.12)` | Primary borders |
-| `--of-border-2`          | `rgba(255,255,255,.10)` | `rgba(58,65,146,.22)` | Secondary borders |
+| `--of-border-1`          | `rgba(255,255,255,.06)` | `rgba(48,55,100,.10)` | Primary borders |
+| `--of-border-2`          | `rgba(255,255,255,.10)` | `rgba(48,55,100,.18)` | Secondary borders |
 | `--of-border-accent`     | `rgba(137,152,254,.15)` | `rgba(59,79,217,.20)` | Focus/active borders |
-| `--of-text-primary`      | `#e0e0e0`     | `#25319c`     | Body text, headings      |
-| `--of-text-secondary`    | `#c0c0c8`     | `#3947c9`     | Supplemental text        |
-| `--of-text-soft`         | `#9c9ca4`     | `#5f6cd8`     | Recessed labels          |
-| `--of-text-muted`        | `#6e6e78`     | `#838edf`     | Most distant, hints      |
+| `--of-text-primary`      | `#e0e0e0`     | `#23252d`     | Body text, headings      |
+| `--of-text-secondary`    | `#c0c0c8`     | `#4a4e59`     | Supplemental text        |
+| `--of-text-soft`         | `#9c9ca4`     | `#6e7280`     | Recessed labels          |
+| `--of-text-muted`        | `#6e6e78`     | `#9498a5`     | Most distant, hints      |
 
-The light theme follows the impressionist distance law: the more
-color, the more foreground (saturated azure); the more gray-blue,
-the more the text recedes into the porcelain background. Blue is
-always a little distant — gray-blue is the most distant of all.
+The light theme follows the tempered distance law: the more gray,
+the more background. Blue is the accent, not the voice — body text
+is ink over porcelain, gray recedes into the surface, and blue
+appears only where attention belongs (accents, links, chips,
+orgone display type). Dark saturated blue reads serious; used with
+caution it stays luminous.
 
 ### Accent Colors
 
 | Token                    | Dark Value     | Light Value    | Semantic Meaning         |
 |--------------------------|---------------|---------------|--------------------------|
 | `--of-accent`            | `#8998fe`     | `#3b4fd9`     | Primary accent, focus    |
-| `--of-accent-alt`        | `#aeb6f7`     | `#6a7bf0`     | Accent hover/active      |
-| `--of-accent-dim`        | `#4a51b0`     | `#3a4192`     | Accent shadow depth      |
+| `--of-accent-alt`        | `#aeb6f7`     | `#5a6cf0`     | Accent hover/active      |
+| `--of-accent-dim`        | `#4a51b0`     | `#dce3ff`     | Accent at rest (badges)  |
 | `--of-accent-amber`      | `#f0a040`     | `#c07020`     | Simulation mode, glow    |
 | `--of-accent-blue`       | `#58a6ff`     | `#2563d8`     | Wing R, pitch            |
 | `--of-accent-cyan`       | `#39d2c0`     | `#0d9488`     | Info/status              |

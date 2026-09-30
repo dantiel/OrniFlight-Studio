@@ -147,11 +147,12 @@
   color-scheme: dark
 // ── Light Theme ────────────────────────────
 [data-theme="light"]
-  // The impressionist law: the more gray, the more background —
-  // the more color, the more foreground. Blue is always a little
-  // distant; gray-blue is the most distant of all. Foreground text
-  // is therefore the most saturated azure, and every step back
-  // loses color and gains the gray of the porcelain behind it.
+  // The distance law, tempered: the more gray, the more background.
+  // But blue is the accent, not the voice — body text is ink over
+  // porcelain, gray recedes into the surface, and blue appears only
+  // where attention belongs (accents, links, chips, orgone display).
+  // Dark saturated blue reads serious; used with caution it stays
+  // luminous.
   --of-header-opacity: 0.06
 
   // ORGONE — blue radiation (Reich saw orgone as blue-violet, the
@@ -177,17 +178,19 @@
   --of-surface-4: #cfd4e8
   --of-header-bg: #4a55c9
 
-  // Text — the distance ramp: saturated azure in front, gray-blue
-  // receding behind it. Every step down is a step away.
-  --of-text-primary: #25319c
-  --of-text-secondary: #3947c9
-  --of-text-soft: #5f6cd8
-  --of-text-muted: #838edf
+  // Text — ink in front, gray receding behind it. Blue is reserved
+  // for accents; body text stays a cool neutral so the blue never
+  // shouts. Every step down is a step toward the porcelain.
+  --of-text-primary: #23252d
+  --of-text-secondary: #4a4e59
+  --of-text-soft: #6e7280
+  --of-text-muted: #9498a5
 
-  // Accents — the palette's most colorful blues, now foreground-safe
+  // Accents — blue, used with caution: accents, chips, badge fills.
+  // accent-dim is the pale rest state (readable under ink text).
   --of-accent: #3b4fd9
-  --of-accent-alt: #6a7bf0
-  --of-accent-dim: #3a4192
+  --of-accent-alt: #5a6cf0
+  --of-accent-dim: #dce3ff
   --of-accent-green: #2a8e3e
   --of-accent-red: #c83030
   --of-accent-amber: #c07020
@@ -196,9 +199,9 @@
   --of-accent-purple: #7a5cd0
   --of-link-color: #2f3ec2
 
-  // Borders — orgone clings to life in shade: edges carry blue, not gray
-  --of-border-1: rgba(58, 65, 146, 0.12)
-  --of-border-2: rgba(58, 65, 146, 0.22)
+  // Borders — a whisper of blue in the gray, never saturated
+  --of-border-1: rgba(48, 55, 100, 0.10)
+  --of-border-2: rgba(48, 55, 100, 0.18)
   --of-border-accent: rgba(59, 79, 217, 0.20)
 
   // RGB

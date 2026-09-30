@@ -51,17 +51,11 @@ describe 'PidTuningView render efficiency', ->
   afterEach ->
     vi.restoreAllMocks()
 
-  it 'only re-renders the edited row, not all 37', ->
+  it 'only re-renders the edited row, not all 19', ->
     render h(MemoryRouter, null, h(PidTuningView, null))
-    # Open only the closed sections. PID Bank is defaultOpen — clicking
-    # its trigger would close it, and the mocked rAF never completes the
-    # framer-motion exit animation, so its body would linger as a stale
-    # snapshot whose rows can never re-render.
-    for trigger in document.querySelectorAll '.studio-accordion-trigger'
-      if trigger.getAttribute('aria-expanded') == 'false'
-        fireEvent.click trigger
+    # All sections render open in the morph document — no accordions.
     baseline = renderCount
-    expect(baseline).toBe 12 + 3 + 18 + 4
+    expect(baseline).toBe 12 + 3 + 4
     slider = document.querySelector '.param-slider'
     fireEvent.input slider, { target: { value: '6.5' } }
     expect(useTuningStore.getState().draft.pid.roll.P).toBe 6.5

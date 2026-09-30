@@ -45,6 +45,11 @@ useScrollMorph = (hostRef, opts = {}) ->
       st = scrollHost.scrollTop
       toolbarH = toolbar?.getBoundingClientRect().height or 70
       scrollTop = scrollHost.getBoundingClientRect().top
+      # Whole-document progress 0..1 — feeds the parallax depths of
+      # half-width panels around fixed anchors (the waveform rail).
+      docMax = scrollHost.scrollHeight - scrollHost.clientHeight
+      host.style.setProperty '--scroll-progress',
+        (clamp01(st / Math.max(1, docMax))).toFixed(4)
       if headTitle
         progress = if media?.matches then 0 else clamp01(st / Math.max(1, headTitle.offsetHeight))
       docked = false

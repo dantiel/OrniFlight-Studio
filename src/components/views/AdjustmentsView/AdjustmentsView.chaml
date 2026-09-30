@@ -1,11 +1,16 @@
 ~~~
-import { memo } from 'react'
+import { useRef } from 'react'
 import './AdjustmentsView.sass'
 import useAdjustmentsStore from '../../../stores/useAdjustmentsStore.coffee'
-import { MAX_ADJUSTMENT_RANGE_COUNT } from '../../../lib/adjustmentsCatalog.coffee'
+import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
+import {
+  MAX_ADJUSTMENT_RANGE_COUNT
+} from '../../../lib/adjustmentsCatalog.coffee'
 ~~~
 
 - store = useAdjustmentsStore()
+- hostRef = useRef(null)
+- useScrollMorph(hostRef)
 - modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
 - readDisabled = store.mode != 'device' or !store.session
 - saveDisabled = store.mode == 'device' and !store.loadedSession
@@ -13,29 +18,38 @@ import { MAX_ADJUSTMENT_RANGE_COUNT } from '../../../lib/adjustmentsCatalog.coff
 - readFromDevice = -> store.loadFromDevice().catch log 'Adjustments read failed'
 - saveToDevice = -> store.save().catch log 'Adjustments save failed'
 - slots = [0...MAX_ADJUSTMENT_RANGE_COUNT]
-.view-layout.layout-adjustments
-  %ViewArea{ area: 'side' }
-    .adjustments-side
-      .adjustments-header
-        %span.adjustments-mode-badge{ className: "adjustments-mode-#{store.mode}" }
-          = modeLabel
-        - if store.dirty
-          %span.adjustments-dirty-badge DIRTY
-      %Section{ heading: 'Adjustments', subheading: 'In-flight knob bindings — MSP 52/53, 30 × 6-byte slots.' }
-        %p.adjustments-note
-          = "A slot arms when its aux channel enters the range, then applies the chosen function through one of four simultaneous adjustment slots. Only changed slots ride SET + EEPROM_WRITE on save."
-      - if store.lastError
-        %div.adjustments-error{ role: 'alert' }
-          = store.lastError
-      .adjustments-actions
-        %button.adjustments-action.adjustments-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
-          Read device
-        %button.adjustments-action.adjustments-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
-          Save
-        %button.adjustments-action.adjustments-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
-          Revert
-  %ViewArea{ area: 'vport' }
-    .adjustments-main
-      %Section{ heading: 'Adjustment Slots', subheading: 'Channel range 900 – 2100 µs in 25 µs steps; functions mirror the firmware table (0 = none).' }
-        - for slot in slots
-          %AdjustmentRow{ key: "adjustment-#{slot}", slot: slot }
+.morph-doc.layout-adjustments{ ref: hostRef }
+  %header.morph-head
+    %div.morph-head-title
+      %span.morph-kicker.orgone-kicker STEUERUNG · ADJUSTMENTS
+      %h1.orgone-display.orgone-display-shimmer Adjustments
+      %p.morph-hermes
+        = "In-Flight-Regler: dreißig Slots, je sechs Bytes (MSP 52/53). Ein Slot scharfstellt sich, sobald sein AUX-Kanal im Bereich liegt."
+  .morph-deck.adjustments-deck
+    %span.adjustments-mode-badge{ className: "adjustments-mode-#{store.mode}" }
+      = modeLabel
+    - if store.dirty
+      %span.adjustments-dirty-badge DIRTY
+    .adjustments-actions
+      %button.adjustments-action.adjustments-action-read{ type: 'button',
+                                                          onClick: readFromDevice,
+                                                          disabled: readDisabled }
+        Read device
+      %button.adjustments-action.adjustments-action-save{ type: 'button',
+                                                          onClick: saveToDevice,
+                                                          disabled: saveDisabled }
+        Save
+      %button.adjustments-action.adjustments-action-revert{ type: 'button',
+                                                            onClick: (-> store.revert()),
+                                                            disabled: !store.dirty }
+        Revert
+  - if store.lastError
+    .adjustments-error{ role: 'alert' }
+      = store.lastError
+  .morph-section.adjustments-main
+    %Section{ heading: 'Adjustment Slots',
+              subheading: 'Channel range 900 – 2100 µs in 25 µs steps; functions mirror the firmware table (0 = none).' }
+      %p.adjustments-note
+        = "Only changed slots ride SET + EEPROM_WRITE on save — each slot applies its function through one of four simultaneous slots."
+      - for slot in slots
+        %AdjustmentRow{ key: "adjustment-#{slot}", slot: slot }

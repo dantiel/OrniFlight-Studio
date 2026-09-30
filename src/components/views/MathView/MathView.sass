@@ -3,10 +3,78 @@
 // language throughout.
 
 .layout-math
-  // display: contents keeps the layer sections in the morph-doc's
-  // flex gap flow (the wrapper exists for the chaml loop scoping).
+  // ── parallax field around the fixed waveform ──
+  // The rail holds the waveform anchor (sticky), the flow carries
+  // the signal chain and the layer cards past it. Each layer card
+  // drifts at its own --plx depth against --scroll-progress.
+  .math-grid
+    display: grid
+    grid-template-columns: minmax(260px, 320px) 1fr
+    gap: var(--of-space-6)
+    align-items: start
+
+  .math-rail
+    position: sticky
+    top: calc(
+      var(--of-safe-area-bar, var(--of-toolbar-height)) + var(--of-space-4))
+    z-index: 2
+
+  .math-flow
+    display: flex
+    flex-direction: column
+    gap: var(--of-space-6)
+    min-width: 0
+
   .math-layers
-    display: contents
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: var(--of-space-6)
+    align-items: start
+
+  .math-layer
+    transform: translate3d(
+      0, calc(var(--scroll-progress, 0) * var(--plx, 0px)), 0)
+
+  // ── the fixed waveform anchor ──
+
+  .math-wave-field
+    display: flex
+    flex-direction: column
+    gap: var(--of-space-4)
+
+  .math-wave-svg
+    display: block
+    width: 100%
+    height: auto
+    filter: drop-shadow(0 0 10px rgba(var(--orgone-a-rgb), 0.35))
+
+  .math-wave-bead
+    fill: var(--orgone-c)
+    animation: math-bead 3.2s var(--of-ease-in-out) infinite
+
+  @keyframes math-bead
+    0%
+      opacity: 0.25
+    50%
+      opacity: 1
+    100%
+      opacity: 0.25
+
+  .math-wave-legend
+    display: flex
+    flex-wrap: wrap
+    gap: var(--of-space-4)
+    font: 600 10px/1 var(--of-font-mono)
+    letter-spacing: 0.14em
+    color: var(--of-text-muted)
+
+  .math-wave-asym
+    color: var(--of-accent-alt)
+
+  .math-wave-freq
+    font: 650 10px/1 var(--of-font-mono)
+    letter-spacing: 0.16em
+    color: var(--of-text-soft)
 
   .math-mode-badge
     font-size: 10px
@@ -278,8 +346,20 @@
     font: 600 13px/1 var(--of-font-mono)
     color: var(--of-text-secondary)
 
+@media (max-width: 900px)
+  .math-grid
+    grid-template-columns: 1fr
+  .math-rail
+    position: static
+  .math-layers
+    grid-template-columns: 1fr
+
 @media (prefers-reduced-motion: reduce)
   .math-chain-node,
   .math-chain-fill,
   .espelho-gauge-fill
     transition: none
+  .math-layer
+    transform: none
+  .math-wave-bead
+    animation: none

@@ -9,6 +9,7 @@ import { ondasHandlers } from '../PidTuningView/fieldHandlers.coffee'
 import MathChain from './MathChain.coffee'
 import MathLayerStack from './MathLayerStack.coffee'
 import MathEspelho from './MathEspelho.coffee'
+import MathWaveform from './MathWaveform.coffee'
 ~~~
 
 - store = useTuningStore()
@@ -51,9 +52,13 @@ import MathEspelho from './MathEspelho.coffee'
       %button.math-action.math-action-spot{ type: 'button',
                                             onClick: (-> scrollMorphTo 'math-espelho-diag') }
         → Espelho
-  .morph-section.math-chain
-    %Section{ heading: 'Signal Chain',
-              subheading: 'Zehn Schichten in Flugrichtung — vom Regelfehler zur Schlagbewegung. Ein Klick bringt die Schicht in Sicht.' }
-      %MathChain{ draft: draft }
-  %MathLayerStack{ draft: draft, onInput: ondasHandlers }
+  .math-grid
+    .math-rail
+      %MathWaveform
+    .math-flow
+      .morph-section.math-chain
+        %Section{ heading: 'Signal Chain',
+                  subheading: 'Zehn Schichten in Flugrichtung — vom Regelfehler zur Schlagbewegung. Ein Klick bringt die Schicht in Sicht.' }
+          %MathChain{ draft: draft }
+      %MathLayerStack{ draft: draft, onInput: ondasHandlers }
   %MathEspelho

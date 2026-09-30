@@ -8,7 +8,7 @@ import MathParamRow from '../../primitives/MathParamRow/MathParamRow.coffee'
 # ParamRows from the registry, and — for Ferocity — the live
 # down/up stroke preview. Lives in .coffee so the rows can map freely
 # (nested chaml loops escape their scope).
-MathLayerCard = ({ layer, draft, onInput }) ->
+MathLayerCard = ({ layer, draft, onInput, plx = 0 }) ->
   keys = mathParamsOf layer.id
   down = draft.ondas.ferocity_downstroke
   up = draft.ondas.ferocity_upstroke
@@ -31,7 +31,8 @@ MathLayerCard = ({ layer, draft, onInput }) ->
     else
       null
   h 'div',
-    { id: "math-#{layer.id}", className: 'morph-section math-layer' },
+    { id: "math-#{layer.id}", className: 'morph-section math-layer',
+      style: { '--plx': "#{plx}px" } },
     [
       h('div', { className: 'math-layer-head', key: 'head' }, [
         h('span', { className: 'math-layer-glyph' }, layer.glyph)

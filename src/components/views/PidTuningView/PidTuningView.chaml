@@ -1,60 +1,127 @@
 ~~~
-import { memo } from 'react'
+import { useRef } from 'react'
 import { NavLink } from 'react-router-dom'
-import { fmt2 } from '../../../lib/essential.coffee'
-import { PID_AXES, PID_TERMS } from '../../../protocol/mspDecoders.coffee'
-import { MATH_LAYERS, MATH_PARAMS, mathParamsOf } from '../../../lib/mathSuite.coffee'
 import useTuningStore, { PID_GAIN_MAX } from '../../../stores/useTuningStore.coffee'
-import { pidHandlers, ondasHandlers, rateHandlers, filterHandlers } from './fieldHandlers.coffee'
-import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
+import { rateHandlers, filterHandlers } from './fieldHandlers.coffee'
+import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
 import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
+import PidBankGrid from './PidBankGrid.coffee'
 ~~~
 
 - tuning = useTuningStore()
 - draft = tuning.draft
+- hostRef = useRef(null)
+- useScrollMorph(hostRef)
 - modeLabel = if tuning.mode == 'sim' then 'SIMULATION' else 'DEVICE'
 - readDisabled = tuning.mode != 'device' or !tuning.session
-- pidMax = String(PID_GAIN_MAX)
-- termBounds = { P: { min: '0', max: pidMax, step: '0.1' }, I: { min: '0', max: '2', step: '0.001' }, D: { min: '0', max: pidMax, step: '0.1' } }
-.layout-control
-  .tuning-header
-    %h1.tuning-title Flight Control
-    %span.tuning-mode-badge{ className: "tuning-mode-#{tuning.mode}" }
+- saveDisabled = tuning.mode == 'device' and !tuning.loadedSession
+- gyroDlpfDisplay = "#{draft.filter.gyroDlpfHz} Hz"
+- gyroNotchDisplay = "#{draft.filter.gyroNotchHz} Hz"
+- dTermDlpfDisplay = "#{draft.filter.dTermDlpfHz} Hz"
+.morph-doc.layout-pid{ ref: hostRef }
+  %header.morph-head
+    %div.morph-head-title
+      %span.morph-kicker.orgone-kicker STEUERUNG · FLIGHT CONTROL
+      %h1.orgone-display.orgone-display-shimmer Flight Control
+      %p.morph-hermes
+        = "Der Reglerkern: zwölf PID-Gains über vier Achsen, Raten und Filter. Die ONDAS-Mathematik lebt in der Math-Suite — eine einzige Wahrheit."
+  .morph-deck.pid-deck
+    %span.pid-mode-badge{ className: "pid-mode-#{tuning.mode}" }
       = modeLabel
     - if tuning.dirty
-      %span.tuning-dirty-badge UNSAVED
+      %span.pid-dirty-badge UNSAVED
+    .pid-actions
+      %button.pid-action.pid-action-read{ type: 'button',
+                                          onClick: (->
+                                            tuning.loadFromDevice().catch (-> null)),
+                                          disabled: readDisabled }
+        Read device
+      %button.pid-action.pid-action-save{ type: 'button',
+                                          onClick: (->
+                                            tuning.save().catch (-> null)),
+                                          disabled: saveDisabled }
+        Save
+      %button.pid-action.pid-action-revert{ type: 'button',
+                                            onClick: (-> tuning.revert()),
+                                            disabled: !tuning.dirty }
+        Revert
   - if tuning.mode == 'sim'
-    .tuning-sim-banner SIMULATION — Werte werden nicht persistiert
+    .pid-sim-banner SIMULATION — Werte werden nicht persistiert
   - if tuning.lastError
-    .tuning-error
+    .pid-error{ role: 'alert' }
       = tuning.lastError
-  %StudioAccordion{ title: 'PID Bank', defaultOpen: true }
-    - for axis in PID_AXES
-      - for term in PID_TERMS
-        %ParamRow{ key: "pid-#{axis}-#{term}", label: "#{axis} #{term}", value: draft.pid[axis][term], min: termBounds[term].min, max: termBounds[term].max, step: termBounds[term].step, display: fmt2(draft.pid[axis][term]), onInput: pidHandlers["#{axis}-#{term}"] }
-  %StudioAccordion{ title: 'Rates' }
-    %ParamRow{ key: 'rate-rcRate', label: 'RC rate', value: draft.rate.rcRate, min: '0', max: '250', step: '1', display: String(draft.rate.rcRate), onInput: rateHandlers.rcRate }
-    %ParamRow{ key: 'rate-superRate', label: 'Super rate', value: draft.rate.superRate, min: '0', max: '100', step: '1', display: String(draft.rate.superRate), onInput: rateHandlers.superRate }
-    %ParamRow{ key: 'rate-expo', label: 'Expo', value: draft.rate.expo, min: '0', max: '100', step: '1', display: String(draft.rate.expo), onInput: rateHandlers.expo }
-  %StudioAccordion{ title: 'ONDAS' }
-    - for layer in MATH_LAYERS
-      .ondas-layer
-        %span.ondas-layer-name
-          = "#{layer.glyph} #{layer.name}"
-        - for key in mathParamsOf(layer.id)
-          %ParamRow{ key: "ondas-#{key}", label: MATH_PARAMS[key].label, value: draft.ondas[key], min: String(MATH_PARAMS[key].min), max: String(MATH_PARAMS[key].max), step: '1', display: "#{draft.ondas[key]} #{MATH_PARAMS[key].unit}", hint: MATH_PARAMS[key].role, onInput: ondasHandlers[key] }
-    .ondas-more
-      %NavLink{ to: '/control/math' }
-        Vollständige ONDAS-Oberfläche → Math
-  %StudioAccordion{ title: 'Filters' }
-    %ParamRow{ key: 'filter-gyroDlpf', label: 'Gyro DLPF', value: draft.filter.gyroDlpfHz, min: '0', max: '1000', step: '1', display: "#{draft.filter.gyroDlpfHz} Hz", onInput: filterHandlers.gyroDlpfHz }
-    %ParamRow{ key: 'filter-gyroNotch', label: 'Gyro notch', value: draft.filter.gyroNotchHz, min: '0', max: '1000', step: '1', display: "#{draft.filter.gyroNotchHz} Hz", onInput: filterHandlers.gyroNotchHz }
-    %ParamRow{ key: 'filter-notchQ', label: 'Notch Q', value: draft.filter.gyroNotchQ, min: '0', max: '16', step: '1', display: String(draft.filter.gyroNotchQ), onInput: filterHandlers.gyroNotchQ }
-    %ParamRow{ key: 'filter-dTermDlpf', label: 'D-term DLPF', value: draft.filter.dTermDlpfHz, min: '0', max: '1000', step: '1', display: "#{draft.filter.dTermDlpfHz} Hz", onInput: filterHandlers.dTermDlpfHz }
-  .tuning-actions
-    %button.tuning-action.tuning-action-read{ type: 'button', onClick: (-> tuning.loadFromDevice().catch (-> null)), disabled: readDisabled }
-      Read device
-    %button.tuning-action.tuning-action-save{ type: 'button', onClick: (-> tuning.save().catch (-> null)) }
-      Save
-    %button.tuning-action.tuning-action-revert{ type: 'button', onClick: (-> tuning.revert()), disabled: !tuning.dirty }
-      Revert
+  .morph-section.pid-bank
+    %Section{ heading: 'PID Bank',
+              subheading: 'Vier Achsen je drei Terme — jeder Axis-Block ein Flügelschlag des Reglers.' }
+      %PidBankGrid{ draft: draft, pidMax: PID_GAIN_MAX }
+  .pid-split
+    .morph-section.pid-rates
+      %Section{ heading: 'Rates',
+                subheading: 'Stick-Antwort formen — RC-Rate, Super-Rate, Expo.' }
+        %ParamRow{ key: 'rate-rcRate',
+                   label: 'RC rate',
+                   value: draft.rate.rcRate,
+                   min: '0',
+                   max: '250',
+                   step: '1',
+                   display: String(draft.rate.rcRate),
+                   onInput: rateHandlers.rcRate }
+        %ParamRow{ key: 'rate-superRate',
+                   label: 'Super rate',
+                   value: draft.rate.superRate,
+                   min: '0',
+                   max: '100',
+                   step: '1',
+                   display: String(draft.rate.superRate),
+                   onInput: rateHandlers.superRate }
+        %ParamRow{ key: 'rate-expo',
+                   label: 'Expo',
+                   value: draft.rate.expo,
+                   min: '0',
+                   max: '100',
+                   step: '1',
+                   display: String(draft.rate.expo),
+                   onInput: rateHandlers.expo }
+    .morph-section.pid-filters
+      %Section{ heading: 'Filters',
+                subheading: 'Gyro- und D-Term-Filterung (MSP 92).' }
+        %ParamRow{ key: 'filter-gyroDlpf',
+                   label: 'Gyro DLPF',
+                   value: draft.filter.gyroDlpfHz,
+                   min: '0',
+                   max: '1000',
+                   step: '1',
+                   display: gyroDlpfDisplay,
+                   onInput: filterHandlers.gyroDlpfHz }
+        %ParamRow{ key: 'filter-gyroNotch',
+                   label: 'Gyro notch',
+                   value: draft.filter.gyroNotchHz,
+                   min: '0',
+                   max: '1000',
+                   step: '1',
+                   display: gyroNotchDisplay,
+                   onInput: filterHandlers.gyroNotchHz }
+        %ParamRow{ key: 'filter-notchQ',
+                   label: 'Notch Q',
+                   value: draft.filter.gyroNotchQ,
+                   min: '0',
+                   max: '16',
+                   step: '1',
+                   display: String(draft.filter.gyroNotchQ),
+                   onInput: filterHandlers.gyroNotchQ }
+        %ParamRow{ key: 'filter-dTermDlpf',
+                   label: 'D-term DLPF',
+                   value: draft.filter.dTermDlpfHz,
+                   min: '0',
+                   max: '1000',
+                   step: '1',
+                   display: dTermDlpfDisplay,
+                   onInput: filterHandlers.dTermDlpfHz }
+  .morph-section.pid-ondas-link
+    %Section{ heading: 'ONDAS',
+              subheading: 'Die ONDAS-Mathematik wird nur in der Math-Suite gepflegt — hier lebt der Verweis.' }
+      .pid-ondas-body
+        %p.pid-ondas-note
+          = "Achtzehn Parameter in zehn gekoppelten Schichten. Damit PID und Math nie doppelt führen, öffnet die Suite den vollständigen ONDAS-Entwurf."
+        %NavLink.pid-ondas-cta{ to: '/control/math' }
+          ONDAS öffnen → Math

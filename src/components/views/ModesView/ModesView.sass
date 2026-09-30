@@ -1,38 +1,7 @@
-// ModesView — AUX mode-range document (MSP 34/35 + optional 238)
-// sidebar | full-height range table
-.view-layout.layout-modes
-  height: 100%
-  grid-template-columns: 240px 1fr
-  grid-template-rows: 1fr
-  grid-template-areas: "side vport"
+// ModesView — AUX mode-range document in the vertical transmorph
+// layout: half-width note pair + full-width range table.
 
-  .view-area-side
-    grid-area: side
-    background: var(--of-glass-bg)
-    backdrop-filter: blur(12px)
-    -webkit-backdrop-filter: blur(12px)
-    border: 1px solid var(--of-border-1)
-    border-right: none
-    border-top: none
-    border-bottom: none
-    overflow-y: auto
-
-  .view-area-vport
-    grid-area: vport
-    overflow-y: auto
-
-  .modes-side
-    display: flex
-    flex-direction: column
-    gap: 12px
-    padding: 12px
-
-  .modes-header
-    display: flex
-    align-items: center
-    gap: 8px
-    min-height: 20px
-
+.layout-modes
   .modes-mode-badge
     font-size: 10px
     font-weight: 600
@@ -67,10 +36,10 @@
   .modes-actions
     display: flex
     gap: 8px
-    margin-top: auto
+    margin-left: auto
 
   .modes-action
-    flex: 1
+    flex: 0 0 auto
     padding: 7px 10px
     border-radius: 8px
     border: 1px solid var(--of-border-1)
@@ -85,11 +54,25 @@
       opacity: 0.4
       cursor: not-allowed
 
+  // ── half-width note pair ──
+
+  .modes-split
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: var(--of-space-6)
+    align-items: start
+
+  .modes-note-card
+    display: flex
+    flex-direction: column
+    gap: var(--of-space-3)
+
+  // ── range table ──
+
   .modes-main
     display: flex
     flex-direction: column
     gap: 8px
-    padding: 12px
 
   .mode-range-row
     display: grid
@@ -141,3 +124,7 @@
 
     &.mode-range-live-active
       color: var(--of-accent)
+
+@media (max-width: 760px)
+  .modes-split
+    grid-template-columns: 1fr

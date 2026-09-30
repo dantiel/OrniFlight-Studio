@@ -1,14 +1,17 @@
 ~~~
-import { memo } from 'react'
+import { useRef } from 'react'
 import { fmt0, intFromEvent } from '../../../lib/essential.coffee'
 import useModesStore from '../../../stores/useModesStore.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
+import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
 import { modeCatalogEntries, ACRO_HINT } from '../../../lib/modeCatalog.coffee'
 import { MODE_RANGE_USEC_MIN, MODE_RANGE_STEP_MAX } from '../../../protocol/mspDecoders.coffee'
 ~~~
 
 - store = useModesStore()
 - draft = store.draft
+- hostRef = useRef(null)
+- useScrollMorph(hostRef)
 - telemetry = useTelemetryStore (state) -> state.rcChannels
 - modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
 - readDisabled = store.mode != 'device' or !store.session
@@ -23,51 +26,66 @@ import { MODE_RANGE_USEC_MIN, MODE_RANGE_STEP_MAX } from '../../../protocol/mspD
 - log = (label) -> (error) -> console.error label, error
 - readFromDevice = -> store.loadFromDevice().catch log 'Modes read failed'
 - saveToDevice = -> store.save().catch log 'Modes save failed'
-.view-layout.layout-modes
-  %ViewArea{ area: 'side' }
-    .modes-side
-      .modes-header
-        %span.modes-mode-badge{ className: "modes-mode-#{store.mode}" }
-          = modeLabel
-        - if store.dirty
-          %span.modes-dirty-badge DIRTY
-      %Section{ heading: 'Flight Modes', subheading: 'AUX ranges armed against the live channel stream.' }
+- setRange = (index, key) -> (value) -> store.setRangeField index, key, value
+.morph-doc.layout-modes{ ref: hostRef }
+  %header.morph-head
+    %div.morph-head-title
+      %span.morph-kicker.orgone-kicker STEUERUNG · FLIGHT MODES
+      %h1.orgone-display.orgone-display-shimmer Flight Modes
+      %p.morph-hermes
+        = "Zwanzig AUX-Slots gegen den Live-Kanalstrom — Box, Kanal und 900–2100 µs Band. Eine Reihe leuchtet, wenn ihr Kanal im Bereich liegt."
+  .morph-deck.modes-deck
+    %span.modes-mode-badge{ className: "modes-mode-#{store.mode}" }
+      = modeLabel
+    - if store.dirty
+      %span.modes-dirty-badge DIRTY
+    .modes-actions
+      %button.modes-action.modes-action-read{ type: 'button',
+                                              onClick: readFromDevice,
+                                              disabled: readDisabled }
+        Read device
+      %button.modes-action.modes-action-save{ type: 'button',
+                                              onClick: saveToDevice,
+                                              disabled: saveDisabled }
+        Save
+      %button.modes-action.modes-action-revert{ type: 'button',
+                                                onClick: (-> store.revert()),
+                                                disabled: !store.dirty }
+        Revert
+  .modes-split
+    .morph-section.modes-note-card
+      %Section{ heading: 'Flight Modes',
+                subheading: 'AUX ranges armed against the live channel stream.' }
         %p.modes-note
           = "#{ACRO_HINT.name} is implicit — the default whenever no range is active."
+    .morph-section.modes-note-card
       %Section{ heading: 'Range Logic' }
         %p.modes-note
           Extra columns (AND / OR / XOR, linked box) appear when the firmware exposes MSP 238.
         - if not draft.extrasAvailable
           %p.modes-note.modes-note-warn
             Legacy firmware — logic and links ride at their defaults.
-      .modes-actions
-        %button.modes-action.modes-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
-          Read device
-        %button.modes-action.modes-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
-          Save
-        %button.modes-action.modes-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
-          Revert
-  %ViewArea{ area: 'vport' }
-    .modes-main
-      %Section{ heading: 'AUX Mode Ranges', subheading: '20 activation slots — box, AUX channel and 900–2100 µs band.' }
-      - for range, index in draft.ranges
-        .mode-range-row{ key: "range-#{index}", className: "mode-range-row #{if rangeActive(range) then 'mode-range-active' else ''}" }
-          %span.mode-range-index
-            = index + 1
-          %select.mode-range-box{ value: String(range.permanentId), onChange: valueFromEvent((value) -> store.setRangeField index, 'permanentId', value) }
-            - for entry in entries
-              %option{ key: "box-#{entry.permanentId}", value: String(entry.permanentId) }
-                = entry.name
-          %select.mode-range-aux{ value: String(range.auxChannelIndex), onChange: valueFromEvent((value) -> store.setRangeField index, 'auxChannelIndex', value) }
-            - for aux in [0...14]
-              %option{ key: "aux-#{aux}", value: String(aux) }
-                = "AUX#{aux + 1}"
-          .mode-range-sliders
-            %span.mode-range-slider-label
-              = "#{fmt0(usFromStep(range.startStep))} µs"
-            %input.mode-range-slider{ type: 'range', min: '0', max: String(MODE_RANGE_STEP_MAX), step: '1', value: String(range.startStep), onInput: intFromEvent((value) -> store.setRangeField index, 'startStep', value) }
-            %span.mode-range-slider-label
-              = "#{fmt0(usFromStep(range.endStep))} µs"
-            %input.mode-range-slider{ type: 'range', min: '0', max: String(MODE_RANGE_STEP_MAX), step: '1', value: String(range.endStep), onInput: intFromEvent((value) -> store.setRangeField index, 'endStep', value) }
-          %span.mode-range-live{ className: "mode-range-live #{if rangeActive(range) then 'mode-range-live-active' else ''}" }
-            = "#{fmt0(auxValue(range.auxChannelIndex))} µs"
+  .morph-section.modes-main
+    %Section{ heading: 'AUX Mode Ranges',
+              subheading: '20 activation slots — box, AUX channel and 900–2100 µs band.' }
+    - for range, index in draft.ranges
+      .mode-range-row{ key: "range-#{index}", className: "mode-range-row #{if rangeActive(range) then 'mode-range-active' else ''}" }
+        %span.mode-range-index
+          = index + 1
+        %select.mode-range-box{ value: String(range.permanentId), onChange: valueFromEvent(setRange(index, 'permanentId')) }
+          - for entry in entries
+            %option{ key: "box-#{entry.permanentId}", value: String(entry.permanentId) }
+              = entry.name
+        %select.mode-range-aux{ value: String(range.auxChannelIndex), onChange: valueFromEvent(setRange(index, 'auxChannelIndex')) }
+          - for aux in [0...14]
+            %option{ key: "aux-#{aux}", value: String(aux) }
+              = "AUX#{aux + 1}"
+        .mode-range-sliders
+          %span.mode-range-slider-label
+            = "#{fmt0(usFromStep(range.startStep))} µs"
+          %input.mode-range-slider{ type: 'range', min: '0', max: String(MODE_RANGE_STEP_MAX), step: '1', value: String(range.startStep), onInput: intFromEvent(setRange(index, 'startStep')) }
+          %span.mode-range-slider-label
+            = "#{fmt0(usFromStep(range.endStep))} µs"
+          %input.mode-range-slider{ type: 'range', min: '0', max: String(MODE_RANGE_STEP_MAX), step: '1', value: String(range.endStep), onInput: intFromEvent(setRange(index, 'endStep')) }
+        %span.mode-range-live{ className: "mode-range-live #{if rangeActive(range) then 'mode-range-live-active' else ''}" }
+          = "#{fmt0(auxValue(range.auxChannelIndex))} µs"
