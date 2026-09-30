@@ -87,7 +87,7 @@ behind it breathes**.
 
 - `#id` shorthand without `%div` merges into the preceding component as props → use `%div#id`
 - `- for` loop variables are IIFE-scoped, invisible to sibling elements → use explicit elements or `#{}` interpolation
-- Prettier plugin (coffeehaml/prettier) **safe** as of 0.7.7 — import prologue, `->` arrow, multiline `{}`, object literals, and destructuring all resolved
+- Prettier plugin (coffeehaml/prettier) **safe** as of 0.10.1 — import prologue, `->` arrow, multiline `{}`, object literals, and destructuring all resolved
 - Conditional classNames: use `"#{if cond then ' active' else ''}"` inside `#{}`
 
 ## Build Toolchain
