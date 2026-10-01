@@ -38,15 +38,25 @@ $white-rim: inset 0 1px 0 rgba(255, 255, 255, 0.18)
     letter-spacing: 0.14em
     margin: 0
     font-weight: 400
-
-  .orni-head-icon
-    color: var(--of-accent-alt)
-    filter: drop-shadow(0 0 8px rgba(var(--of-accent-rgb), 0.35))
-    margin-bottom: var(--of-space-2)
+    display: flex
+    align-items: center
+    gap: 0.34em
 
   p
     margin: var(--of-space-2) 0 0
     max-width: 46ch
+
+.orni-head-row
+  display: flex
+  align-items: flex-start
+  gap: var(--of-space-5)
+
+.orni-head-glyph
+  width: 0.7em
+  height: 0.7em
+  flex: none
+  align-self: center
+  color: var(--of-accent)
 
 .orni-hermes
   color: var(--of-text-muted)

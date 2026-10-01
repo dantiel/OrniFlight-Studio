@@ -173,13 +173,14 @@ OrnithopterView = ->
   h 'div', { className: 'ornithopter-view' },
     # ── Page head ──────────────────────────────────────
     h 'header', { className: 'orni-page-head' },
-      h 'div', null,
-        h ModuleIcon, { className: 'orni-head-icon', size: 28 }
-        h 'h1', { className: 'orgone-display orgone-display-shimmer' },
-          'GRUNDKONFIGURATION'
-        h 'p', { className: 'orni-hermes' },
-          'Körperplan · Flugwerk · Schlagkurve. ' +
-          'Die Antriebsseite des Vogels, eine Sicht pro Gelenk.'
+      h 'div', { className: 'orni-head-row' },
+        h 'div', { className: 'orni-head-text' },
+          h 'h1', { className: 'orgone-display orgone-display-shimmer' },
+            h ModuleIcon, { className: 'orni-head-glyph', size: 30 }
+            h 'span', null, 'GRUNDKONFIGURATION'
+          h 'p', { className: 'orni-hermes' },
+            'Körperplan · Flugwerk · Schlagkurve. ' +
+            'Die Antriebsseite des Vogels, eine Sicht pro Gelenk.'
       h 'div', { className: 'orni-toolbar' },
         h 'span', { className: "orni-mode-badge orni-mode-#{orni.mode}" },
           modeLabel

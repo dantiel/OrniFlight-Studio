@@ -21,14 +21,15 @@ FlightProfilesView = ->
 
   h 'div', { className: 'flight-profiles-view' },
     h 'header', { className: 'fp-head' },
-      h 'div', null,
-        h ModuleIcon, { className: 'fp-head-icon', size: 26 }
-        h 'h1', { className: 'orgone-display orgone-display-shimmer' },
-          'FLUGPROFILE'
-        h 'p', { className: 'fp-hermes' },
-          'Vier Profile, gewählt über den Ornithopter-Profil-Modus ' +
-          '(AUX-Box). Jedes trägt Gleitwinkel und Schlagform — die ' +
-          'Math-Suite wirkt immer auf das aktive Profil.'
+      h 'div', { className: 'fp-head-row' },
+        h 'div', { className: 'fp-head-text' },
+          h 'h1', { className: 'orgone-display orgone-display-shimmer' },
+            h ModuleIcon, { className: 'fp-head-glyph', size: 30 }
+            h 'span', null, 'FLUGPROFILE'
+          h 'p', { className: 'fp-hermes' },
+            'Vier Profile, gewählt über den Ornithopter-Profil-Modus ' +
+            '(AUX-Box). Jedes trägt Gleitwinkel und Schlagform — die ' +
+            'Math-Suite wirkt immer auf das aktive Profil.'
       h 'div', { className: 'fp-ch7-badge' }, 'AUX · BOX WÄHLT'
 
     h 'div', { className: 'fp-active-strip' },

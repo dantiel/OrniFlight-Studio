@@ -23,9 +23,10 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
   %header.morph-head
     %div.morph-head-title
       %span.morph-kicker.orgone-kicker
-        %ModuleIcon{ size: 13 }
         = ' STEUERUNG · ADJUSTMENTS'
-      %h1.orgone-display.orgone-display-shimmer Adjustments
+      %h1.orgone-display.orgone-display-shimmer
+        %ModuleIcon{ className: 'morph-head-glyph', size: 30 }
+        %span Adjustments
       %p.morph-hermes
         = "In-Flight-Regler: dreißig Slots, je sechs Bytes (MSP 52/53). Ein Slot scharfstellt sich, sobald sein AUX-Kanal im Bereich liegt."
   .morph-deck.adjustments-deck
