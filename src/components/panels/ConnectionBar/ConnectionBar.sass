@@ -58,7 +58,8 @@
     color: var(--of-accent-green)
 
 .connect-symbol
-  font-size: 12px
+  display: inline-flex
+  align-items: center
 
 .toolbar-nav-row
   display: flex
@@ -89,7 +90,6 @@
 
   .launcher-mark
     color: var(--of-accent-alt)
-    font-size: 11px
 
   kbd
     padding: 1px 3px
@@ -97,6 +97,27 @@
     border-radius: 3px
     color: rgba(255,255,255,.5)
     font: 8px/1 var(--of-font-mono)
+
+// Light theme — the toolbar floats over porcelain. The sub-menu strip
+// turns bright glass, the launchers speak ink, and blue stays on the
+// marks and the active tab only.
+[data-theme="light"]
+  .toolbar-nav-row
+    background: rgba(255,255,255,.55)
+
+  .toolbar-launcher
+    border-color: var(--of-border-1)
+    background: rgba(255,255,255,.6)
+    color: var(--of-text-secondary)
+
+    &:hover
+      color: var(--of-text-primary)
+      border-color: var(--of-accent)
+      background: var(--of-accent-dim)
+
+    kbd
+      border-color: var(--of-border-2)
+      color: var(--of-text-soft)
 
 @media (max-width: 1100px)
   .toolbar-launcher span:not(.launcher-mark), .toolbar-launcher kbd

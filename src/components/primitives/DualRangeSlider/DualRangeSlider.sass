@@ -1,0 +1,90 @@
+// DualRangeSlider — one rail, two clamped thumbs.
+// Both inputs lie on the same track; pointer events pass only through
+// the thumbs, so the top input never swallows the bottom one.
+
+.dual-range
+  display: flex
+  flex-direction: column
+  gap: 5px
+  min-width: 0
+  width: 100%
+
+.dual-range-track
+  position: relative
+  height: 22px
+
+.dual-range-rail
+  position: absolute
+  top: 50%
+  left: 0
+  right: 0
+  height: 4px
+  transform: translateY(-50%)
+  border-radius: 999px
+  background: var(--of-border-2)
+  overflow: hidden
+
+.dual-range-fill
+  position: absolute
+  top: 0
+  bottom: 0
+  border-radius: 999px
+  background: linear-gradient(90deg, var(--of-accent-dim), var(--of-accent))
+
+.dual-range-thumb
+  position: absolute
+  inset: 0
+  width: 100%
+  height: 22px
+  margin: 0
+  appearance: none
+  -webkit-appearance: none
+  background: transparent
+  pointer-events: none
+  cursor: grab
+
+  &:focus-visible
+    outline: none
+
+  &::-webkit-slider-runnable-track
+    background: transparent
+    height: 22px
+
+  &::-webkit-slider-thumb
+    pointer-events: auto
+    -webkit-appearance: none
+    width: 14px
+    height: 14px
+    border-radius: 50%
+    background: var(--of-accent-alt)
+    border: 2px solid var(--of-surface-1)
+    box-shadow: 0 0 8px var(--of-simulation-glow)
+    cursor: grab
+
+  &::-moz-range-track
+    background: transparent
+    height: 4px
+
+  &::-moz-range-thumb
+    pointer-events: auto
+    width: 12px
+    height: 12px
+    border-radius: 50%
+    background: var(--of-accent-alt)
+    border: 2px solid var(--of-surface-1)
+    box-shadow: 0 0 8px var(--of-simulation-glow)
+    cursor: grab
+
+// The bound labels sit at the rail's ends — low on the left, high on
+// the right — so two equal thumbs never stack their values.
+.dual-range-labels
+  display: flex
+  justify-content: space-between
+  gap: var(--of-space-3)
+
+.dual-range-label
+  font-size: 9px
+  line-height: 1.2
+  font-family: var(--of-font-mono)
+  color: var(--of-text-muted)
+  white-space: nowrap

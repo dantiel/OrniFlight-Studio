@@ -66,10 +66,10 @@ The button is positioned in the toolbar via `ConnectionBar.chaml`:
 | `--of-border-1`          | `rgba(255,255,255,.06)` | `rgba(48,55,100,.10)` | Primary borders |
 | `--of-border-2`          | `rgba(255,255,255,.10)` | `rgba(48,55,100,.18)` | Secondary borders |
 | `--of-border-accent`     | `rgba(137,152,254,.15)` | `rgba(59,79,217,.20)` | Focus/active borders |
-| `--of-text-primary`      | `#e0e0e0`     | `#23252d`     | Body text, headings      |
-| `--of-text-secondary`    | `#c0c0c8`     | `#4a4e59`     | Supplemental text        |
-| `--of-text-soft`         | `#9c9ca4`     | `#6e7280`     | Recessed labels          |
-| `--of-text-muted`        | `#6e6e78`     | `#9498a5`     | Most distant, hints      |
+| `--of-text-primary`      | `#e0e0e0`     | `#343b52`     | Body text, headings      |
+| `--of-text-secondary`    | `#c0c0c8`     | `#4d5470`     | Supplemental text        |
+| `--of-text-soft`         | `#9c9ca4`     | `#6a7190`     | Recessed labels          |
+| `--of-text-muted`        | `#6e6e78`     | `#8f95ad`     | Most distant, hints      |
 
 The light theme follows the tempered distance law: the more gray,
 the more background. Blue is the accent, not the voice — body text

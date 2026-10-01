@@ -6,6 +6,7 @@ import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
 import { modeCatalogEntries, ACRO_HINT } from '../../../lib/modeCatalog.coffee'
 import { MODE_RANGE_USEC_MIN, MODE_RANGE_STEP_MAX } from '../../../protocol/mspDecoders.coffee'
+import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
 ~~~
 
 - store = useModesStore()
@@ -30,7 +31,9 @@ import { MODE_RANGE_USEC_MIN, MODE_RANGE_STEP_MAX } from '../../../protocol/mspD
 .morph-doc.layout-modes{ ref: hostRef }
   %header.morph-head
     %div.morph-head-title
-      %span.morph-kicker.orgone-kicker STEUERUNG · FLIGHT MODES
+      %span.morph-kicker.orgone-kicker
+        %ModuleIcon{ size: 13 }
+        = ' STEUERUNG · FLIGHT MODES'
       %h1.orgone-display.orgone-display-shimmer Flight Modes
       %p.morph-hermes
         = "Zwanzig AUX-Slots gegen den Live-Kanalstrom — Box, Kanal und 900–2100 µs Band. Eine Reihe leuchtet, wenn ihr Kanal im Bereich liegt."

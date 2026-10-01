@@ -3,6 +3,7 @@ import { memo, useRef } from 'react'
 import './FailsafeView.sass'
 import useSafetyStore from '../../../stores/useSafetyStore.coffee'
 import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
+import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
 ~~~
 
 - store = useSafetyStore()
@@ -17,7 +18,9 @@ import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
 .morph-doc.layout-safety{ ref: hostRef }
   %header.morph-head
     %div.morph-head-title
-      %span.morph-kicker.orgone-kicker SYSTEM · SICHERHEIT
+      %span.morph-kicker.orgone-kicker
+        %ModuleIcon{ size: 13 }
+        = ' SYSTEM · SICHERHEIT'
       %h1.orgone-display.orgone-display-shimmer Sicherheit
       %p.morph-hermes
         = "Failsafe, arming, features and beeper — MSP 36/37, 61/62, 75/76, 184/185. Saves verify their read-back; writes lock while armed."

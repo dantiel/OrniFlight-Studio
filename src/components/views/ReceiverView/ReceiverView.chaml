@@ -7,6 +7,7 @@ import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
 import {
   SERIALRX_PROVIDERS, RC_CHANNEL_LETTERS, RXFAIL_MODE, RXFAIL_STEP_MAX
 } from '../../../protocol/mspDecoders.coffee'
+import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
 ~~~
 
 - store = useReceiverStore()
@@ -38,7 +39,9 @@ import {
 .morph-doc.layout-receiver{ ref: hostRef }
   %header.morph-head
     %div.morph-head-title
-      %span.morph-kicker.orgone-kicker STEUERUNG · RECEIVER
+      %span.morph-kicker.orgone-kicker
+        %ModuleIcon{ size: 13 }
+        = ' STEUERUNG · RECEIVER'
       %h1.orgone-display.orgone-display-shimmer Receiver
       %p.morph-hermes
         = "Empfängerdokument: Provider und Pulsgrenzen, Kanal-Mapping, Failsafe-Slots und der gemappte Live-Kanalstrom."

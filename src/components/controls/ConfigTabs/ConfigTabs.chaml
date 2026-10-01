@@ -1,6 +1,7 @@
 ~~~
 import { NavLink, useLocation } from 'react-router-dom'
 import { activeModuleForPath, subtabsForPath } from '../../../lib/navigation.coffee'
+import Icon from '../../primitives/Icon/Icon.coffee'
 ~~~
 
 - location = useLocation()
@@ -8,7 +9,7 @@ import { activeModuleForPath, subtabsForPath } from '../../../lib/navigation.cof
 - subtabs = subtabsForPath location.pathname
 .config-view-selector{ role: 'navigation', aria-label: "#{mod.label} navigation" }
   .config-module
-    %span.config-module-glyph= mod.glyph
+    %Icon{ name: mod.icon, size: 13, className: 'cm-icon' }
     %span.config-module-name= mod.label
   - if subtabs.length > 1
     .config-view-tabs

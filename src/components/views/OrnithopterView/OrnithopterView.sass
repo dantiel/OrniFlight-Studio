@@ -39,6 +39,11 @@ $white-rim: inset 0 1px 0 rgba(255, 255, 255, 0.18)
     margin: 0
     font-weight: 400
 
+  .orni-head-icon
+    color: var(--of-accent-alt)
+    filter: drop-shadow(0 0 8px rgba(var(--of-accent-rgb), 0.35))
+    margin-bottom: var(--of-space-2)
+
   p
     margin: var(--of-space-2) 0 0
     max-width: 46ch
@@ -132,9 +137,8 @@ $white-rim: inset 0 1px 0 rgba(255, 255, 255, 0.18)
     margin-top: var(--of-space-2)
 
 .orni-glyph
-  font-size: 26px
-  line-height: 1
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35))
+  color: var(--of-accent-alt)
+  filter: drop-shadow(0 2px 6px rgba(var(--of-accent-rgb), 0.35))
 
 .orni-grid
   display: grid

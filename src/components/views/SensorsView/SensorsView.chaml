@@ -3,6 +3,7 @@ import { memo, useRef } from 'react'
 import './SensorsView.sass'
 import useSensorsStore from '../../../stores/useSensorsStore.coffee'
 import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
+import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
 ~~~
 
 - store = useSensorsStore()
@@ -17,7 +18,9 @@ import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
 .morph-doc.layout-sensors{ ref: hostRef }
   %header.morph-head
     %div.morph-head-title
-      %span.morph-kicker.orgone-kicker SYSTEM · SENSORIK
+      %span.morph-kicker.orgone-kicker
+        %ModuleIcon{ size: 13 }
+        = ' SYSTEM · SENSORIK'
       %h1.orgone-display.orgone-display-shimmer Sensorik
       %p.morph-hermes
         = "Chip selection, board alignment and calibration — MSP 96/97, 126/220, 205/206. Saves verify their read-back; calibration is refused while armed."

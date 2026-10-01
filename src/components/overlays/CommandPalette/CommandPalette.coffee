@@ -4,10 +4,11 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { getActor } from '../../../hooks/useConnection.coffee'
 import h from '../../../app/h.coffee'
+import Icon from '../../primitives/Icon/Icon.coffee'
 
 import { MODULES } from '../../../lib/navigation.coffee'
 
-ROUTES = MODULES.map ([path, label, glyph]) -> [label, path, glyph]
+ROUTES = MODULES.map ([path, label, icon]) -> [label, path, icon]
 
 CommandPalette = ->
   [open, setOpen] = useState false
@@ -19,9 +20,9 @@ CommandPalette = ->
     routeItems = ROUTES.map ([label, path, icon]) ->
       { label, icon, hint: path, run: (-> navigate path) }
     routeItems.concat [
-      { label: 'Connect device', icon: '◎', hint: 'connection', run: (-> getActor().send { type: 'CONNECT' }) }
-      { label: 'Disconnect device', icon: '○', hint: 'connection', run: (-> getActor().send { type: 'DISCONNECT' }) }
-      { label: 'Toggle theme', icon: '◐', hint: 'appearance', run: ->
+      { label: 'Connect device', icon: 'plug', hint: 'connection', run: (-> getActor().send { type: 'CONNECT' }) }
+      { label: 'Disconnect device', icon: 'plug-off', hint: 'connection', run: (-> getActor().send { type: 'DISCONNECT' }) }
+      { label: 'Toggle theme', icon: 'moon', hint: 'appearance', run: ->
           root = document.documentElement
           root.dataset.theme = if root.dataset.theme == 'light' then 'dark' else 'light'
       }
@@ -93,7 +94,9 @@ CommandPalette = ->
               'aria-selected': i == active
               onMouseEnter: (-> setActive i)
               onClick: (-> run cmd)
-            , h('span', { className: 'command-icon' }, cmd.icon), h('span', null, cmd.label), h('small', null, cmd.hint)
+            , h(Icon, { name: cmd.icon, className: 'command-icon', size: 14 }),
+              h('span', null, cmd.label),
+              h('small', null, cmd.hint)
           else h 'p', { className: 'command-empty' }, 'No matching command'
         h 'footer', null, '↑↓ select · ↵ run · Ctrl/⌘ K toggle'
 

@@ -26,9 +26,8 @@
   padding-right: var(--of-space-4)
   border-right: 1px solid rgba(255,255,255,.08)
 
-  .config-module-glyph
-    font-size: 13px
-    line-height: 1
+  .cm-icon
+    color: var(--of-accent-alt)
     filter: drop-shadow(0 0 6px rgba(137,152,254,.35))
 
   .config-module-name
@@ -74,3 +73,29 @@
       color: #fff
       background: rgba(255,255,255,0.12)
       box-shadow: 0 0 8px rgba(137,152,254,0.1)
+
+// Light theme — the sub-menu sits on the bright toolbar strip, so it
+// speaks ink over porcelain: blue only for the active tab and the
+// module glyph.
+[data-theme="light"]
+  .config-module
+    border-right-color: var(--of-border-1)
+
+    .cm-icon
+      color: var(--of-accent)
+      filter: drop-shadow(0 0 6px rgba(59,79,217,.3))
+
+    .config-module-name
+      color: var(--of-text-primary)
+
+  .config-view-btn
+    color: var(--of-text-soft)
+
+    &:hover
+      color: var(--of-text-primary)
+      background: var(--of-surface-3)
+
+    &.active, &[aria-current='page']
+      color: var(--of-accent)
+      background: var(--of-accent-dim)
+      box-shadow: none

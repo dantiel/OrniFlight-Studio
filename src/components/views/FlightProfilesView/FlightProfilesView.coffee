@@ -10,6 +10,7 @@
 import './FlightProfilesView.sass'
 import h from '../../../app/h.coffee'
 import { Link } from 'react-router-dom'
+import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
 import useOrnithopterStore, {
   PROFILE_COUNT
 } from '../../../stores/useOrnithopterStore.coffee'
@@ -21,6 +22,7 @@ FlightProfilesView = ->
   h 'div', { className: 'flight-profiles-view' },
     h 'header', { className: 'fp-head' },
       h 'div', null,
+        h ModuleIcon, { className: 'fp-head-icon', size: 26 }
         h 'h1', { className: 'orgone-display orgone-display-shimmer' },
           'FLUGPROFILE'
         h 'p', { className: 'fp-hermes' },

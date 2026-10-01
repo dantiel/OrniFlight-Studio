@@ -1,6 +1,7 @@
 import './ViewModeToggle.sass'
 import { createElement } from 'react'
 import { classNames as cx } from '../../../lib/essential.coffee'
+import Icon from '../../primitives/Icon/Icon.coffee'
 
 # ═══════════════════════════════════════════════════════════════
 # ViewModeToggle — layout modes
@@ -9,15 +10,15 @@ import { classNames as cx } from '../../../lib/essential.coffee'
 
 MODES = [
   {
-    id: 'full', label: 'Horizon', icon: '\u25A3',
+    id: 'full', label: 'Horizon', icon: 'square',
     title: 'Horizon — bird only, full viewport'
   }
   {
-    id: 'split', label: 'Nest', icon: '\u25A7',
+    id: 'split', label: 'Nest', icon: 'columns',
     title: 'Nest — bird + inspector side by side'
   }
   {
-    id: 'compact', label: 'Roost', icon: '\u25B1',
+    id: 'compact', label: 'Roost', icon: 'rows',
     title: 'Roost — compact bird + expanded telemetry'
   }
 ]
@@ -30,7 +31,7 @@ ViewModeToggle = ({ mode, onModeChange }) ->
         className: cx 'viewmode-btn', ['active', m.id is mode]
         onClick: -> onModeChange m.id
         title: m.title
-        createElement('span', { className: 'vm-icon' }, m.icon),
+        createElement(Icon, { name: m.icon, className: 'vm-icon', size: 13 }),
         createElement('span', { className: 'vm-label' }, m.label)
 
 export default ViewModeToggle

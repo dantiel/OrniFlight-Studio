@@ -6,6 +6,7 @@ import { rateHandlers, filterHandlers } from './fieldHandlers.coffee'
 import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
 import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
 import PidBankGrid from './PidBankGrid.coffee'
+import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
 ~~~
 
 - tuning = useTuningStore()
@@ -21,7 +22,9 @@ import PidBankGrid from './PidBankGrid.coffee'
 .morph-doc.layout-pid{ ref: hostRef }
   %header.morph-head
     %div.morph-head-title
-      %span.morph-kicker.orgone-kicker STEUERUNG · FLIGHT CONTROL
+      %span.morph-kicker.orgone-kicker
+        %ModuleIcon{ size: 13 }
+        = ' STEUERUNG · FLIGHT CONTROL'
       %h1.orgone-display.orgone-display-shimmer Flight Control
       %p.morph-hermes
         = "Der Reglerkern: zwölf PID-Gains über vier Achsen, Raten und Filter. Die ONDAS-Mathematik lebt in der Math-Suite — eine einzige Wahrheit."

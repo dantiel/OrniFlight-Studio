@@ -1,5 +1,6 @@
 import './ThemeToggle.sass'
 import { useState, useEffect, createElement } from 'react'
+import Icon from '../../primitives/Icon/Icon.coffee'
 
 # ═══════════════════════════════════════════════════════════════
 # ThemeToggle — dark/light theme switch via data-theme attribute
@@ -27,6 +28,8 @@ ThemeToggle = ->
     className: 'theme-toggle-btn'
     onClick: toggle
     title: "Switch to #{if theme is 'dark' then 'light' else 'dark'} theme"
-    if theme is 'dark' then '\u263C' else '\u263E'  # ☼ sun / ☾ moon
+    createElement Icon,
+      name: if theme is 'dark' then 'sun' else 'moon'
+      size: 13
 
 export default ThemeToggle

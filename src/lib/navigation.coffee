@@ -11,15 +11,17 @@
 # it naturally.
 ###
 
+# Icons are registry keys (src/lib/icons.coffee) — one SVG vocabulary
+# shared by dock, sub-menu, palette and page headlines.
 MODULES = [
-  ['/basic',    'Grundkonfiguration', '🪽']
-  ['/profiles', 'Flugprofile',        '🎭']
-  ['/servos',   'Servos',             '⚙']
-  ['/control',  'Steuerung',          '△']
-  ['/sensors',  'Sensorik',           '◎']
-  ['/system',   'System',             '◫']
-  ['/safety',   'Sicherheit',         '◇']
-  ['/cli',      'CLI',                '❯']
+  ['/basic',    'Grundkonfiguration', 'wing']
+  ['/profiles', 'Flugprofile',        'layers']
+  ['/servos',   'Servos',             'gear']
+  ['/control',  'Steuerung',          'sliders']
+  ['/sensors',  'Sensorik',           'radar']
+  ['/system',   'System',             'grid']
+  ['/safety',   'Sicherheit',         'shield']
+  ['/cli',      'CLI',                'terminal']
 ]
 
 SUBTABS =
@@ -78,15 +80,15 @@ subtabsForPath = (path) ->
   return [] if not path or path is '/'
   SUBTABS[moduleIdForPath path] ? []
 
-# Module metadata by id — glyph/label/path for contextual headers.
+# Module metadata by id — icon/label/path for contextual headers.
 MODULE_BY_ID = {}
-for [modPath, label, glyph] in MODULES
-  MODULE_BY_ID[modPath.slice 1] = { path: modPath, label, glyph }
+for [modPath, label, icon] in MODULES
+  MODULE_BY_ID[modPath.slice 1] = { path: modPath, label, icon }
 
 # Active module descriptor for the given path (drives the top-menu header).
 activeModuleForPath = (path) ->
   id = moduleIdForPath path
   mod = MODULE_BY_ID[id]
-  { id, path: mod.path, label: mod.label, glyph: mod.glyph }
+  { id, path: mod.path, label: mod.label, icon: mod.icon }
 
 export { MODULES, SUBTABS, moduleIdForPath, subtabsForPath, activeModuleForPath }

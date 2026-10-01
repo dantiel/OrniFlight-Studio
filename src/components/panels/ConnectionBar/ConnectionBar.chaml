@@ -5,6 +5,7 @@ import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import useAppStore from '../../../stores/useAppStore.coffee'
 import Tooltip from '../../overlays/Tooltip/Tooltip.coffee'
 import StatusIsland from '../../display/StatusIsland/StatusIsland.coffee'
+import Icon from '../../primitives/Icon/Icon.coffee'
 ~~~
 
 - conn = useFirmwareConnection()
@@ -25,14 +26,15 @@ import StatusIsland from '../../display/StatusIsland/StatusIsland.coffee'
   connectionAction = if conn.connected then 'DISCONNECT' else if conn.state == 'scanning' then 'SELECTING…' else if conn.state == 'handshaking' then 'SYNCING…' else 'CONNECT'
   deviceLabel = conn.identity?.board?.targetName || conn.identity?.board?.identifier
   connectTooltip = if conn.supported then 'Connect an OrniFlight controller over WebSerial' else 'WebSerial is not available in this browser'
-  connectSymbol = if conn.connected then '×' else '↗'
+  connectIcon = if conn.connected then 'plug-off' else 'plug'
 .connection-bar{ role: 'banner', aria-label: 'Studio toolbar' }
   .toolbar-primary
     %BrandMark
     %Separator
     %Tooltip{ label: connectTooltip }
       %button{ type: 'button', disabled: connectionBusy || (!conn.supported && !conn.connected), className: "toolbar-connect#{if conn.connected then ' connected' else ''}", onClick: -> if conn.connected then conn.disconnect() else conn.connect() }
-        %span.connect-symbol= connectSymbol
+        %span.connect-symbol
+          %Icon{ name: connectIcon, size: 12 }
         %span= connectionAction
     %Tooltip{ label: 'Live connection state' }
       %StatusIsland{ state: statusState, label: statusLabel, attempts: conn.attempts, frequency: flapFrequency, voltage: batteryVoltage, error: conn.lastError, deviceLabel: deviceLabel }
@@ -47,13 +49,13 @@ import StatusIsland from '../../display/StatusIsland/StatusIsland.coffee'
     .toolbar-spacer
     %Tooltip{ label: 'Open command palette · Ctrl/⌘ K' }
       %button.toolbar-launcher{ type: 'button', onClick: -> window.dispatchEvent(new Event('orniflight:commands')) }
-        %span.launcher-mark ⌘
+        %Icon{ name: 'cmd', className: 'launcher-mark', size: 11 }
         %span COMMANDS
         %kbd K
     - if import.meta.env.DEV
       %Tooltip{ label: 'Toggle live state inspector · Ctrl/⌘ Shift D' }
         %button.toolbar-launcher.debug{ type: 'button', onClick: -> window.dispatchEvent(new Event('orniflight:debug')) }
-          %span.launcher-mark ◫
+          %Icon{ name: 'bug', className: 'launcher-mark', size: 11 }
           %span STATE
     %Tooltip{ label: 'Switch light and dark theme' }
       %ThemeToggle.toolbar-theme

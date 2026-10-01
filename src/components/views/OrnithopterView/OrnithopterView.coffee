@@ -10,6 +10,9 @@
 import './OrnithopterView.sass'
 import h from '../../../app/h.coffee'
 import { useLocation, Link } from 'react-router-dom'
+import Icon from '../../primitives/Icon/Icon.coffee'
+import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
+import DualRangeSlider from '../../primitives/DualRangeSlider/DualRangeSlider.coffee'
 import useOrnithopterStore from '../../../stores/useOrnithopterStore.coffee'
 import useDeviceStore from '../../../stores/useDeviceStore.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
@@ -18,7 +21,7 @@ import {
   SERVO_SPEED_PRESETS, trimsForProfile
 } from '../../../lib/mixerCatalog.coffee'
 import {
-  sampleWave, WAVEFORM_FIELDS, WAVEFORM_LIMITS
+  sampleWave, WAVEFORM_LIMITS
 } from '../../../simulation/waveform.coffee'
 import {
   AIRFRAME_FIELDS, AIRFRAME_LIMITS, MOUNT_FIELDS, MOUNT_LIMITS
@@ -29,7 +32,7 @@ import { getArrangement } from '../../../simulation/OrnithopterModel.coffee'
 Section = (props) ->
   h 'section', { className: 'orni-panel' },
     h 'header', { className: 'orni-panel-head' },
-      h 'span', { className: 'orni-glyph' }, props.glyph
+      h Icon, { name: props.icon, className: 'orni-glyph', size: 16 }
       h 'div', null,
         h 'h2', null, props.title
         h 'p', { className: 'orni-hermes' }, props.hermes
@@ -48,6 +51,45 @@ Field = (props) ->
 # Signed number — a + prefix only when the axis crosses zero.
 signedValue = (value, limits) ->
   "#{if limits.min < 0 and value > 0 then '+' else ''}#{value}"
+
+# ── Wave parameter pairs — one rail, two thumbs ──────────
+# Each pair is one DualRangeSlider: low = left thumb, high = right
+# thumb. The two halves of the stroke belong together; the shared
+# rail keeps them honest.
+WAVE_PAIRS = [
+  {
+    low: 'strokeFerocity'
+    high: 'returnFerocity'
+    label: 'Ferocity'
+    lowTag: 'Abwärts'
+    highTag: 'Aufwärts'
+    hermes: 'Dwell beider Schlaghälften auf einer Schiene.'
+  }
+  {
+    low: 'strokeSkew'
+    high: 'returnSkew'
+    label: 'Skew'
+    lowTag: 'Abwärts'
+    highTag: 'Aufwärts'
+    hermes: 'Schwerpunkt beider Hälften vorziehen oder verzögern.'
+  }
+  {
+    low: 'throttleSkewMix'
+    high: 'aileronSkewMix'
+    label: 'Skew-Mix'
+    lowTag: 'Gas'
+    highTag: 'Quer'
+    hermes: 'Gas und Roll verlagern den Schwerpunkt.'
+  }
+  {
+    low: 'throttleSkewRateMix'
+    high: 'aileronSkewRateMix'
+    label: 'Slew'
+    lowTag: 'Gas'
+    highTag: 'Quer'
+    hermes: 'Gas- und Roll-Änderungsrate kickt den Schwerpunkt.'
+  }
+]
 
 # ── Waveform widget — the stroke's shape drawn live ──────────
 WAVE_W = 340
@@ -132,6 +174,7 @@ OrnithopterView = ->
     # ── Page head ──────────────────────────────────────
     h 'header', { className: 'orni-page-head' },
       h 'div', null,
+        h ModuleIcon, { className: 'orni-head-icon', size: 28 }
         h 'h1', { className: 'orgone-display orgone-display-shimmer' },
           'GRUNDKONFIGURATION'
         h 'p', { className: 'orni-hermes' },
@@ -160,7 +203,7 @@ OrnithopterView = ->
     # ── Körperplan ─────────────────────────────────────
     if subtab is 'body'
       h Section,
-        glyph: '🪽'
+        icon: 'wing'
         title: 'Körperplan'
         hermes:
           'Kernel und Mixer: wie der Antrieb den Flügel spannt — ' +
@@ -242,7 +285,7 @@ OrnithopterView = ->
     # ── Flugwerk ──────────────────────────────────────
     if subtab is 'airframe'
       h Section,
-        glyph: '📐'
+        icon: 'ruler'
         title: 'Flugwerk'
         hermes:
           'Spannweite, Masse und Schwerpunkt — die Zelle, ' +
@@ -305,7 +348,7 @@ OrnithopterView = ->
     # ── Schlagkurve ───────────────────────────────────
     if subtab is 'wave'
       h Section,
-        glyph: '🌊'
+        icon: 'waves'
         title: 'Schlagkurve'
         hermes:
           'Abwärts und Aufwärts — je eigene Ferocity, je eigene ' +
@@ -322,28 +365,50 @@ OrnithopterView = ->
               h 'span', { className: 'orni-legend-dot orni-legend-return' },
                 'Aufwärts'
         h 'div', { className: 'orni-grid' },
-          for field in WAVEFORM_FIELDS
-            do (field) ->
-              limits = WAVEFORM_LIMITS[field.id]
-              value = activeWave[field.id]
+          h Field,
+            key: 'ferocityShapeMix'
+            label: 'Shape-Mix'
+            hermes: 'Platte (Rechteck) · Spitze (Dreieck).'
+          ,
+            h 'div', { className: 'orni-slider-row' },
+              h 'input',
+                className: 'orni-slider'
+                type: 'range'
+                min: WAVEFORM_LIMITS.ferocityShapeMix.min
+                max: WAVEFORM_LIMITS.ferocityShapeMix.max
+                value: activeWave.ferocityShapeMix
+                onChange: (e) ->
+                  orni.setWaveformParam(
+                    draft.activeProfile, 'ferocityShapeMix',
+                    Number e.target.value
+                  )
+              h 'span', { className: 'orni-value' },
+                "#{activeWave.ferocityShapeMix}"
+          for pair in WAVE_PAIRS
+            do (pair) ->
+              limits = WAVEFORM_LIMITS[pair.low]
+              lo = activeWave[pair.low]
+              hi = activeWave[pair.high]
               h Field,
-                key: field.id
-                label: field.label
-                hermes: field.hermes
+                key: pair.low
+                label: pair.label
+                hermes: pair.hermes
               ,
-                h 'div', { className: 'orni-slider-row' },
-                  h 'input',
-                    className: 'orni-slider'
-                    type: 'range'
-                    min: limits.min
-                    max: limits.max
-                    value: value
-                    onChange: (e) ->
-                      orni.setWaveformParam(
-                        draft.activeProfile, field.id, Number e.target.value
-                      )
-                  h 'span', { className: 'orni-value' },
-                    "#{if limits.min < 0 and value > 0 then '+' else ''}#{value}"
+                h DualRangeSlider,
+                  min: limits.min
+                  max: limits.max
+                  low: lo
+                  high: hi
+                  lowLabel: "#{pair.lowTag} #{lo}"
+                  highLabel: "#{pair.highTag} #{hi}"
+                  onLow: (v) ->
+                    orni.setWaveformParam(
+                      draft.activeProfile, pair.low, Number v
+                    )
+                  onHigh: (v) ->
+                    orni.setWaveformParam(
+                      draft.activeProfile, pair.high, Number v
+                    )
 
     h 'footer', { className: 'orni-foot' },
       h 'span', { className: 'orni-hermes' },

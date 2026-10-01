@@ -5,6 +5,7 @@ import { fmt0, floatFromEvent, intFromEvent } from '../../../lib/essential.coffe
 import useServoStore from '../../../stores/useServoStore.coffee'
 import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
 import { SERVO_PRESETS } from '../../../lib/servoCatalog.coffee'
+import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
 ~~~
 
 - store = useServoStore()
@@ -20,7 +21,9 @@ import { SERVO_PRESETS } from '../../../lib/servoCatalog.coffee'
 .morph-doc.layout-servos{ ref: hostRef }
   %header.morph-head
     %div.morph-head-title
-      %span.morph-kicker.orgone-kicker GRUNDKONFIGURATION · SERVOS
+      %span.morph-kicker.orgone-kicker
+        %ModuleIcon{ size: 13 }
+        = ' GRUNDKONFIGURATION · SERVOS'
       %h1.orgone-display.orgone-display-shimmer Servos
       %p.morph-hermes
         = "Coaxial servo deck — flap amplitude, WARP and per-pair geometry ride MSP 94/95; pulse envelopes ride MSP 120/212."
