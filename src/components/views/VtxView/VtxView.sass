@@ -1,191 +1,67 @@
 // VtxView · VTX band/channel/power document (MSP 88/89)
-// sidebar | frequency + clickable 5×8 band table
-.view-layout.layout-vtx
-  height: 100%
-  grid-template-columns: 240px 1fr
-  grid-template-rows: 1fr
-  grid-template-areas: "side vport"
+// Content body inside the SystemShell center column: controls card
+// above the live frequency block and the clickable 5×8 band table.
 
-  .view-area-side
-    grid-area: side
-    background: var(--of-glass-bg)
-    backdrop-filter: blur(12px)
-    -webkit-backdrop-filter: blur(12px)
-    border: 1px solid var(--of-border-1)
-    border-right: none
-    border-top: none
-    border-bottom: none
-    overflow-y: auto
+.system-frequency-block
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-2)
 
-  .view-area-vport
-    grid-area: vport
-    overflow-y: auto
+.vtx-frequency
+  font-size: 44px
+  font-weight: 200
+  letter-spacing: 0.02em
+  line-height: 1
+  color: var(--of-text-primary)
 
-  .vtx-side
-    display: flex
-    flex-direction: column
-    gap: 12px
-    padding: 12px
+.system-frequency-unit
+  font-size: 18px
+  margin-left: 8px
+  color: var(--of-text-muted)
 
-  .vtx-header
-    display: flex
-    align-items: center
-    gap: 8px
-    min-height: 20px
+.system-frequency-note
+  font-size: var(--of-text-sm)
+  color: var(--of-text-muted)
+  letter-spacing: 0.08em
 
-  .vtx-mode-badge
-    font-size: 10px
-    font-weight: 600
-    letter-spacing: 0.14em
-    padding: 3px 8px
-    border-radius: 999px
-    border: 1px solid var(--of-border-1)
-    color: var(--of-text-muted)
+.system-band-table
+  display: flex
+  flex-direction: column
+  gap: 4px
 
-    &.vtx-mode-sim
-      border-color: var(--of-accent-dim)
-      color: var(--of-accent)
+.system-band-table-head, .system-band-row
+  display: grid
+  grid-template-columns: 96px repeat(8, 1fr)
+  gap: 4px
 
-  .vtx-dirty-badge
-    font-size: 10px
-    font-weight: 600
-    letter-spacing: 0.14em
-    padding: 3px 8px
-    border-radius: 999px
-    border: 1px solid var(--of-accent)
+.system-band-corner, .system-band-colhead
+  font-size: 10px
+  text-align: center
+  color: var(--of-text-muted)
+  letter-spacing: 0.1em
+
+.system-band-name
+  display: flex
+  align-items: center
+  font-size: 11px
+  color: var(--of-text-muted)
+  letter-spacing: 0.08em
+
+.system-band-cell
+  padding: 8px 4px
+  text-align: center
+  font-size: 12px
+  border-radius: var(--of-radius-md)
+  border: 1px solid var(--of-border-1)
+  background: transparent
+  color: var(--of-text-secondary)
+  font-family: var(--of-font-body)
+  cursor: pointer
+  transition: border-color var(--of-dur-fast) var(--of-ease-out), color var(--of-dur-fast) var(--of-ease-out)
+
+  &:hover
+    border-color: var(--of-accent-dim)
+
+  &.vtx-band-cell-active
+    border-color: var(--of-accent)
     color: var(--of-accent)
-
-  .vtx-note
-    margin: 0
-    font-size: 12px
-    color: var(--of-text-muted)
-    line-height: 1.5
-
-  .vtx-control-row
-    display: flex
-    flex-direction: column
-    gap: 8px
-
-  .vtx-control
-    display: flex
-    flex-direction: column
-    gap: 4px
-
-  .vtx-control-label
-    font-size: 10px
-    letter-spacing: 0.12em
-    text-transform: uppercase
-    color: var(--of-text-muted)
-
-  .vtx-select, .vtx-freq-input
-    width: 100%
-    padding: 6px 8px
-    border-radius: 6px
-    border: 1px solid var(--of-border-1)
-    background: transparent
-    color: inherit
-    font: inherit
-    font-size: 12px
-
-    &:disabled
-      opacity: 0.4
-
-  .vtx-toggle-row
-    display: flex
-    align-items: center
-    gap: 8px
-    font-size: 12px
-    margin-top: 6px
-
-  .vtx-check
-    accent-color: var(--of-accent)
-
-  .vtx-actions
-    display: flex
-    flex-direction: column
-    gap: 6px
-    margin-top: auto
-
-  .vtx-action
-    padding: 7px 10px
-    border-radius: 6px
-    border: 1px solid var(--of-border-1)
-    background: transparent
-    color: inherit
-    font: inherit
-    font-size: 12px
-    cursor: pointer
-
-    &:hover:not(:disabled)
-      border-color: var(--of-accent)
-      color: var(--of-accent)
-
-    &:disabled
-      opacity: 0.4
-      cursor: default
-
-  .vtx-main
-    padding: 16px
-
-  .vtx-frequency-block
-    display: flex
-    flex-direction: column
-    gap: 6px
-    margin: 12px 0 20px
-
-  .vtx-frequency
-    font-size: 44px
-    font-weight: 200
-    letter-spacing: 0.02em
-    line-height: 1
-
-  .vtx-frequency-unit
-    font-size: 18px
-    margin-left: 8px
-    color: var(--of-text-muted)
-
-  .vtx-frequency-note
-    font-size: 12px
-    color: var(--of-text-muted)
-    letter-spacing: 0.08em
-
-  .vtx-band-table
-    display: flex
-    flex-direction: column
-    gap: 4px
-
-  .vtx-band-table-head, .vtx-band-row
-    display: grid
-    grid-template-columns: 96px repeat(8, 1fr)
-    gap: 4px
-
-  .vtx-band-corner, .vtx-band-colhead
-    font-size: 10px
-    text-align: center
-    color: var(--of-text-muted)
-    letter-spacing: 0.1em
-
-  .vtx-band-name
-    display: flex
-    align-items: center
-    font-size: 11px
-    color: var(--of-text-muted)
-    letter-spacing: 0.08em
-
-  .vtx-band-cell
-    padding: 8px 4px
-    text-align: center
-    font-size: 12px
-    border-radius: 6px
-    border: 1px solid var(--of-border-1)
-    background: transparent
-    color: inherit
-    font: inherit
-    cursor: pointer
-
-    &:hover
-      border-color: var(--of-accent-dim)
-
-    &.vtx-band-cell-active
-      border-color: var(--of-accent)
-      color: var(--of-accent)

@@ -1,11 +1,9 @@
 ~~~
-import useEngineStore from '../../../stores/useEngineStore.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import useDeviceStore from '../../../stores/useDeviceStore.coffee'
 ~~~
 
 - CHANS = ['Roll', 'Pitch', 'Yaw', 'Throttle', 'Aux 1', 'Aux 2', 'Aux 3', 'Aux 4']
-- sim = useEngineStore()
 - tele = useTelemetryStore()
 - device = useDeviceStore()
 - visibleChannels = if tele.rcChannels?.length then tele.rcChannels.slice(0, 16) else [0, 0, 0, 0]
@@ -15,21 +13,22 @@ import useDeviceStore from '../../../stores/useDeviceStore.coffee'
 - statusDisplay = if device.status?.armed then 'Armed · editing locked' else 'Disarmed'
 - linkDisplay = if tele.linkQuality then "#{Math.round(tele.linkQuality)}%" else 'Not reported by MSP'
 - updateDisplay = if tele.source == 'device' then 'Flight controller' else 'Waiting'
-.view-layout.layout-voice
-  %ViewArea{ area: 'proto' }
-    %Section{ heading: 'Receiver', subheading: 'Input transport and firmware mapping.' }
-      %ParamRow{ label: 'Source', display: sourceDisplay }
-      %ParamRow{ label: 'Channels', display: String(tele.rcChannels?.length || 0) }
-      %ParamRow{ label: 'Mapping', display: mappingDisplay }
-      %ParamRow{ label: 'Status', display: statusDisplay }
-  %ViewArea{ area: 'chans' }
-    %Section{ heading: 'Live Channels', subheading: 'Raw receiver pulse values from the controller.' }
-      - for value, i in visibleChannels
-        %ParamRow{ key: i, label: CHANS[i] || "CH#{i + 1}", display: channelDisplays[i] }
-  %ViewArea{ area: 'link' }
-    %Section{ heading: 'Link Quality', subheading: 'Signal health and diagnostics.' }
-      %ParamRow{ label: 'RSSI', display: "#{Math.round(tele.rssi || 0)}%" }
-      %ParamRow{ label: 'Link quality', display: linkDisplay }
-      %ParamRow{ label: 'Update source', display: updateDisplay }
-  %ViewArea{ area: 'bird' }
-    %PlotWorkspace{ workspace: 'receiver', history: tele.waveformHistory || [] }
+.system-view
+  .system-view-head
+    %h1.system-view-title Sprache
+  .system-columns
+    .system-stack
+      %Section{ heading: 'Receiver', subheading: 'Input transport and firmware mapping.' }
+        %ParamRow{ label: 'Source', display: sourceDisplay }
+        %ParamRow{ label: 'Channels', display: String(tele.rcChannels?.length || 0) }
+        %ParamRow{ label: 'Mapping', display: mappingDisplay }
+        %ParamRow{ label: 'Status', display: statusDisplay }
+      %Section{ heading: 'Link Quality', subheading: 'Signal health and diagnostics.' }
+        %ParamRow{ label: 'RSSI', display: "#{Math.round(tele.rssi || 0)}%" }
+        %ParamRow{ label: 'Link quality', display: linkDisplay }
+        %ParamRow{ label: 'Update source', display: updateDisplay }
+    .system-stack
+      %Section{ heading: 'Live Channels', subheading: 'Raw receiver pulse values from the controller.' }
+        - for value, i in visibleChannels
+          %ParamRow{ key: i, label: CHANS[i] || "CH#{i + 1}", display: channelDisplays[i] }
+  %PlotWorkspace{ workspace: 'receiver', history: tele.waveformHistory || [] }

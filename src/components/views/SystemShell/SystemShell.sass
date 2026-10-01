@@ -1,0 +1,150 @@
+// ═══════════════════════════════════════════
+// SystemShell — three-pane macOS shell
+//   sidebar | content | inspector
+// Sidebar + inspector are sticky: they pin below the floating
+// toolbar while the center content scrolls with #main-content
+// (so the Molt's morph choreography keeps its host).
+// ═══════════════════════════════════════════
+
+.system-shell
+  display: grid
+  grid-template-columns: var(--of-sidebar-width) minmax(0, 1fr) var(--of-inspector-width)
+  align-items: start
+  gap: var(--of-space-5)
+  padding: var(--of-space-6)
+  position: relative
+  z-index: 1
+
+.system-sidebar, .system-inspector
+  position: sticky
+  top: calc(var(--of-toolbar-height) + var(--of-space-4))
+  align-self: start
+  max-height: calc(100vh - var(--of-toolbar-height) - var(--of-dock-clearance) - var(--of-space-4))
+  overflow-y: auto
+  padding: var(--of-space-4)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-glass-radius)
+  background: var(--of-glass-bg)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  box-shadow: inset 0 1px 0 var(--of-glass-rim)
+
+.system-sidebar-head
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  padding: 2px 6px var(--of-space-4)
+  color: var(--of-text-primary)
+  font: 600 11px/1 var(--of-font-heading)
+  letter-spacing: .08em
+  text-transform: uppercase
+
+.system-nav
+  display: flex
+  flex-direction: column
+  gap: 2px
+
+.system-nav-item
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  padding: 7px 9px
+  border-radius: var(--of-radius-md)
+  color: var(--of-text-soft)
+  font-size: var(--of-text-sm)
+  font-family: var(--of-font-heading)
+  text-decoration: none
+  transition: background var(--of-dur-fast) var(--of-ease-out), color var(--of-dur-fast) var(--of-ease-out)
+
+  .of-icon
+    color: var(--of-text-muted)
+
+  &:hover
+    background: var(--of-glass-card-hover)
+    color: var(--of-text-primary)
+
+    .of-icon
+      color: var(--of-text-soft)
+
+  &.is-active
+    background: var(--of-accent-dim)
+    color: var(--of-accent)
+
+    .of-icon
+      color: var(--of-accent)
+
+.system-nav-label
+  flex: 1
+  min-width: 0
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.system-content
+  min-width: 0
+
+.system-inspector-row
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  padding: 3px 0
+  color: var(--of-text-secondary)
+  font-size: var(--of-text-sm)
+
+  .of-icon
+    color: var(--of-accent)
+
+.system-inspector-key
+  min-width: 60px
+  color: var(--of-text-muted)
+  font: 600 9px/1 var(--of-font-mono)
+  letter-spacing: .08em
+  text-transform: uppercase
+
+.system-conn
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  padding: 3px 0
+  color: var(--of-text-soft)
+  font: 600 10px/1 var(--of-font-heading)
+  letter-spacing: .06em
+
+.system-conn-dot
+  width: 7px
+  height: 7px
+  border-radius: 50%
+  background: var(--of-accent-amber)
+
+.system-conn.is-online .system-conn-dot
+  background: var(--of-accent-green)
+
+.system-safe
+  color: var(--of-accent-green)
+
+.system-armed
+  color: var(--of-accent-red)
+
+@media (max-width: 1100px)
+  .system-shell
+    grid-template-columns: var(--of-sidebar-width) minmax(0, 1fr)
+
+  .system-inspector
+    display: none
+
+@media (max-width: 760px)
+  .system-shell
+    grid-template-columns: 1fr
+    padding: var(--of-space-4)
+
+  .system-sidebar
+    position: static
+    max-height: none
+
+  .system-nav
+    flex-direction: row
+    flex-wrap: wrap
+    gap: 4px
+
+  .system-nav-item
+    padding: 5px 9px

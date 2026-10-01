@@ -7,7 +7,9 @@ import useAppStore from '../../../stores/useAppStore.coffee'
 - PROFILE_ICONS = ['🕊️', '🦅', '⚡', '🦉']
 - activeProfile = useAppStore (s) -> s.activeProfile
 - setActiveProfile = useAppStore (s) -> s.setActiveProfile
-.view-layout.layout-memory
-  - for entry, i in PROFILES
-    %ViewCard{ key: i, index: i }
-      %ProfileCard{ icon: PROFILE_ICONS[i] || '◇', title: entry[0], description: entry[1], index: i + 1, isActive: (i + 1 == activeProfile), onActivate: callWith(setActiveProfile, i + 1) }
+.system-view
+  .system-view-head
+    %h1.system-view-title Speicher
+  .system-memory-grid
+    - for entry, i in PROFILES
+      %ProfileCard{ key: i, icon: PROFILE_ICONS[i] || '◇', title: entry[0], description: entry[1], index: i + 1, isActive: (i + 1 == activeProfile), onActivate: callWith(setActiveProfile, i + 1) }

@@ -33,6 +33,7 @@ import AdjustmentsView from '../components/views/AdjustmentsView/AdjustmentsView
 import VoiceView from '../components/views/VoiceView/VoiceView.chaml'
 import MemoryView from '../components/views/MemoryView/MemoryView.chaml'
 import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
+import SystemShell from '../components/views/SystemShell/SystemShell.coffee'
 
 - useSimulation()
 - useBridge()
@@ -63,6 +64,7 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
 - `const controlRedirectEl = h(Navigate, { to: '/control/pid', replace: true })`
 - `const sensorsRedirectEl = h(Navigate, { to: '/sensors/hardware', replace: true })`
 - `const systemRedirectEl = h(Navigate, { to: '/system/device', replace: true })`
+- `const systemShellEl = h(SystemShell, null)`
 .studio-shell{ role: 'application', aria-label: 'OrniFlight Studio' }
   %FeatherField
   %a.skip-link{ href: '#main-content' }
@@ -88,16 +90,17 @@ import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
         %Route{ path: '/sensors', element: sensorsRedirectEl }
         %Route{ path: '/sensors/hardware', element: sensorsEl }
         %Route{ path: '/sensors/gyro', element: perceptionEl }
-        %Route{ path: '/system', element: systemRedirectEl }
-        %Route{ path: '/system/device', element: deviceEl }
-        %Route{ path: '/system/ports', element: portsEl }
-        %Route{ path: '/system/power', element: powerEl }
-        %Route{ path: '/system/vtx', element: vtxEl }
-        %Route{ path: '/system/osd', element: osdEl }
-        %Route{ path: '/system/voice', element: voiceEl }
-        %Route{ path: '/system/memory', element: memoryEl }
-        %Route{ path: '/system/flash', element: flashEl }
-        %Route{ path: '/system/data', element: dataEl }
+        %Route{ path: '/system', element: systemShellEl }
+          %Route{ index: true, element: systemRedirectEl }
+          %Route{ path: 'device', element: deviceEl }
+          %Route{ path: 'ports', element: portsEl }
+          %Route{ path: 'power', element: powerEl }
+          %Route{ path: 'vtx', element: vtxEl }
+          %Route{ path: 'osd', element: osdEl }
+          %Route{ path: 'voice', element: voiceEl }
+          %Route{ path: 'memory', element: memoryEl }
+          %Route{ path: 'flash', element: flashEl }
+          %Route{ path: 'data', element: dataEl }
         %Route{ path: '/safety', element: safetyEl }
         %Route{ path: '/cli', element: cliEl }
   %Dock

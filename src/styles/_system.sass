@@ -1,0 +1,165 @@
+// ═══════════════════════════════════════════
+// System module — shared content primitives.
+// The three-pane SystemShell renders Vtx/Ports/Power/Voice/Memory
+// into its center column; these primitives give them one vocabulary.
+// ═══════════════════════════════════════════
+
+.system-view
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-6)
+  min-width: 0
+  padding-bottom: var(--of-space-8)
+
+.system-view-head
+  display: flex
+  align-items: center
+  flex-wrap: wrap
+  gap: var(--of-space-4)
+
+.system-view-badges
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+
+.system-view-title
+  margin: 0
+  margin-right: auto
+  color: var(--of-text-primary)
+  font: 600 20px/1.1 var(--of-font-heading)
+  letter-spacing: .02em
+
+.system-mode-badge
+  padding: 4px 9px
+  border: 1px solid var(--of-border-2)
+  border-radius: 999px
+  color: var(--of-text-muted)
+  font: 600 10px/1 var(--of-font-heading)
+  letter-spacing: .12em
+
+  &.system-mode-sim
+    border-color: var(--of-accent-dim)
+    color: var(--of-accent)
+
+  &.system-mode-device
+    border-color: var(--of-accent-green)
+    color: var(--of-accent-green)
+
+.system-dirty-badge
+  padding: 4px 9px
+  border: 1px solid var(--of-accent-amber)
+  border-radius: 999px
+  color: var(--of-accent-amber)
+  font: 600 10px/1 var(--of-font-heading)
+  letter-spacing: .12em
+
+.system-view-actions
+  display: flex
+  flex-wrap: wrap
+  gap: var(--of-space-3)
+
+.system-action
+  padding: 7px 12px
+  border: 1px solid var(--of-border-2)
+  border-radius: var(--of-radius-md)
+  background: var(--of-glass-card)
+  color: var(--of-text-secondary)
+  font: 600 11px/1 var(--of-font-heading)
+  letter-spacing: .04em
+  cursor: pointer
+  transition: border-color var(--of-dur-fast) var(--of-ease-out), color var(--of-dur-fast) var(--of-ease-out)
+
+  &:hover:not(:disabled)
+    border-color: var(--of-accent)
+    color: var(--of-accent)
+
+  &:disabled
+    opacity: .45
+    cursor: default
+
+  &-read
+    border-color: var(--of-accent)
+    color: var(--of-accent)
+
+  &-save
+    border-color: var(--of-accent-green)
+    color: var(--of-accent-green)
+
+.system-note
+  margin: 0
+  color: var(--of-text-soft)
+  font-size: var(--of-text-sm)
+  line-height: 1.5
+
+.system-card
+  padding: var(--of-space-5)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-glass-radius)
+  background: var(--of-glass-card)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  box-shadow: inset 0 1px 0 var(--of-glass-rim)
+
+.system-card-grid
+  display: grid
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr))
+  gap: var(--of-space-5)
+
+.system-field
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-2)
+  min-width: 0
+
+.system-field-label
+  color: var(--of-text-muted)
+  font: 600 10px/1 var(--of-font-heading)
+  letter-spacing: .1em
+  text-transform: uppercase
+
+.system-field select, .system-field input
+  width: 100%
+  padding: 7px 9px
+  border: 1px solid var(--of-border-2)
+  border-radius: var(--of-radius-md)
+  background: var(--of-surface-1)
+  color: var(--of-text-primary)
+  font: var(--of-text-sm)/1 var(--of-font-body)
+
+  &:focus
+    outline: none
+    border-color: var(--of-accent)
+
+  &:disabled
+    opacity: .4
+
+.system-toggle-row
+  display: flex
+  flex-wrap: wrap
+  gap: var(--of-space-6)
+  margin-top: var(--of-space-5)
+
+.system-toggle
+  display: flex
+  align-items: center
+  gap: var(--of-space-3)
+  color: var(--of-text-secondary)
+  font-size: var(--of-text-sm)
+  cursor: pointer
+
+.system-check
+  accent-color: var(--of-accent)
+
+// Two-column editorial split used by content bodies.
+.system-columns
+  display: grid
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr))
+  gap: var(--of-space-5)
+  align-items: start
+
+// Vertical stack inside one editorial column.
+.system-stack
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-5)
+  min-width: 0

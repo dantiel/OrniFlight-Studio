@@ -1,6 +1,5 @@
 ~~~
 import { memo } from 'react'
-import './PowerView.sass'
 import usePowerStore from '../../../stores/usePowerStore.coffee'
 ~~~
 
@@ -11,28 +10,26 @@ import usePowerStore from '../../../stores/usePowerStore.coffee'
 - log = (label) -> (error) -> console.error label, error
 - readFromDevice = -> store.loadFromDevice().catch log 'Power read failed'
 - saveToDevice = -> store.save().catch log 'Power save failed'
-.view-layout.layout-power
-  %ViewArea{ area: 'side' }
-    .power-side
-      .power-header
-        %span.power-mode-badge{ className: "power-mode-#{store.mode}" }
-          = modeLabel
-        - if store.dirty
-          %span.power-dirty-badge DIRTY
-      %Section{ heading: 'Power', subheading: 'Battery thresholds, capacity and onboard meter calibration — MSP 32/33, 40/41, 56/57.' }
-        %p.power-note
-          = "All three documents ride the wire format exactly. Every save runs SET + EEPROM_WRITE and verifies the read-back; writes lock while armed."
-      - if store.lastError
-        %div.power-error{ role: 'alert' }
-          = store.lastError
-      .power-actions
-        %button.power-action.power-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
-          Read device
-        %button.power-action.power-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
-          Save
-        %button.power-action.power-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
-          Revert
-  %ViewArea{ area: 'vport' }
-    .power-main
-      %BatteryPanel
-      %PowerMeterPanel
+.system-view
+  .system-view-head
+    .system-view-badges
+      %span.system-mode-badge{ className: "system-mode-#{store.mode}" }
+        = modeLabel
+      - if store.dirty
+        %span.system-dirty-badge DIRTY
+    %h1.system-view-title Power
+    .system-view-actions
+      %button.system-action.system-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
+        Read device
+      %button.system-action.system-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
+        Save
+      %button.system-action.system-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
+        Revert
+  %p.system-note
+    = "All three documents ride the wire format exactly. Every save runs SET + EEPROM_WRITE and verifies the read-back; writes lock while armed."
+  - if store.lastError
+    %div.power-error{ role: 'alert' }
+      = store.lastError
+  .system-columns
+    %BatteryPanel
+    %PowerMeterPanel
