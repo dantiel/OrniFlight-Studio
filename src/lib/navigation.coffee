@@ -26,36 +26,36 @@ MODULES = [
 
 SUBTABS =
   basic: [
-    ['/basic/body',     'Körperplan']
-    ['/basic/airframe', 'Flugwerk']
-    ['/basic/wave',     'Schlagkurve']
+    ['/basic/body',     'Körperplan', 'body']
+    ['/basic/airframe', 'Flugwerk',   'airframe']
+    ['/basic/wave',     'Schlagkurve', 'waves']
   ]
-  profiles: [['/profiles', 'Profile']]
-  servos:   [['/servos', 'Servos']]
+  profiles: [['/profiles', 'Profile', 'layers']]
+  servos:   [['/servos', 'Servos', 'gear']]
   control: [
-    ['/control/pid',         'PID']
-    ['/control/math',        'Math']
-    ['/control/modes',       'Modi']
-    ['/control/receiver',    'Empfänger']
-    ['/control/adjustments', 'Justierung']
+    ['/control/pid',         'PID',        'gauge']
+    ['/control/math',        'Math',       'function']
+    ['/control/modes',       'Modi',       'toggle']
+    ['/control/receiver',    'Empfänger',  'antenna']
+    ['/control/adjustments', 'Justierung', 'wrench']
   ]
   sensors: [
-    ['/sensors/hardware', 'Sensoren']
-    ['/sensors/gyro',     'Gyro']
+    ['/sensors/hardware', 'Sensoren', 'chip']
+    ['/sensors/gyro',     'Gyro',     'gyro']
   ]
   system: [
-    ['/system/device', 'Gerät']
-    ['/system/ports',  'Ports']
-    ['/system/power',  'Power']
-    ['/system/vtx',    'VTX']
-    ['/system/osd',    'OSD']
-    ['/system/voice',  'Sprache']
-    ['/system/memory', 'Speicher']
-    ['/system/flash',  'The Molt']
-    ['/system/data',   'Daten']
+    ['/system/device', 'Gerät',    'device']
+    ['/system/ports',  'Ports',    'ports']
+    ['/system/power',  'Power',    'battery']
+    ['/system/vtx',    'VTX',      'broadcast']
+    ['/system/osd',    'OSD',      'overlay']
+    ['/system/voice',  'Sprache',  'voice']
+    ['/system/memory', 'Speicher', 'memory']
+    ['/system/flash',  'The Molt', 'bolt']
+    ['/system/data',   'Daten',    'data']
   ]
-  safety: [['/safety', 'Failsafe']]
-  cli:    [['/cli', 'CLI']]
+  safety: [['/safety', 'Failsafe', 'shield']]
+  cli:    [['/cli', 'CLI', 'terminal']]
 
 # Canonical path (module root or sub-view) → module id.
 PATH_TO_MODULE = {}
@@ -91,4 +91,18 @@ activeModuleForPath = (path) ->
   mod = MODULE_BY_ID[id]
   { id, path: mod.path, label: mod.label, icon: mod.icon }
 
-export { MODULES, SUBTABS, moduleIdForPath, subtabsForPath, activeModuleForPath }
+# Active sub-view descriptor for the given path. Each sub-view carries its
+# own icon — a headline shows the sub-view's glyph, not the parent module's.
+# Falls back to the module descriptor when the path is a module root.
+activeSubtabForPath = (path) ->
+  id = moduleIdForPath path
+  p = path or '/'
+  p = p.slice 0, -1 if p.length > 1 and p.endsWith '/'
+  for [subPath, label, icon] in (SUBTABS[id] ? [])
+    return { id, path: subPath, label, icon } if subPath is p
+  activeModuleForPath p
+
+export {
+  MODULES, SUBTABS, moduleIdForPath, subtabsForPath,
+  activeModuleForPath, activeSubtabForPath
+}
