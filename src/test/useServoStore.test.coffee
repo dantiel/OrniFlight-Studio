@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import useServoStore from '../stores/useServoStore.coffee'
-import { engine } from '../simulation/engine.coffee'
+import useServoStore, {
+  SURFACE_DEFAULTS, CONTROL_SURFACE_IDS
+} from '../stores/useServoStore.coffee'
+import { INPUT_SOURCES, inputSourceById } from '../lib/servoCatalog.coffee'
 
 describe 'useServoStore', ->
   store = useServoStore
@@ -8,78 +10,49 @@ describe 'useServoStore', ->
 
   beforeEach -> state().reset()
 
-  it 'starts in sim mode with 8 servos and 16 mix rules', ->
+  it 'starts in sim mode with a control-surface map', ->
     expect(state().mode).toBe 'sim'
     expect(state().dirty).toBe false
-    expect(state().draft.servos).toHaveLength 8
-    expect(state().draft.mixRules).toHaveLength 16
-    expect(state().draft.wing.servoMountAngle).toHaveLength 4
+    expect(state().draft.surfaces).toBeDefined()
+    for id in CONTROL_SURFACE_IDS
+      expect(state().draft.surfaces[id].inputSource).toBe(
+        SURFACE_DEFAULTS[id].inputSource
+      )
 
-  it 'clamps servo PWM fields and mirrors into the engine', ->
-    state().setServoField 0, 'min', 400
-    state().setServoField 0, 'max', 3000
-    state().setServoField 0, 'middle', 1520
-    state().setServoField 0, 'rate', 90
-    servo = state().draft.servos[0]
-    expect(servo.min).toBe 500
-    expect(servo.max).toBe 2500
-    expect(servo.middle).toBe 1520
-    expect(servo.rate).toBe 90
+  it 'assigns a named input source to a surface', ->
+    state().setSurfaceSource 'rudder', 'stabYaw'
+    expect(state().draft.surfaces.rudder.inputSource).toBe 'stabYaw'
     expect(state().dirty).toBe true
-    expect(engine.servos[0].min).toBe 500
-    expect(engine.servos[0].max).toBe 2500
-    expect(engine.servos[0].midpoint).toBe 1520
-    expect(engine.servos[0].rate).toBe 90
 
-  it 'loads a servo preset pulse envelope into one slot', ->
-    state().applyServoPreset 0, 'kst-x06'
-    servo = state().draft.servos[0]
-    expect(servo.min).toBe 880
-    expect(servo.max).toBe 2160
-    expect(servo.middle).toBe 1520
-    expect(servo.rate).toBe 100
+  it 'assigns a target channel to a surface', ->
+    state().setSurfaceChannel 'rudder', 3
+    expect(state().draft.surfaces.rudder.targetChannel).toBe 3
     expect(state().dirty).toBe true
-    expect(engine.servos[0].min).toBe 880
 
-  it 'ignores unknown or out-of-range servo presets', ->
-    state().applyServoPreset 0, 'astral'
-    state().applyServoPreset 8, 'kst-x06'
-    state().applyServoPreset -1, 'kst-x06'
+  it 'clamps the target channel to the servo domain', ->
+    state().setSurfaceChannel 'motor', 99
+    expect(state().draft.surfaces.motor.targetChannel).toBe 7
+    state().setSurfaceChannel 'motor', -3
+    expect(state().draft.surfaces.motor.targetChannel).toBe 0
+
+  it 'ignores unknown surfaces and unknown sources', ->
+    state().setSurfaceSource 'astral', 'stabYaw'
+    state().setSurfaceSource 'rudder', 'astral'
+    state().setSurfaceChannel 'astral', 3
     expect(state().dirty).toBe false
-
-  it 'clamps the glide degree', ->
-    state().setGlide 200
-    expect(state().draft.glide).toBe 90
-    state().setGlide -200
-    expect(state().draft.glide).toBe -90
-
-  it 'clamps signed and unsigned mix rule fields', ->
-    state().setMixRuleField 0, 'rate', 999
-    expect(state().draft.mixRules[0].rate).toBe 125
-    state().setMixRuleField 0, 'max', -50
-    expect(state().draft.mixRules[0].max).toBe -50
-    state().setMixRuleField 0, 'box', 42
-    expect(state().draft.mixRules[0].box).toBe 42
-
-  it 'clamps wing fields by their wire domain', ->
-    state().setWingField 'warpGain', 500
-    expect(state().draft.wing.warpGain).toBe 127
-    state().setWingField 'anchorGain', 500
-    expect(state().draft.wing.anchorGain).toBe 100
-    state().setWingPairField 'servoMountAngle', 1, -300
-    expect(state().draft.wing.servoMountAngle[1]).toBe -128
+    expect(state().draft.surfaces.rudder.inputSource).toBe 'stabYaw'
 
   it 'revert restores the last saved document', ->
-    state().setGlide 30
+    state().setSurfaceChannel 'rudder', 5
     state().revert()
     expect(state().dirty).toBe false
-    expect(state().draft.glide).toBe 0
+    expect(state().draft.surfaces.rudder.targetChannel).toBe 0
 
   it 'save commits locally in sim mode without a session', ->
-    state().setServoField 1, 'middle', 1480
+    state().setSurfaceSource 'rudder', 'rcYaw'
     await state().save()
     expect(state().dirty).toBe false
-    expect(state().saved.servos[1].middle).toBe 1480
+    expect(state().saved.surfaces.rudder.inputSource).toBe 'rcYaw'
 
   it 'rejects device writes before a device read', ->
     session = deviceSession {}
@@ -89,33 +62,33 @@ describe 'useServoStore', ->
       'Read the device before writing'
     )
 
-  it 'loads the servo document from the device', ->
-    configs = [{
-      index: 0, min: 1050, max: 1950, middle: 1510, rate: 80
-      forwardFromChannel: 0, reversedSources: 0
-    }]
+  it 'loads the surface mapping from device mix rules', ->
     session = deviceSession {
-      configs
-      glide: 15
+      rules: [
+        { index: 0, targetChannel: 2, inputSource: 3 }   # rudder → Gier
+        { index: 1, targetChannel: 1, inputSource: 2 }   # elevator → Nick
+      ]
     }
     draft = await state().loadFromDevice session
     expect(state().mode).toBe 'device'
     expect(state().loadedSession).toBe true
-    expect(draft.glide).toBe 15
-    expect(draft.servos[0].min).toBe 1050
-    expect(draft.servos).toHaveLength 8
+    expect(draft.surfaces.rudder.targetChannel).toBe 2
+    expect(draft.surfaces.rudder.inputSource).toBe 'stabYaw'
+    expect(draft.surfaces.elevator.inputSource).toBe 'stabPitch'
     expect(state().dirty).toBe false
 
-  it 'writes every servo and the glide degree on device save', ->
+  it 'writes one mix rule per surface on device save', ->
     writes = []
     session = deviceSession { log: writes }
     await state().loadFromDevice session
-    state().setGlide 25
+    state().setSurfaceSource 'rudder', 'rcYaw'
     await state().save()
-    expect(writes.filter((w) -> w[0] == 'servo')).toHaveLength 8
-    expect(writes.filter((w) -> w[0] == 'rule')).toHaveLength 16
-    expect(writes).toContainEqual ['glide', 25]
-    expect(writes).toContainEqual ['wing', state().saved.wing]
+    expect(writes).toHaveLength CONTROL_SURFACE_IDS.length
+    first = writes[0]
+    expect(first[0]).toBe 'rule'
+    expect(first[1]).toBe 0
+    expect(first[2].targetChannel).toBe 0
+    expect(first[2].inputSource).toBe inputSourceById('rcYaw').code
     expect(state().dirty).toBe false
 
   it 'throws when saving in device mode without a session', ->
@@ -127,77 +100,15 @@ describe 'useServoStore', ->
       'Unknown servo mode'
     )
 
-  it 'clamps full-u8 wing fields to their wire domain', ->
-    state().setWingField 'servoMaxAmplitude', 300
-    expect(state().draft.wing.servoMaxAmplitude).toBe 255
-    state().setWingField 'flapMagnitude', -10
-    expect(state().draft.wing.flapMagnitude).toBe 0
-    state().setWingField 'itermRelaxCutoff', 999
-    expect(state().draft.wing.itermRelaxCutoff).toBe 255
-    state().setWingField 'freqMax', 42
-    expect(state().draft.wing.freqMax).toBe 42
-    state().setWingField 'profileIndex', 9
-    expect(state().draft.wing.profileIndex).toBe 3
-
-  it 'keeps unsigned gain fields bounded to 0..100', ->
-    state().setWingField 'anchorGain', 300
-    expect(state().draft.wing.anchorGain).toBe 100
-    state().setWingField 'ssff', 300
-    expect(state().draft.wing.ssff).toBe 100
-
-  it 'ignores out-of-range servo and mix-rule indices', ->
-    state().setServoField 8, 'min', 1200
-    state().setServoField -1, 'min', 1200
-    state().setMixRuleField 16, 'rate', 50
-    state().setMixRuleField -1, 'rate', 50
-    expect(state().dirty).toBe false
-    expect(state().draft.servos[0].min).not.toBe 1200
-
-  it 'ignores unknown field names', ->
-    state().setServoField 0, 'astral', 1200
-    state().setMixRuleField 0, 'astral', 1200
-    state().setWingField 'astral', 1200
-    state().setWingPairField 'astral', 0, 1200
-    state().setWingPairField 'servoMountAngle', 4, 1200
-    expect(state().dirty).toBe false
-
-  it 'ignores inherited object keys as wing fields', ->
-    for field in ['constructor', '__proto__', 'toString', 'hasOwnProperty']
-      state().setWingField field, 1200
-    expect(state().dirty).toBe false
-    keys = Object.keys state().draft.wing
-    expect(keys).not.toContain 'constructor'
-    expect(keys).not.toContain 'toString'
-    expect(state().draft.wing.anchorGain).toBe 50
-
-  it 'degrades non-finite inputs to the lower bound', ->
-    state().setServoField 0, 'min', NaN
-    expect(state().draft.servos[0].min).toBe 500
-    state().setGlide NaN
-    expect(state().draft.glide).toBe -90
-    state().setWingField 'warpGain', Infinity
-    expect(state().draft.wing.warpGain).toBe -128
+  it 'exposes a named input-source vocabulary', ->
+    for source in INPUT_SOURCES
+      expect(inputSourceById(source.id)).toBeDefined()
+    expect(inputSourceById('stabYaw').code).toBe 3
 
 deviceSession = (options = {}) ->
   {
-    readServoConfigurations: -> Promise.resolve options.configs ? []
-    readServoTuning: -> Promise.resolve {
-      glide: options.glide ? 0, cadence: 30, ferocityD: 40, balance: 10
-    }
-    readServoMixRules: -> Promise.resolve []
-    readWingMapping: -> Promise.resolve {
-      prefix: [], appendix: null, tail: []
-    }
-    writeServoConfiguration: (index, config) ->
-      options.log?.push ['servo', index]
-      Promise.resolve { index, config }
-    writeGlideDegree: (glide) ->
-      options.log?.push ['glide', glide]
-      Promise.resolve glide
+    readServoMixRules: -> Promise.resolve options.rules ? []
     writeServoMixRule: (index, rule) ->
-      options.log?.push ['rule', index]
+      options.log?.push ['rule', index, rule]
       Promise.resolve { index, rule }
-    writeWingMapping: (appendix) ->
-      options.log?.push ['wing', appendix]
-      Promise.resolve appendix
   }

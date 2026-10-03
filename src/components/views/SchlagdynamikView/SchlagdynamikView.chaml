@@ -1,57 +1,55 @@
 ~~~
 import { useRef } from 'react'
-import { Link } from 'react-router-dom'
-import './MathView.sass'
-import useTuningStore from '../../../stores/useTuningStore.coffee'
+import './SchlagdynamikView.sass'
 import useOrnithopterStore from '../../../stores/useOrnithopterStore.coffee'
 import useScrollMorph, { scrollMorphTo } from '../../../hooks/useScrollMorph.coffee'
-import { ondasHandlers } from '../PidTuningView/fieldHandlers.coffee'
+import { ondasHandlers } from './handlers.coffee'
 import MathChain from './MathChain.coffee'
 import MathLayerStack from './MathLayerStack.coffee'
 import MathEspelho from './MathEspelho.coffee'
 import MathWaveform from './MathWaveform.coffee'
+import ProfileSelector from '../../primitives/ProfileSelector/ProfileSelector.coffee'
 import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
 ~~~
 
-- store = useTuningStore()
 - orni = useOrnithopterStore()
 - hostRef = useRef(null)
 - useScrollMorph(hostRef)
-- draft = store.draft
 - profileIndex = orni.draft.activeProfile
-- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
-- readDisabled = store.mode != 'device' or !store.session
-- saveDisabled = store.mode == 'device' and !store.loadedSession
+- ondas = orni.draft.profiles[profileIndex].ondas
+- modeLabel = if orni.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- readDisabled = orni.mode != 'device' or !orni.session
+- saveDisabled = orni.mode == 'device' and !orni.loadedSession
 .morph-doc.layout-math{ ref: hostRef }
   %header.morph-head
     %div.morph-head-title
       %span.morph-kicker.orgone-kicker
-        = ' STEUERUNG · ONDAS MATHEMATIK'
+        = ' STEUERUNG · SCHLAGDYNAMIK'
       %h1.orgone-display.orgone-display-shimmer
         %ModuleIcon{ className: 'morph-head-glyph', size: 30 }
-        %span Math
+        %span Schlagdynamik
       %p.morph-hermes
-        = "Die Mathematik-Suite des Vogels: achtzehn Parameter in zehn gekoppelten Schichten — vom PID-Fehler zur phasengekoppelten Schlagbewegung. Jede Schicht trägt Vorzeichen, Einheit und ihre Rolle; der Espelho-Spiegel liest die Schlag-Asymmetrie live."
+        = "Die Schlagmathematik des Vogels: achtzehn Parameter in zehn gekoppelten Schichten — vom PID-Fehler zur phasengekoppelten Schlagbewegung. Jede Schicht trägt Vorzeichen, Einheit und ihre Rolle; der Espelho-Spiegel liest die Schlag-Asymmetrie live."
   .morph-deck.math-deck
-    %span.math-mode-badge{ className: "math-mode-#{store.mode}" }
+    %span.math-mode-badge{ className: "math-mode-#{orni.mode}" }
       = modeLabel
+    %ProfileSelector
     %span.math-profile-chip
-      %Link{ to: '/profiles', className: 'math-profile-link' }
-        = "Profil #{profileIndex + 1} · ONDAS-Ziel"
-    - if store.dirty
+      = "Profil #{profileIndex + 1} · ONDAS-Ziel"
+    - if orni.dirty
       %span.math-dirty-badge DIRTY
     .math-actions
       %button.math-action{ type: 'button',
-                            onClick: (-> store.loadFromDevice().catch (-> null)),
+                            onClick: (-> orni.loadFromDevice().catch (-> null)),
                             disabled: readDisabled }
         Read device
       %button.math-action{ type: 'button',
-                            onClick: (-> store.save().catch (-> null)),
+                            onClick: (-> orni.save().catch (-> null)),
                             disabled: saveDisabled }
         Save
       %button.math-action{ type: 'button',
-                            onClick: (-> store.revert()),
-                            disabled: !store.dirty }
+                            onClick: (-> orni.revert()),
+                            disabled: !orni.dirty }
         Revert
       %button.math-action.math-action-spot{ type: 'button',
                                             onClick: (-> scrollMorphTo 'math-espelho-diag') }
@@ -63,6 +61,6 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
       .morph-section.math-chain
         %Section{ heading: 'Signal Chain',
                   subheading: 'Zehn Schichten in Flugrichtung — vom Regelfehler zur Schlagbewegung. Ein Klick bringt die Schicht in Sicht.' }
-          %MathChain{ draft: draft }
-      %MathLayerStack{ draft: draft, onInput: ondasHandlers }
+          %MathChain{ ondas: ondas }
+      %MathLayerStack{ ondas: ondas, onInput: ondasHandlers }
   %MathEspelho

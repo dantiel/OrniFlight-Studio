@@ -26,6 +26,10 @@ import {
   WAVEFORM_DEFAULTS, WAVEFORM_LIMITS
 } from '../simulation/waveform.coffee'
 import {
+  ONDAS_DEFAULTS, ONDAS_KEYS
+} from '../protocol/mspDecoders.coffee'
+import { MATH_PARAMS } from '../lib/mathSuite.coffee'
+import {
   AIRFRAME_LIMITS, MOUNT_LIMITS, MOUNT_PAIRS, defaultAirframe
 } from '../lib/airframeCatalog.coffee'
 
@@ -38,6 +42,13 @@ export PROFILE_COUNT = 4
 WAVEFORM_KEYS = Object.keys WAVEFORM_DEFAULTS
 AIRFRAME_FIELD_NAMES = Object.keys AIRFRAME_LIMITS
 MOUNT_FIELD_NAMES = Object.keys MOUNT_LIMITS
+# Flapping wing geometry — the wing-mapping appendix minus the legacy
+# ONDAS-dup gain fields (those are the per-profile ONDAS suite now).
+WING_PAIR_COUNT = 4
+WING_FIELD_NAMES = ['flapBaseAmplitude', 'freqMin', 'freqMax']
+WING_PAIR_FIELD_NAMES = [
+  'servoMountAngle', 'flappingPhaseShift', 'wingOriginOffset'
+]
 
 TRIM_FIELDS = [
   'leftWing', 'rightWing', 'rudder', 'backLeftWing'
@@ -62,6 +73,35 @@ defaultProfile = ->
   glideAngle: -30
   flappingAngle: 0
   waveform: { WAVEFORM_DEFAULTS... }
+  ondas: { ONDAS_DEFAULTS... }
+
+# Wing geometry + amplitude — global flapping config (firmware keeps it
+# on the wing-mapping appendix, NOT per-profile).
+defaultWing = ->
+  flapBaseAmplitude: 45
+  servoMountAngle: [0, 0, 0, 0]
+  flappingPhaseShift: [0, 0, 0, 0]
+  wingOriginOffset: [0, 0, 0, 0]
+  freqMin: 3
+  freqMax: 8
+
+normalizeWing = (appendix = {}) ->
+  base = defaultWing()
+  base.flapBaseAmplitude = finiteOr base.flapBaseAmplitude, appendix.flapBaseAmplitude
+  base.freqMin = finiteOr base.freqMin, appendix.freqMin
+  base.freqMax = finiteOr base.freqMax, appendix.freqMax
+  for field in WING_PAIR_FIELD_NAMES
+    source = appendix[field]
+    for i in [0...WING_PAIR_COUNT]
+      base[field][i] = finiteOr base[field][i], source?[i]
+  base
+
+normalizeOndas = (ondas = {}) ->
+  out = {}
+  for key in ONDAS_KEYS
+    { min, max } = MATH_PARAMS[key]
+    out[key] = clampInt min, max, ondas[key] ? ONDAS_DEFAULTS[key]
+  out
 
 defaultDraft = ->
   modelName: 'Orni I'
@@ -77,6 +117,7 @@ defaultDraft = ->
     vtailRight: 0
     elevator: 0
   airframe: defaultAirframe()
+  wing: defaultWing()
   profiles: (defaultProfile() for i in [0...PROFILE_COUNT])
   activeProfile: 0
 
@@ -113,6 +154,9 @@ mirrorToEngine = (draft) ->
     engine.setFlappingAngle i, draft.profiles[i].flappingAngle
     for k in WAVEFORM_KEYS
       engine.setFlightProfileParam i, k, draft.profiles[i].waveform[k]
+  # ONDAS — the active profile's math soul breathes into the engine.
+  for k in ONDAS_KEYS
+    engine.setOndasParam k, draft.profiles[draft.activeProfile].ondas[k]
   engine.applyFlightProfile draft.activeProfile
 
 useOrnithopterStore = create (set, get) ->
@@ -209,6 +253,41 @@ useOrnithopterStore = create (set, get) ->
       draft: { get().draft..., activeProfile: index }
       dirty: true
     engine.applyFlightProfile index
+    for k in ONDAS_KEYS
+      engine.setOndasParam k, get().draft.profiles[index].ondas[k]
+
+  setOndasParam: (index, key, value) ->
+    return unless 0 <= index < PROFILE_COUNT
+    return unless key in ONDAS_KEYS
+    { min, max } = MATH_PARAMS[key]
+    profiles = clone get().draft.profiles
+    profiles[index].ondas[key] = clampInt min, max, value
+    set
+      draft: { get().draft..., profiles }
+      dirty: true
+    if index is get().draft.activeProfile
+      engine.setOndasParam key, profiles[index].ondas[key]
+
+  setWingField: (field, value) ->
+    return unless field in WING_FIELD_NAMES
+    wing = clone get().draft.wing
+    if field is 'flapBaseAmplitude'
+      wing[field] = clampInt -128, 127, value
+    else
+      wing[field] = clampInt 0, 255, value
+    set
+      draft: { get().draft..., wing }
+      dirty: true
+
+  setWingPairField: (field, index, value) ->
+    return unless field in WING_PAIR_FIELD_NAMES
+    return unless 0 <= index < WING_PAIR_COUNT
+    wing = clone get().draft.wing
+    wing[field] = clone wing[field]
+    wing[field][index] = clampInt -128, 127, value
+    set
+      draft: { get().draft..., wing }
+      dirty: true
 
   setAirframeField: (field, value) ->
     return unless field in AIRFRAME_FIELD_NAMES
@@ -250,6 +329,8 @@ useOrnithopterStore = create (set, get) ->
       await session.writeGlideDegree(
         draft.profiles[draft.activeProfile].glideAngle
       )
+      await session.writeOndas draft.profiles[draft.activeProfile].ondas
+      await session.writeWingMapping draft.wing
     else
       mirrorToEngine draft
     saved = clone draft
@@ -272,6 +353,8 @@ useOrnithopterStore = create (set, get) ->
     throw new Error 'No device session attached' unless session?
     configs = await session.readServoConfigurations()
     tuning = await session.readServoTuning()
+    tuningDoc = await session.readTuning()
+    wingEnvelope = await session.readWingMapping()
     draft = clone get().draft
     if configs.length
       rate = finiteOr 220, configs[0]?.rate
@@ -279,6 +362,9 @@ useOrnithopterStore = create (set, get) ->
       draft.servoSpeed = clampInt SPEED_LIMITS..., msPer60
     draft.profiles[draft.activeProfile].glideAngle =
       clampInt GLIDE_LIMITS..., tuning?.glide ? 0
+    draft.profiles[draft.activeProfile].ondas =
+      normalizeOndas tuningDoc?.ondas
+    draft.wing = normalizeWing wingEnvelope?.appendix
     set {
       mode: 'device'
       session

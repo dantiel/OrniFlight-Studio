@@ -2,60 +2,82 @@ import { render, screen, fireEvent, within } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import App from '../app/App.chaml'
+import ServosView from '../components/views/ServosView/ServosView.chaml'
 import useServoStore from '../stores/useServoStore.coffee'
+import useOrnithopterStore from '../stores/useOrnithopterStore.coffee'
 
 describe 'ServosView', ->
   beforeEach ->
     vi.spyOn window, 'requestAnimationFrame', -> 1
     useServoStore.getState().reset()
+    useOrnithopterStore.getState().reset()
 
   afterEach -> vi.restoreAllMocks()
 
   renderView = ->
-    render h(MemoryRouter, { initialEntries: ['/servos'] }, h(App, null))
+    render h(MemoryRouter, null, h(ServosView, null))
 
-  view = -> within document.querySelector '.layout-servos'
-
-  it 'renders the servo panels with a SIMULATION badge', ->
+  it 'renders the control-surface deck with a SIMULATION badge', ->
     renderView()
     expect(document.querySelector '.layout-servos').toBeInTheDocument()
-    expect(view().getByText 'SIMULATION').toBeInTheDocument()
-    expect(view().getByText 'Wing Mapping').toBeInTheDocument()
-    expect(view().getByText 'Servo Channels').toBeInTheDocument()
-    expect(view().getByText 'Glide').toBeInTheDocument()
-    expect(view().getByText 'Mix Rules').toBeInTheDocument()
-    expect(view().getByText 'Servo 1 — L1 wing').toBeInTheDocument()
-    expect(view().getByText 'Servo 2 — R1 wing').toBeInTheDocument()
+    expect(screen.getByText 'SIMULATION').toBeInTheDocument()
+    expect(screen.getByText 'Steuerflächen').toBeInTheDocument()
+    expect(screen.queryByText 'Keine Steuerflächen').not.toBeInTheDocument()
 
-  it 'disables Read device in sim mode and shows no DIRTY badge', ->
+  it 'renders only the surfaces the active mixer declares', ->
+    # Default profile 1 = SERVO_2WING_1RUD → one rudder surface.
     renderView()
-    expect(view().getByText 'Read device').toBeDisabled()
-    expect(view().queryByText 'DIRTY').not.toBeInTheDocument()
+    expect(screen.getByText 'Seitenruder').toBeInTheDocument()
+    expect(document.querySelectorAll('.servos-surface')).toHaveLength 1
 
-  it 'edits a servo channel and flags the draft dirty', ->
+  it 'lists every gearbox surface for a v-tail mixer', ->
+    useOrnithopterStore.getState().setProfileId 3
     renderView()
-    input = screen.getAllByLabelText('Min pulse')[0]
-    fireEvent.change input, { target: { value: '1100' } }
-    fireEvent.blur input
-    expect(view().getByText 'DIRTY').toBeInTheDocument()
-    expect(useServoStore.getState().draft.servos[0].min).toBe 1100
+    expect(screen.getByText 'Seitenruder').toBeInTheDocument()
+    expect(screen.getByText 'V-Leitwerk L').toBeInTheDocument()
+    expect(screen.getByText 'V-Leitwerk R').toBeInTheDocument()
+    expect(document.querySelectorAll('.servos-surface')).toHaveLength 3
 
-  it 'edits the glide degree and reverts cleanly', ->
+  it 'shows the empty state for a pure flapping mixer', ->
+    useOrnithopterStore.getState().setProfileId 0
     renderView()
-    input = screen.getByLabelText 'Glide degree'
-    fireEvent.change input, { target: { value: '30' } }
-    fireEvent.blur input
-    expect(useServoStore.getState().draft.glide).toBe 30
-    fireEvent.click view().getByText 'Revert'
-    expect(view().queryByText 'DIRTY').not.toBeInTheDocument()
-    expect(useServoStore.getState().draft.glide).toBe 0
+    expect(screen.getByText 'Keine Steuerflächen').toBeInTheDocument()
+    expect(document.querySelectorAll('.servos-surface')).toHaveLength 0
+
+  it 'offers only the mixer servo count as target channels', ->
+    useOrnithopterStore.getState().setProfileId 3
+    renderView()
+    selects = document.querySelectorAll '.servos-surface-select'
+    channelSelect = selects[1]
+    options = Array.from(channelSelect.querySelectorAll('option')).map(
+      (option) -> option.value
+    )
+    expect(options).toEqual ['0', '1', '2']
+
+  it 'assigns a named input source and flags the draft dirty', ->
+    renderView()
+    selects = document.querySelectorAll '.servos-surface-select'
+    fireEvent.change selects[0], { target: { value: 'rcYaw' } }
+    expect(useServoStore.getState().draft.surfaces.rudder.inputSource
+    ).toBe 'rcYaw'
+    expect(screen.getByText 'DIRTY').toBeInTheDocument()
+
+  it 'assigns a target channel and reverts cleanly', ->
+    renderView()
+    selects = document.querySelectorAll '.servos-surface-select'
+    fireEvent.change selects[1], { target: { value: '2' } }
+    expect(useServoStore.getState().draft.surfaces.rudder.targetChannel
+    ).toBe 2
+    fireEvent.click screen.getByText 'Revert'
+    expect(screen.queryByText 'DIRTY').not.toBeInTheDocument()
+    expect(useServoStore.getState().draft.surfaces.rudder.targetChannel
+    ).toBe 0
 
   it 'save commits the draft in sim mode', ->
     renderView()
-    input = screen.getAllByLabelText('Max pulse')[0]
-    fireEvent.change input, { target: { value: '1900' } }
-    fireEvent.blur input
-    fireEvent.click view().getByText 'Save'
-    expect(view().queryByText 'DIRTY').not.toBeInTheDocument()
-    expect(useServoStore.getState().saved.servos[0].max).toBe 1900
+    selects = document.querySelectorAll '.servos-surface-select'
+    fireEvent.change selects[0], { target: { value: 'rcYaw' } }
+    fireEvent.click screen.getByText 'Save'
+    expect(screen.queryByText 'DIRTY').not.toBeInTheDocument()
+    expect(useServoStore.getState().saved.surfaces.rudder.inputSource
+    ).toBe 'rcYaw'

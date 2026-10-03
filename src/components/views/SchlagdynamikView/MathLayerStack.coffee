@@ -7,14 +7,14 @@ import MathLayerCard from './MathLayerCard.coffee'
 # rate against the scroll — closer cards carry more color, distant
 # cards recede. Lives in .coffee so the layer mapping is plain
 # CoffeeScript (chaml loops cannot carry component tags).
-MathLayerStack = ({ draft, onInput }) ->
+MathLayerStack = ({ ondas, onInput }) ->
   h 'div', { className: 'math-layers' },
     MATH_LAYERS.map (layer, index) ->
       depth = (if index % 2 == 0 then 1 else -1) * (4 + (index % 3) * 3)
       h MathLayerCard,
         key: layer.id
         layer: layer
-        draft: draft
+        ondas: ondas
         onInput: onInput
         plx: depth
 

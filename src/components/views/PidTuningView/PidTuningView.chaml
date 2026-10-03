@@ -28,7 +28,7 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
         %ModuleIcon{ className: 'morph-head-glyph', size: 30 }
         %span Flight Control
       %p.morph-hermes
-        = "Der Reglerkern: zwölf PID-Gains über vier Achsen, Raten und Filter. Die ONDAS-Mathematik lebt in der Math-Suite — eine einzige Wahrheit."
+        = "Der Reglerkern: zwölf PID-Gains über vier Achsen, Raten und Filter. Die ONDAS-Mathematik lebt in der Schlagdynamik — eine einzige Wahrheit."
   .morph-deck.pid-deck
     %span.pid-mode-badge{ className: "pid-mode-#{tuning.mode}" }
       = modeLabel
@@ -123,9 +123,9 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    onInput: filterHandlers.dTermDlpfHz }
   .morph-section.pid-ondas-link
     %Section{ heading: 'ONDAS',
-              subheading: 'Die ONDAS-Mathematik wird nur in der Math-Suite gepflegt — hier lebt der Verweis.' }
+              subheading: 'Die ONDAS-Mathematik wird nur in der Schlagdynamik gepflegt — hier lebt der Verweis.' }
       .pid-ondas-body
         %p.pid-ondas-note
-          = "Achtzehn Parameter in zehn gekoppelten Schichten. Damit PID und Math nie doppelt führen, öffnet die Suite den vollständigen ONDAS-Entwurf."
-        %NavLink.pid-ondas-cta{ to: '/control/math' }
-          ONDAS öffnen → Math
+          = "Achtzehn Parameter in zehn gekoppelten Schichten. Damit PID und Schlagdynamik nie doppelt führen, öffnet die Suite den vollständigen ONDAS-Entwurf."
+        %NavLink.pid-ondas-cta{ to: '/control/schlagdynamik' }
+          ONDAS öffnen → Schlagdynamik

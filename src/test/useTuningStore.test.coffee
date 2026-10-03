@@ -10,7 +10,6 @@ describe 'useTuningStore', ->
   beforeEach ->
     state().reset()
     vi.spyOn engine, 'setPidGain'
-    vi.spyOn engine, 'setOndasParam'
     # Explicit return: a beforeEach that returns a function registers it
     # as a cleanup hook — never leak the spy (it would be invoked
     # detached with `this` undefined and crash the original method).
@@ -24,7 +23,6 @@ describe 'useTuningStore', ->
     expect(state().dirty).toBe false
     expect(state().draft.pid.roll).toEqual { P: 4.0, I: 0.03, D: 23.0 }
     expect(state().draft.rate).toEqual { rcRate: 100, superRate: 0, expo: 0 }
-    expect(state().draft.ondas).toEqual TUNING_DEFAULTS.ondas
     expect(state().draft.filter.gyroNotchQ).toBe 0
 
   it 'updates nested draft paths and marks the document dirty', ->
@@ -32,11 +30,9 @@ describe 'useTuningStore', ->
     expect(state().draft.pid.roll.P).toBe 5.5
     expect(state().dirty).toBe true
 
-  it 'mirrors pid and ondas edits into the engine', ->
+  it 'mirrors pid edits into the engine', ->
     state().setField 'pid.roll.P', 5.5
     expect(engine.setPidGain).toHaveBeenCalledWith 'roll_P', 5.5
-    state().setField 'ondas.cadence_gain', 42
-    expect(engine.setOndasParam).toHaveBeenCalledWith 'cadence_gain', 42
 
   it 'mirrors all nine engine gains but excludes the flap axis', ->
     state().setField 'pid.roll.P', 1
@@ -45,23 +41,10 @@ describe 'useTuningStore', ->
       'flap_P', expect.anything()
     )
 
-  it 'mirrors all eighteen ondas params on a draft edit', ->
-    state().setField 'pid.roll.P', 1
-    expect(engine.setOndasParam).toHaveBeenCalledTimes 18
-    expect(engine.setOndasParam).toHaveBeenCalledWith 'anchor_gain', 10
-    expect(engine.setOndasParam).toHaveBeenCalledWith(
-      'ferocity_downstroke', 12
-    )
-    expect(engine.setOndasParam).toHaveBeenCalledWith 'ssff_gain', 0
-    expect(engine.setOndasParam).toHaveBeenCalledWith(
-      'aeroelastic_flap_coefficient', 40
-    )
-
   it 'does not mirror rate or filter edits into the engine', ->
     state().setField 'rate.rcRate', 120
     state().setField 'filter.gyroNotchQ', 8
     expect(engine.setPidGain).not.toHaveBeenCalled()
-    expect(engine.setOndasParam).not.toHaveBeenCalled()
     expect(state().draft.rate.rcRate).toBe 120
     expect(state().draft.filter.gyroNotchQ).toBe 8
 
@@ -84,18 +67,6 @@ describe 'useTuningStore', ->
     state().setField 'rate.expo', 120
     expect(state().draft.rate.expo).toBe 100
 
-  it 'clamps ondas params to their registry ranges', ->
-    state().setField 'ondas.warp_gain', 150
-    expect(state().draft.ondas.warp_gain).toBe 100
-    state().setField 'ondas.balance_gain', -150
-    expect(state().draft.ondas.balance_gain).toBe -100
-    state().setField 'ondas.balance_gain', -5
-    expect(state().draft.ondas.balance_gain).toBe -5
-    state().setField 'ondas.ferocity_downstroke', 0
-    expect(state().draft.ondas.ferocity_downstroke).toBe 1
-    state().setField 'ondas.anchor_gain', 150
-    expect(state().draft.ondas.anchor_gain).toBe 100
-
   it 'clamps filter fields to their documented ranges', ->
     state().setField 'filter.gyroDlpfHz', 100000
     expect(state().draft.filter.gyroDlpfHz).toBe 65535
@@ -105,7 +76,7 @@ describe 'useTuningStore', ->
   it 'rejects prototype-pollution paths', ->
     state().setField '__proto__.polluted', 'YES'
     state().setField 'pid.constructor.polluted', 'YES'
-    state().setField 'ondas.prototype.polluted', 'YES'
+    state().setField 'filter.prototype.polluted', 'YES'
     expect(Object.prototype.polluted).toBeUndefined()
     expect(state().dirty).toBe false
 
@@ -172,7 +143,6 @@ describe 'useTuningStore', ->
     read = {
       pid: { TUNING_DEFAULTS.pid..., roll: { P: 5.0, I: 0.03, D: 23.0 } }
       rate: { rcRate: 90, superRate: 10, expo: 5 }
-      ondas: TUNING_DEFAULTS.ondas
       filter: {
         gyroDlpfHz: 200, gyroNotchHz: 300, gyroNotchQ: 4, dTermDlpfHz: 40
       }

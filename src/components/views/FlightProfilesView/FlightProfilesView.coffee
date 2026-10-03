@@ -4,7 +4,7 @@
 # The four firmware flight profiles (ORNITHOPTER_PROFILE_COUNT),
 # switched by the ornithopter-profile AUX box (BOXORNITHOPTERPROFILE).
 # Each profile carries glide angle (-90..+90°, int8) and its stroke
-# shape; the Math suite always edits the ACTIVE profile, so every
+# shape; Schlagdynamik always edits the ACTIVE profile, so every
 # face links straight into it.
 ###
 import './FlightProfilesView.sass'
@@ -29,7 +29,7 @@ FlightProfilesView = ->
           h 'p', { className: 'fp-hermes' },
             'Vier Profile, gewählt über den Ornithopter-Profil-Modus ' +
             '(AUX-Box). Jedes trägt Gleitwinkel und Schlagform — die ' +
-            'Math-Suite wirkt immer auf das aktive Profil.'
+            'Schlagdynamik wirkt immer auf das aktive Profil.'
       h 'div', { className: 'fp-ch7-badge' }, 'AUX · BOX WÄHLT'
 
     h 'div', { className: 'fp-active-strip' },
@@ -71,13 +71,13 @@ FlightProfilesView = ->
                 "Mix #{wave.ferocityShapeMix}"
             h 'div', { className: 'fp-face-foot' },
               h Link,
-                to: '/control/math'
+                to: '/control/schlagdynamik'
                 className: 'fp-face-link'
                 onClick: -> orni.setActiveProfile i
               , if active
-                'Math-Suite dieses Profils bearbeiten →'
+                'Schlagdynamik dieses Profils bearbeiten →'
               else
-                'Aktivieren & Math-Suite →'
+                'Aktivieren & Schlagdynamik →'
             h 'p', { className: 'fp-hermes' },
               if active
                 'Aktives Profil — ONDAS-Gains und Schlagform wirken jetzt.'

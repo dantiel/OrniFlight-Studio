@@ -8,10 +8,10 @@ import MathParamRow from '../../primitives/MathParamRow/MathParamRow.coffee'
 # ParamRows from the registry, and — for Ferocity — the live
 # down/up stroke preview. Lives in .coffee so the rows can map freely
 # (nested chaml loops escape their scope).
-MathLayerCard = ({ layer, draft, onInput, plx = 0 }) ->
+MathLayerCard = ({ layer, ondas, onInput, plx = 0 }) ->
   keys = mathParamsOf layer.id
-  down = draft.ondas.ferocity_downstroke
-  up = draft.ondas.ferocity_upstroke
+  down = ondas.ferocity_downstroke
+  up = ondas.ferocity_upstroke
   stroke =
     if layer.id == 'ferocity'
       h('div', { className: 'math-stroke-wrap', key: 'stroke' }, [
@@ -44,7 +44,7 @@ MathLayerCard = ({ layer, draft, onInput, plx = 0 }) ->
           key: "math-#{key}"
           rowKey: "math-#{key}"
           meta: MATH_PARAMS[key]
-          value: draft.ondas[key]
+          value: ondas[key]
           onInput: onInput[key]
       stroke
     ]...

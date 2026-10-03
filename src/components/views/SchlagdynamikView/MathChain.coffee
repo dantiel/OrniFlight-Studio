@@ -6,12 +6,12 @@ import { scrollMorphTo } from '../../../hooks/useScrollMorph.coffee'
 # their layer card. Plain CoffeeScript mapping keeps the per-layer
 # closures intact (chaml loop variables are IIFE-scoped and escape
 # closures inside attribute blocks).
-MathChain = ({ draft }) ->
+MathChain = ({ ondas }) ->
   h 'div', { className: 'math-chain-row' },
     MATH_LAYERS.map (layer) ->
       keys = mathParamsOf layer.id
       avg = keys.reduce(
-        ((acc, k) -> acc + Math.abs(draft.ondas[k]))
+        ((acc, k) -> acc + Math.abs(ondas[k]))
         0
       ) / (keys.length * 100)
       h 'button',

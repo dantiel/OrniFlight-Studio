@@ -28,14 +28,13 @@ SUBTABS =
   basic: [
     ['/basic/body',     'Körperplan', 'body']
     ['/basic/airframe', 'Flugwerk',   'airframe']
-    ['/basic/wave',     'Schlagkurve', 'waves']
   ]
   profiles: [['/profiles', 'Profile', 'layers']]
   servos:   [['/servos', 'Servos', 'gear']]
   control: [
-    ['/control/pid',         'PID',        'gauge']
-    ['/control/math',        'Math',       'function']
-    ['/control/modes',       'Modi',       'toggle']
+    ['/control/pid',            'PID',          'gauge']
+    ['/control/schlagdynamik',  'Schlagdynamik', 'function']
+    ['/control/modes',          'Modi',         'toggle']
     ['/control/receiver',    'Empfänger',  'antenna']
     ['/control/adjustments', 'Justierung', 'wrench']
   ]

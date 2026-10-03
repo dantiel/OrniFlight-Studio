@@ -34,8 +34,8 @@ describe 'PidTuningView', ->
     expect(screen.getByText 'ROLL').toBeInTheDocument()
     # The ONDAS parameters live only in the Math view — no doubling.
     expect(document.querySelectorAll '.ondas-layer').toHaveLength 0
-    link = screen.getByText 'ONDAS öffnen → Math'
-    expect(link.getAttribute('href')).toBe '/control/math'
+    link = screen.getByText 'ONDAS öffnen → Schlagdynamik'
+    expect(link.getAttribute('href')).toBe '/control/schlagdynamik'
 
   it 'shows the UNSAVED badge after a draft edit', ->
     renderView()

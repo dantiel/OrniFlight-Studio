@@ -33,13 +33,6 @@ describe 'OrnithopterView', ->
     expect(screen.getByText 'Schwerpunkt längs').toBeInTheDocument()
     expect(screen.getByText 'Servo-Montage').toBeInTheDocument()
 
-  it 'shows Schlagkurve on the wave sub-view', ->
-    renderAt '/basic/wave'
-    expect(screen.getByText 'Schlagkurve').toBeInTheDocument()
-    expect(screen.getByText 'Ferocity').toBeInTheDocument()
-    expect(screen.getByText 'Shape-Mix').toBeInTheDocument()
-    expect(screen.getByText 'Slew').toBeInTheDocument()
-
   it 'shows only the mount pairs the mixer actually grows', ->
     useOrnithopterStore.getState().setProfileId 2
     renderAt '/basic/airframe'

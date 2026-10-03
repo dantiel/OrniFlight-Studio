@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import h from '../../../app/h.coffee'
-import useTuningStore from '../../../stores/useTuningStore.coffee'
+import useOrnithopterStore from '../../../stores/useOrnithopterStore.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import { strokePreviewPath } from '../../../lib/mathSuite.coffee'
 import Section from '../../layout/Section/Section.coffee'
@@ -11,7 +11,8 @@ import Section from '../../layout/Section/Section.coffee'
 # pulses with the orgone rhythm while the frequency readout follows
 # the measured flap rate (or rests in silence).
 MathWaveform = ->
-  ondas = useTuningStore (state) -> state.draft.ondas
+  ondas = useOrnithopterStore (state) ->
+    state.draft.profiles[state.draft.activeProfile].ondas
   frequency = useTelemetryStore (state) -> state.flapFrequency
   down = ondas.ferocity_downstroke
   up = ondas.ferocity_upstroke

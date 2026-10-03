@@ -1,15 +1,10 @@
-// ServosView — Horus-centred servo & wing-mapping configuration
+// ServosView — control surfaces of a gearbox craft
 // Vertical transmorph document: ORGONE head dissolves, the command
 // deck pins into glass, sections curtain-rise (shared _transmorph).
 
 @use '../../../styles/glass' as *
 
 .layout-servos
-  .servos-side
-    display: flex
-    flex-direction: column
-    gap: 12px
-
   .servos-mode-badge
     font-size: 10px
     font-weight: 600
@@ -22,6 +17,16 @@
     &.servos-mode-sim
       border-color: var(--of-accent-dim)
       color: var(--of-accent)
+
+  .servos-profile-chip
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.14em
+    padding: 3px 8px
+    border-radius: 999px
+    border: 1px solid var(--of-border-accent)
+    background: rgba(var(--of-accent-rgb), 0.06)
+    color: var(--of-accent-alt)
 
   .servos-dirty-badge
     font-size: 10px
@@ -37,35 +42,6 @@
     font-size: 12px
     line-height: 1.5
     color: var(--of-text-muted)
-
-  .servos-main, .servos-insp, .servos-tele
-    display: flex
-    flex-direction: column
-    gap: 12px
-
-  .servos-preset
-    display: flex
-    flex-direction: column
-    gap: 5px
-    padding: 8px 0
-
-  .servos-preset-label
-    font-size: 10px
-    font-weight: 600
-    letter-spacing: 0.1em
-    text-transform: uppercase
-    color: var(--of-text-muted)
-
-  .servos-preset-select
-    width: 100%
-    padding: 6px 8px
-    border-radius: 8px
-    border: 1px solid var(--of-border-1)
-    background: var(--of-glass-bg)
-    color: var(--of-text-secondary)
-    font-family: inherit
-    font-size: 12px
-    cursor: pointer
 
   .servos-actions
     display: flex
@@ -84,6 +60,70 @@
     font-size: 12px
     letter-spacing: 0.06em
 
+    &:hover:not(:disabled)
+      border-color: var(--of-accent)
+      color: var(--of-accent)
+
     &:disabled
       opacity: 0.4
       cursor: not-allowed
+
+  .servos-empty
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  .servos-main
+    display: flex
+    flex-direction: column
+    gap: 12px
+
+  .servos-surface
+    display: grid
+    grid-template-columns: 160px 1fr
+    gap: var(--of-space-4)
+    align-items: center
+    padding: 12px
+    border-radius: 12px
+    border: 1px solid var(--of-glass-rim-soft)
+    background: var(--of-glass-bg)
+
+  .servos-surface-name
+    font-size: 12px
+    font-weight: 600
+    letter-spacing: 0.04em
+    color: var(--of-text-secondary)
+
+  .servos-surface-fields
+    display: flex
+    flex-wrap: wrap
+    gap: var(--of-space-4)
+
+  .servos-surface-field
+    display: flex
+    flex-direction: column
+    gap: 5px
+    min-width: 180px
+    flex: 1
+
+  .servos-field-label
+    font-size: 10px
+    font-weight: 600
+    letter-spacing: 0.1em
+    text-transform: uppercase
+    color: var(--of-text-muted)
+
+  .servos-surface-select
+    width: 100%
+    padding: 7px 9px
+    border-radius: 8px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-glass-bg)
+    color: var(--of-text-secondary)
+    font-family: inherit
+    font-size: 12px
+    cursor: pointer
+
+    &:focus-visible
+      border-color: var(--of-accent)
+      outline: none

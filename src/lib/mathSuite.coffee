@@ -6,10 +6,10 @@
 # transform raw PID terms into the wing's phase-locked motion.
 #
 # Consumers:
-#   - mspDecoders.coffee  → ONDAS_KEYS / ONDAS_DEFAULTS / signed codec
-#   - useTuningStore       → per-key clamp ranges (signed-aware)
-#   - OrnithopterModel     → setOndasParam clamp ranges
-#   - MathView + PidTuning → labels, ranges, units, layer grouping
+#   - mspDecoders.coffee      → ONDAS_KEYS / ONDAS_DEFAULTS / codec
+#   - useOrnithopterStore     → per-profile ONDAS + clamp ranges
+#   - OrnithopterModel        → setOndasParam clamp ranges
+#   - SchlagdynamikView       → labels, ranges, units, layer grouping
 #
 # Defaults mirror pgResetFn_ornithopterProfiles (firmware reset).
 ###

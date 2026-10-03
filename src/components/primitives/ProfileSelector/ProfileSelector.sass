@@ -1,0 +1,47 @@
+// ProfileSelector — the shared flight-profile face for per-profile views.
+
+.profile-selector
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  padding: 3px
+  border-radius: 999px
+  border: 1px solid var(--of-border-1)
+  background: var(--of-glass-bg)
+
+.profile-selector-chip
+  display: inline-flex
+  align-items: center
+  gap: 6px
+  padding: 4px 10px
+  border-radius: 999px
+  border: none
+  background: transparent
+  color: var(--of-text-muted)
+  cursor: pointer
+  font-family: inherit
+  font-size: 11px
+  font-weight: 600
+  letter-spacing: 0.04em
+  transition: background var(--of-dur-fast) var(--of-ease-out), color var(--of-dur-fast) var(--of-ease-out)
+
+  &:hover:not(.is-active)
+    color: var(--of-text-secondary)
+
+  &.is-active
+    background: rgba(var(--of-accent-rgb), 0.14)
+    color: var(--of-accent-alt)
+
+.profile-selector-dot
+  display: inline-grid
+  place-items: center
+  width: 16px
+  height: 16px
+  border-radius: 50%
+  border: 1px solid currentColor
+  font: 700 9px/1 var(--of-font-mono)
+
+.profile-selector-chip.is-active .profile-selector-dot
+  background: var(--of-accent)
+  border-color: var(--of-accent)
+  color: var(--of-text-primary)

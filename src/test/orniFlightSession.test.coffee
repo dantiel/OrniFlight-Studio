@@ -502,8 +502,7 @@ describe 'orniFlightSession', ->
     # to the tuning conversation before asserting the exact order.
     tuningCodes = [
       MSP_CODES.SET_PID, MSP_CODES.SET_RC_TUNING
-      MSP_CODES.SET_FILTER_CONFIG, MSP_CODES.PID_ADVANCED
-      MSP_CODES.SET_PID_ADVANCED, MSP_CODES.EEPROM_WRITE
+      MSP_CODES.SET_FILTER_CONFIG, MSP_CODES.EEPROM_WRITE
       MSP_CODES.PID, MSP_CODES.RC_TUNING
       MSP_CODES.FILTER_CONFIG, MSP_CODES.ONDAS
     ]
@@ -545,7 +544,7 @@ describe 'orniFlightSession', ->
     await client.open()
     session = new OrniFlightSession client
     await session.handshake()
-    await expect(session.writeTuning tuningDoc).rejects.toThrow(
+    await expect(session.writeOndas tuningDoc.ondas).rejects.toThrow(
       'Tuning read-back failed: ondas'
     )
 

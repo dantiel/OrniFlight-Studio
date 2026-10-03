@@ -9,7 +9,7 @@
 ###
 import useTuningStore from '../../../stores/useTuningStore.coffee'
 import {
-  ONDAS_KEYS, PID_AXES, PID_TERMS
+  PID_AXES, PID_TERMS
 } from '../../../protocol/mspDecoders.coffee'
 
 floatSetter = (path) ->
@@ -25,9 +25,6 @@ for axis in PID_AXES
   for term in PID_TERMS
     pidHandlers["#{axis}-#{term}"] = floatSetter "pid.#{axis}.#{term}"
 
-ondasHandlers = {}
-ondasHandlers[key] = intSetter "ondas.#{key}" for key in ONDAS_KEYS
-
 rateHandlers =
   rcRate: intSetter 'rate.rcRate'
   superRate: intSetter 'rate.superRate'
@@ -39,4 +36,4 @@ filterHandlers =
   gyroNotchQ: intSetter 'filter.gyroNotchQ'
   dTermDlpfHz: intSetter 'filter.dTermDlpfHz'
 
-export { pidHandlers, ondasHandlers, rateHandlers, filterHandlers }
+export { pidHandlers, rateHandlers, filterHandlers }

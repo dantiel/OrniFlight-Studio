@@ -70,3 +70,34 @@ export SERVO_PRESETS = [
 
 export servoPresetById = (id) ->
   SERVO_PRESETS.find((preset) -> preset.id is id)
+
+# ── Control-surface vocabulary ──────────────────────────────────
+# The surfaces a gearbox craft can carry. /servos renders only the
+# ones the active mixer declares (mixerCatalog.controlSurfacesForProfile).
+
+# Named input sources — the Betaflight inputSource_e subset that drives
+# ornithopter control surfaces. `code` is the wire u8 for the mix rule.
+export INPUT_SOURCES = [
+  { id: 'none',         label: 'Keine',           code: 0 }
+  { id: 'stabRoll',     label: 'Stab. Roll',      code: 1 }
+  { id: 'stabPitch',    label: 'Stab. Nick',      code: 2 }
+  { id: 'stabYaw',      label: 'Stab. Gier',      code: 3 }
+  { id: 'stabThrottle', label: 'Stab. Gas',       code: 4 }
+  { id: 'rcRoll',       label: 'RC Roll',         code: 5 }
+  { id: 'rcPitch',      label: 'RC Nick',         code: 6 }
+  { id: 'rcYaw',        label: 'RC Gier',         code: 7 }
+  { id: 'rcThrottle',   label: 'RC Gas',          code: 8 }
+  { id: 'aux1',         label: 'AUX 1 (Kanal 5)', code: 9 }
+  { id: 'aux2',         label: 'AUX 2 (Kanal 6)', code: 10 }
+  { id: 'aux3',         label: 'AUX 3 (Kanal 7)', code: 11 }
+  { id: 'aux4',         label: 'AUX 4 (Kanal 8)', code: 12 }
+]
+
+export inputSourceById = (id) ->
+  INPUT_SOURCES.find((source) -> source.id is id)
+
+# Stable surface order — the mix-rule slot each surface occupies on the
+# wire (rudder first, then v-tail/elevator, then motor).
+export CONTROL_SURFACE_IDS = [
+  'rudder', 'elevator', 'vtailLeft', 'vtailRight', 'motor'
+]

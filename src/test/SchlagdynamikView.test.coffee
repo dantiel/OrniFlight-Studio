@@ -2,8 +2,8 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import MathView from '../components/views/MathView/MathView.chaml'
-import useTuningStore from '../stores/useTuningStore.coffee'
+import SchlagdynamikView from '../components/views/SchlagdynamikView/SchlagdynamikView.chaml'
+import useOrnithopterStore from '../stores/useOrnithopterStore.coffee'
 import useTelemetryStore from '../stores/useTelemetryStore.coffee'
 
 LAYER_NAMES = [
@@ -15,10 +15,10 @@ rowFor = (label) ->
   rows = Array.from document.querySelectorAll '.param-row'
   rows.find (row) -> row.textContent.includes label
 
-describe 'MathView', ->
+describe 'SchlagdynamikView', ->
   beforeEach ->
     vi.spyOn window, 'requestAnimationFrame', -> 1
-    useTuningStore.getState().reset()
+    useOrnithopterStore.getState().reset()
     useTelemetryStore.setState {
       waveformHistory: []
       flapFrequency: 0
@@ -30,11 +30,11 @@ describe 'MathView', ->
     vi.restoreAllMocks()
 
   renderView = ->
-    render h(MemoryRouter, null, h(MathView, null))
+    render h(MemoryRouter, null, h(SchlagdynamikView, null))
 
-  it 'renders the ORGONE head and the deck', ->
+  it 'renders the Schlagdynamik head and the deck', ->
     renderView()
-    expect(screen.getByText 'Math').toBeInTheDocument()
+    expect(screen.getByText 'Schlagdynamik').toBeInTheDocument()
     expect(screen.getByText 'SIMULATION').toBeInTheDocument()
     expect(screen.getByText 'Read device').toBeInTheDocument()
     expect(screen.getByText 'Save').toBeInTheDocument()
@@ -47,7 +47,6 @@ describe 'MathView', ->
     expect(rail).toBeInTheDocument()
     expect(rail.querySelector '.math-wave-svg').toBeInTheDocument()
     expect(screen.getByText 'Waveform').toBeInTheDocument()
-    # The layers live in a half-width parallax field beside the rail.
     layers = document.querySelectorAll '.math-layers .math-layer'
     expect(layers.length).toBe 10
     depths = Array.from(layers).map (el) ->
@@ -59,7 +58,13 @@ describe 'MathView', ->
     for name in LAYER_NAMES
       expect(screen.getAllByText(name).length).toBeGreaterThan 0
     expect(document.querySelectorAll '.param-row').toHaveLength 18
-    expect(screen.getByText(/Profil 1/)).toBeInTheDocument()
+    expect(screen.getByText 'Profil 1 · ONDAS-Ziel').toBeInTheDocument()
+
+  it 'renders the shared profile selector with four chips', ->
+    renderView()
+    selector = document.querySelector '.profile-selector'
+    expect(selector).toBeInTheDocument()
+    expect(selector.querySelectorAll('.profile-selector-chip')).toHaveLength 4
 
   it 'honours signed registry ranges on the sliders', ->
     renderView()
@@ -79,18 +84,9 @@ describe 'MathView', ->
     expect(screen.getByText '0°').toBeInTheDocument()
     expect(screen.getByText 'SIM · stroke-derived').toBeInTheDocument()
 
-  it 'edits the draft with signed values and shows DIRTY', ->
+  it 'switches the active profile from the selector', ->
     renderView()
-    cadence = rowFor('Phase advance').querySelector '.param-slider'
-    fireEvent.input cadence, { target: { value: '-40' } }
-    expect(useTuningStore.getState().draft.ondas.cadence_gain).toBe -40
-    expect(screen.getByText 'DIRTY').toBeInTheDocument()
-
-  it 'spotlights a layer section from the signal chain', ->
-    renderView()
-    node = screen
-      .getAllByRole('button')
-      .find((b) -> b.textContent.includes 'Ferocity')
-    fireEvent.click node
-    target = document.getElementById 'math-ferocity'
-    expect(target.classList.contains 'morph-spotlight').toBe true
+    chips = document.querySelectorAll '.profile-selector-chip'
+    fireEvent.click chips[2]
+    expect(useOrnithopterStore.getState().draft.activeProfile).toBe 2
+    expect(screen.getByText 'Profil 3 · ONDAS-Ziel').toBeInTheDocument()

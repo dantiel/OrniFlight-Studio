@@ -15,9 +15,8 @@
 import { create } from 'zustand'
 import { engine } from '../simulation/engine.coffee'
 import {
-  ONDAS_DEFAULTS, ONDAS_KEYS, PID_AXES, PID_TERMS, TUNING_FALLBACKS
+  PID_AXES, PID_TERMS, TUNING_FALLBACKS
 } from '../protocol/mspDecoders.coffee'
-import { MATH_PARAMS } from '../lib/mathSuite.coffee'
 
 clone = (value) -> JSON.parse JSON.stringify value
 
@@ -51,7 +50,6 @@ PID_GAIN_MAX = 65.535
 TUNING_DEFAULTS = Object.freeze
   pid: TUNING_FALLBACKS.pid
   rate: TUNING_FALLBACKS.rate
-  ondas: ONDAS_DEFAULTS
   filter: TUNING_FALLBACKS.filter
 
 clampGain = (value, fallback) ->
@@ -73,13 +71,6 @@ normalizeRate = (rate = {}) ->
   superRate: clampInt 0, RATE_MAX, rate.superRate ? TUNING_DEFAULTS.rate.superRate
   expo: clampInt 0, RATE_MAX, rate.expo ? TUNING_DEFAULTS.rate.expo
 
-normalizeOndas = (ondas = {}) ->
-  normalized = {}
-  for key in ONDAS_KEYS
-    { min, max } = MATH_PARAMS[key]
-    normalized[key] = clampInt min, max, ondas[key] ? ONDAS_DEFAULTS[key]
-  normalized
-
 normalizeFilter = (filter = {}) ->
   gyroDlpfHz: clampInt 0, HZ_MAX, filter.gyroDlpfHz ? 0
   gyroNotchHz: clampInt 0, HZ_MAX, filter.gyroNotchHz ? 0
@@ -89,19 +80,17 @@ normalizeFilter = (filter = {}) ->
 normalizeDraft = (draft = {}) ->
   pid: normalizePid draft.pid
   rate: normalizeRate draft.rate
-  ondas: normalizeOndas draft.ondas
   filter: normalizeFilter draft.filter
 
-# Engine mirror: only the nine modeled gains and the ONDAS params —
-# the flap axis and rate/filter are document-only (see header).
+# Engine mirror: only the nine modeled PID gains — the flap axis and
+# rate/filter are document-only (see header). ONDAS lives per-profile
+# in useOrnithopterStore.
 MIRROR_AXES = ['roll', 'pitch', 'yaw']
 
 applyToEngine = (draft) ->
   for axis in MIRROR_AXES
     for term in PID_TERMS
       engine.setPidGain "#{axis}_#{term}", draft.pid[axis][term]
-  for key in ONDAS_KEYS
-    engine.setOndasParam key, draft.ondas[key]
 
 useTuningStore = create (set, get) ->
   defaults = clone TUNING_DEFAULTS
@@ -121,9 +110,9 @@ useTuningStore = create (set, get) ->
     return unless isObjectLike node
     node[leaf] = value
     draft = normalizeDraft next
-    # Only the two modeled sections mirror into the engine; rate and
-    # filter edits stay document-only and skip 19 redundant writes.
-    applyToEngine draft if section in ['pid', 'ondas']
+    # Only the PID section mirrors into the engine; rate and filter
+    # edits stay document-only. ONDAS mirrors from the ornithopter store.
+    applyToEngine draft if section is 'pid'
     set { draft, dirty: true }
 
   save: ->

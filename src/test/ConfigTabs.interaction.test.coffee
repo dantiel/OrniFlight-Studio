@@ -18,7 +18,7 @@ describe 'ConfigTabs — Interaction', ->
 
   it 'renders the Grundkonfiguration sub-views', ->
     renderApp '/basic/body'
-    expect(labels()).toEqual ['Körperplan', 'Flugwerk', 'Schlagkurve']
+    expect(labels()).toEqual ['Körperplan', 'Flugwerk']
 
   it 'renders the System sub-views', ->
     renderApp '/system/device'
@@ -29,7 +29,7 @@ describe 'ConfigTabs — Interaction', ->
 
   it 'renders the Steuerung sub-views', ->
     renderApp '/control/pid'
-    expect(labels()).toEqual ['PID', 'Math', 'Modi', 'Empfänger', 'Justierung']
+    expect(labels()).toEqual ['PID', 'Schlagdynamik', 'Modi', 'Empfänger', 'Justierung']
 
   it 'navigates between sub-views of one module', ->
     renderApp '/basic/body'

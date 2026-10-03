@@ -19,28 +19,36 @@ export KERNELS = [
 # never a hard-coded superset.
 export MIXER_PROFILES = [
   { id: 0, name: 'SERVO_2WING', kernel: 'servo', servos: 2,
-    arrangement: 'single', rudder: false, vtail: false, motor: false,
+    arrangement: 'single', rudder: false, elevator: false,
+    vtail: false, motor: false,
     map: 'L Wing GPIO9 ↔ R Wing GPIO10' }
   { id: 1, name: 'SERVO_2WING_1RUD', kernel: 'servo', servos: 3,
-    arrangement: 'single_canard', rudder: true, vtail: false, motor: false,
+    arrangement: 'single_canard', rudder: true, elevator: false,
+    vtail: false, motor: false,
     map: 'L Wing GPIO9 ↔ R Wing GPIO10 ↔ Rudder GPIO5' }
   { id: 2, name: 'SERVO_4WING', kernel: 'servo', servos: 4,
-    arrangement: 'tandem_x', rudder: false, vtail: false, motor: false,
+    arrangement: 'tandem_x', rudder: false, elevator: false,
+    vtail: false, motor: false,
     map: 'L GPIO9 ↔ R GPIO10 ↔ Back-L GPIO5 ↔ Back-R GPIO16' }
   { id: 3, name: 'GEARBOX_2VTAIL_1RUD', kernel: 'gearbox', servos: 3,
-    arrangement: 'tandem_parallel', rudder: true, vtail: true, motor: false,
+    arrangement: 'tandem_parallel', rudder: true, elevator: false,
+    vtail: true, motor: false,
     map: 'Rudder GPIO9 ↔ V-Tail L GPIO10 ↔ V-Tail R GPIO5' }
   { id: 4, name: 'GEARBOX_1MOT_2VTAIL', kernel: 'gearbox', servos: 3,
-    arrangement: 'tandem_parallel', rudder: false, vtail: true, motor: true,
+    arrangement: 'tandem_parallel', rudder: false, elevator: false,
+    vtail: true, motor: true,
     map: 'Motor GPIO9 ↔ V-Tail L GPIO10 ↔ V-Tail R GPIO5' }
   { id: 5, name: 'GEARBOX_1MOT_2VTAIL_1RUD', kernel: 'gearbox', servos: 4,
-    arrangement: 'double_decker', rudder: true, vtail: true, motor: true,
+    arrangement: 'double_decker', rudder: true, elevator: false,
+    vtail: true, motor: true,
     map: 'Rudder GPIO9 ↔ Motor GPIO10 ↔ V-Tail L GPIO5 ↔ V-Tail R GPIO16' }
   { id: 6, name: 'GEARBOX_1ELE_1RUD', kernel: 'gearbox', servos: 2,
-    arrangement: 'single', rudder: true, vtail: false, motor: false,
+    arrangement: 'single', rudder: true, elevator: true,
+    vtail: false, motor: false,
     map: 'Rudder GPIO9 ↔ Elevator GPIO10' }
   { id: 7, name: 'GEARBOX_1MOT_1ELE_1RUD', kernel: 'gearbox', servos: 3,
-    arrangement: 'single_canard', rudder: true, vtail: false, motor: true,
+    arrangement: 'single_canard', rudder: true, elevator: true,
+    vtail: false, motor: true,
     map: 'Rudder GPIO9 ↔ Motor GPIO10 ↔ Elevator GPIO5' }
 ]
 
@@ -61,6 +69,20 @@ export profileById = (id) ->
 
 export firstForKernel = (kernel) ->
   profilesForKernel(kernel)[0]?.id ? 0
+
+# Control surfaces the mixer declares — the gearbox PWM surfaces that
+# /servos renders as named input-source → target-channel dropdowns.
+# Flapping wing pairs are absent: they live in Schlagdynamik.
+export controlSurfacesForProfile = (profile) ->
+  out = []
+  out.push { id: 'rudder', label: 'Seitenruder' } if profile.rudder
+  if profile.vtail
+    out.push { id: 'vtailLeft', label: 'V-Leitwerk L' }
+    out.push { id: 'vtailRight', label: 'V-Leitwerk R' }
+  else if profile.elevator
+    out.push { id: 'elevator', label: 'Höhenruder' }
+  out.push { id: 'motor', label: 'Motor' } if profile.motor
+  out
 
 # Trim fields per profile morphology — what the body plan can bend.
 export trimsForProfile = (profile) ->

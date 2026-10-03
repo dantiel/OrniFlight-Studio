@@ -280,16 +280,26 @@ class OrniFlightSession
     await @client.request MSP_CODES.SET_PID, encodePidTuning tuning.pid
     await @client.request MSP_CODES.SET_RC_TUNING, encodeRcTuning tuning.rate
     await @client.request MSP_CODES.SET_FILTER_CONFIG, encodeFilterConfig tuning.filter
+    await @client.request MSP_CODES.EEPROM_WRITE
+    readBack = await @readTuning()
+    for section in ['pid', 'rate', 'filter']
+      unless tuningSectionMatches section, tuning[section], readBack[section]
+        throw new Error "Tuning read-back failed: #{section}"
+    readBack
+
+  # ONDAS lives on ornithopterProfile_t — written separately from the
+  # PID/rate/filter tuning document via the PID-advanced envelope.
+  writeOndas: (ondas) ->
+    throw new Error 'Cannot write configuration while armed' if @lastStatus?.armed
     envelope = await @readWingMapping()
-    ondasPayload = encodeOndasEnvelope envelope, tuning.ondas
+    ondasPayload = encodeOndasEnvelope envelope, ondas
     unless ondasPayload?
       throw new Error 'Firmware does not expose the ONDAS envelope'
     await @client.request MSP_CODES.SET_PID_ADVANCED, ondasPayload
     await @client.request MSP_CODES.EEPROM_WRITE
-    readBack = await @readTuning()
-    for section in ['pid', 'rate', 'ondas', 'filter']
-      unless tuningSectionMatches section, tuning[section], readBack[section]
-        throw new Error "Tuning read-back failed: #{section}"
+    readBack = (await @readTuning()).ondas
+    unless tuningSectionMatches 'ondas', ondas, readBack
+      throw new Error 'Tuning read-back failed: ondas'
     readBack
 
   readOsdConfig: ->
