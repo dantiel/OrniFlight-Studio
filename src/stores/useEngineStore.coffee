@@ -23,6 +23,7 @@ useEngineStore = create (set) ->
   pidGains:           engine.pidGains
   ondasParams:        engine.ondas
   sticks:             engine.sticks
+  aux:                engine.aux
   connected:          engine.connected
   arrangement:        engine.arrangement
   pairCount:          engine.pairCount
@@ -36,10 +37,17 @@ useEngineStore = create (set) ->
     aeroelasticFlapCoefficient: engine.aeroelasticFlapCoefficient
     aeroelasticGlideCoefficient: engine.aeroelasticGlideCoefficient
     servoTravelTimeMs:          engine.servoTravelTimeMs
+  freqMod:
+    auxChannel: engine.freqAuxChannel
+    gain:       engine.freqAuxGain
+  disturbForce:      engine.disturbForce
   selectedServoIndex: 0
 
   selectServo:   (i) -> set { selectedServoIndex: i }
   setStick:      action 'setStick',      'sticks'
+  setAux: (index, value) ->
+    engine.setAux index, value
+    set { aux: engine.aux.slice() }
   setOndasParam: action 'setOndasParam', 'ondasParams'
   setPidGain:    action 'setPidGain',    'pidGains'
   setServoParam: action 'setServoParam', 'servos'
@@ -87,6 +95,23 @@ useEngineStore = create (set) ->
         aeroelasticGlideCoefficient: engine.aeroelasticGlideCoefficient
         servoTravelTimeMs:          engine.servoTravelTimeMs
 
+  setFreqMod: (patch) ->
+    engine.setFreqMod patch
+    set { freqMod: { auxChannel: engine.freqAuxChannel, gain: engine.freqAuxGain } }
+
   bump: -> engine.bump()
+
+  setDisturbForce: (value) ->
+    engine.setDisturbForce value
+    set { disturbForce: engine.disturbForce }
+
+  disturb: (roll, pitch, yaw) ->
+    # Drag-to-disturb injects raw projected screen deltas (clamped ±100);
+    # the strength slider scales them, faithful to the configurator's
+    # _applyDisturbDrag (f = disturb_force * 0.02).
+    f = engine.disturbForce * 0.02
+    engine.disturb roll * f, pitch * f, yaw * f
+
+  resetAttitude: -> engine.resetAttitude()
 
 export default useEngineStore

@@ -3,24 +3,27 @@ import './SensorCalibratePanel.sass'
 import { useState } from 'react'
 import useSensorsStore from '../../../stores/useSensorsStore.coffee'
 import useDeviceStore from '../../../stores/useDeviceStore.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - store = useSensorsStore()
+- { t } = useI18n()
 - status = useDeviceStore (state) -> state.status
 - [feedback, setFeedback] = useState null
 - deviceReady = store.mode == 'device' and store.session?
 - armed = Boolean(status?.armed)
-- ok = (label) -> -> setFeedback { kind: 'ok', text: label + ' accepted' }
-- fail = (label) -> (error) -> setFeedback { kind: 'error', text: error?.message or label + ' failed' }
-- run = (action, label) -> -> setFeedback { kind: 'running', text: label + '…' }; action().then(ok label).catch(fail label)
-%Section{ heading: 'Calibration', subheading: 'One-shot MSP 205/206 requests — the firmware refuses them while armed.' }
+- ok = (label) -> -> setFeedback { kind: 'ok', text: t('sensors.accepted', { label: label }) }
+- fail = (label) -> (error) -> setFeedback { kind: 'error', text: error?.message or t('sensors.failed', { label: label }) }
+- run = (action, label) -> -> setFeedback { kind: 'running', text: t('sensors.running', { label: label }) }; action().then(ok label).catch(fail label)
+- calibrateNote = if armed then t('sensors.writesLocked') else t('sensors.calibrationNote')
+%Section{ heading: t('sensors.calibration'), subheading: t('sensors.calibrationSub') }
   .sensors-calibrate.panel-sensor-calibrate
-    %button.sensors-cal-button{ type: 'button', onClick: run((-> store.calibrateAccel()), 'Accelerometer calibration'), disabled: !deviceReady or armed }
-      Calibrate Accelerometer
-    %button.sensors-cal-button{ type: 'button', onClick: run((-> store.calibrateMag()), 'Magnetometer calibration'), disabled: !deviceReady or armed }
-      Calibrate Magnetometer
+    %button.sensors-cal-button{ type: 'button', onClick: run((-> store.calibrateAccel()), t('sensors.calibrateAccel')), disabled: !deviceReady or armed }
+      = t('sensors.calibrateAccel')
+    %button.sensors-cal-button{ type: 'button', onClick: run((-> store.calibrateMag()), t('sensors.calibrateMag')), disabled: !deviceReady or armed }
+      = t('sensors.calibrateMag')
     - if feedback
       %span.sensors-feedback{ className: "sensors-feedback-#{feedback.kind}" }
         = feedback.text
   %p.sensors-note
-    = "#{if armed then 'Writes locked while armed.' else 'Place the craft level and still before accelerometer calibration; rotate it slowly through all axes for the magnetometer.'}"
+    = calibrateNote

@@ -2,6 +2,7 @@ import './PlotCard.sass'
 import { createElement as h, useEffect, useRef, useState } from 'react'
 import WaveformPlot from '../../canvas/WaveformPlot/WaveformPlot.coffee'
 import { groupCurves } from '../../../telemetry/curveCatalog.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 
 PlotCard = ({
   plot, history, curveOptions, onChange, onDuplicate, onRemove,
@@ -10,6 +11,7 @@ PlotCard = ({
   [menuOpen, setMenuOpen] = useState false
   menuRef = useRef null
   groups = groupCurves curveOptions
+  { t } = useI18n()
 
   useEffect ->
     return unless menuOpen
@@ -53,16 +55,16 @@ PlotCard = ({
     capabilityNote = null
     if workspace is 'sensors' and not curveOptions.some((curve) -> curve.group is 'Accelerometer')
       capabilityNote = h 'p', { className: 'plot-capability-note' },
-        'Accelerometer curves appear when the connected source reports them.'
+        t('plots.accelerometerNote')
 
     menu = h 'div', {
       className: 'plot-context-menu'
       ref: menuRef
       role: 'dialog'
-      'aria-label': "Configure #{plot.title} plot"
+      'aria-label': t('plots.configure', { title: plot.title })
     },
       h 'label', { className: 'plot-title-editor' },
-        h('span', null, 'Plot title'),
+        h('span', null, t('plots.plotTitle')),
         h('input', {
           value: plot.title
           onChange: (event) -> onChange { title: event.target.value }
@@ -70,13 +72,13 @@ PlotCard = ({
       groupNodes,
       capabilityNote,
       h 'div', { className: 'plot-menu-actions' },
-        h('button', { type: 'button', onClick: onDuplicate }, 'Duplicate'),
+        h('button', { type: 'button', onClick: onDuplicate }, t('plots.duplicate')),
         h('button', {
           type: 'button'
           className: 'danger'
           disabled: not allowRemove
           onClick: onRemove
-        }, 'Remove plot')
+        }, t('plots.removePlot'))
 
   h 'article', {
     className: 'telemetry-plot-card'
@@ -87,8 +89,8 @@ PlotCard = ({
       h 'button', {
         type: 'button'
         className: 'plot-menu-trigger'
-        title: 'Choose curves and configure this plot'
-        'aria-label': "Configure #{plot.title} plot"
+        title: t('plots.menuTitle')
+        'aria-label': t('plots.configure', { title: plot.title })
         'aria-expanded': menuOpen
         onClick: -> setMenuOpen not menuOpen
       }, '•••',

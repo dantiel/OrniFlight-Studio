@@ -26,7 +26,7 @@ describe 'App', ->
 
   it 'renders the skip-to-content link', ->
     renderApp()
-    el = screen.getByText 'Skip to content'
+    el = screen.getByText 'Zum Inhalt springen'
     expect(el).toBeInTheDocument()
 
   it 'renders the toolbar with brand name', ->

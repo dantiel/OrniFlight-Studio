@@ -2,40 +2,42 @@
 import './SensorAlignmentPanel.sass'
 import useSensorsStore from '../../../stores/useSensorsStore.coffee'
 import { SENSOR_ALIGNMENTS } from '../../../lib/sensorsCatalog.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - store = useSensorsStore()
+- { t } = useI18n()
 - alignment = store.draft.sensorAlignment
 - valueFromEvent = (f) -> (event) -> f Number(event.target.value)
 - setGyroAlign = (value) -> store.setSensorAlignment { gyroAlign: value }
 - setMagAlign = (value) -> store.setSensorAlignment { magAlign: value }
 - setGyro1Align = (value) -> store.setSensorAlignment { gyro1Align: value }
 - setGyro2Align = (value) -> store.setSensorAlignment { gyro2Align: value }
-%Section{ heading: 'Board Alignment', subheading: 'How the flight controller sits on the frame — MSP 126/220, 7-byte read / 6-byte write.' }
+%Section{ heading: t('sensors.alignment'), subheading: t('sensors.alignmentSub') }
   .sensors-grid.panel-sensor-alignment
     %label.sensors-field
-      %span.sensors-field-label Gyro / Accel orientation
+      %span.sensors-field-label= t('sensors.gyroAccel')
       %select.sensors-select{ value: String(alignment.gyroAlign), onChange: valueFromEvent(setGyroAlign) }
         - for item in SENSOR_ALIGNMENTS
           %option{ key: "gyro-#{item.id}", value: String(item.id) }
             = item.label
     %label.sensors-field
-      %span.sensors-field-label Mag orientation
+      %span.sensors-field-label= t('sensors.magOrient')
       %select.sensors-select{ value: String(alignment.magAlign), onChange: valueFromEvent(setMagAlign) }
         - for item in SENSOR_ALIGNMENTS
           %option{ key: "mag-#{item.id}", value: String(item.id) }
             = item.label
     %label.sensors-field
-      %span.sensors-field-label Gyro 1 orientation
+      %span.sensors-field-label= t('sensors.gyro1')
       %select.sensors-select{ value: String(alignment.gyro1Align), onChange: valueFromEvent(setGyro1Align) }
         - for item in SENSOR_ALIGNMENTS
           %option{ key: "gyro1-#{item.id}", value: String(item.id) }
             = item.label
     %label.sensors-field
-      %span.sensors-field-label Gyro 2 orientation
+      %span.sensors-field-label= t('sensors.gyro2')
       %select.sensors-select{ value: String(alignment.gyro2Align), onChange: valueFromEvent(setGyro2Align) }
         - for item in SENSOR_ALIGNMENTS
           %option{ key: "gyro2-#{item.id}", value: String(item.id) }
             = item.label
   %p.sensors-note
-    = "Gyro and accelerometer share one alignment since firmware 4.0 — the deprecated acc byte is discarded on write and the read-only detection flags never travel back."
+    = t('sensors.alignmentNote')

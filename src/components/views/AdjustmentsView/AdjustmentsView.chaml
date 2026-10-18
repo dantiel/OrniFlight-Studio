@@ -7,12 +7,14 @@ import {
   MAX_ADJUSTMENT_RANGE_COUNT
 } from '../../../lib/adjustmentsCatalog.coffee'
 import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - store = useAdjustmentsStore()
 - hostRef = useRef(null)
 - useScrollMorph(hostRef)
-- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- { t } = useI18n()
+- modeLabel = if store.mode == 'sim' then t('common.simulation') else t('common.device')
 - readDisabled = store.mode != 'device' or !store.session
 - saveDisabled = store.mode == 'device' and !store.loadedSession
 - log = (label) -> (error) -> console.error label, error
@@ -23,37 +25,37 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
   %header.morph-head
     %div.morph-head-title
       %span.morph-kicker.orgone-kicker
-        = ' STEUERUNG · ADJUSTMENTS'
+        = t('adjustments.kicker')
       %h1.orgone-display.orgone-display-shimmer
         %ModuleIcon{ className: 'morph-head-glyph', size: 30 }
-        %span Adjustments
+        %span= t('adjustments.title')
       %p.morph-hermes
-        = "In-Flight-Regler: dreißig Slots, je sechs Bytes (MSP 52/53). Ein Slot scharfstellt sich, sobald sein AUX-Kanal im Bereich liegt."
+        = t('adjustments.hermes')
   .morph-deck.adjustments-deck
     %span.adjustments-mode-badge{ className: "adjustments-mode-#{store.mode}" }
       = modeLabel
     - if store.dirty
-      %span.adjustments-dirty-badge DIRTY
+      %span.adjustments-dirty-badge= t('common.unsaved')
     .adjustments-actions
       %button.adjustments-action.adjustments-action-read{ type: 'button',
                                                           onClick: readFromDevice,
                                                           disabled: readDisabled }
-        Read device
+        = t('common.read')
       %button.adjustments-action.adjustments-action-save{ type: 'button',
                                                           onClick: saveToDevice,
                                                           disabled: saveDisabled }
-        Save
+        = t('common.save')
       %button.adjustments-action.adjustments-action-revert{ type: 'button',
                                                             onClick: (-> store.revert()),
                                                             disabled: !store.dirty }
-        Revert
+        = t('common.revert')
   - if store.lastError
     .adjustments-error{ role: 'alert' }
       = store.lastError
   .morph-section.adjustments-main
-    %Section{ heading: 'Adjustment Slots',
-              subheading: 'Channel range 900 – 2100 µs in 25 µs steps; functions mirror the firmware table (0 = none).' }
+    %Section{ heading: t('adjustments.heading'),
+              subheading: t('adjustments.sub') }
       %p.adjustments-note
-        = "Only changed slots ride SET + EEPROM_WRITE on save — each slot applies its function through one of four simultaneous slots."
+        = t('adjustments.note')
       - for slot in slots
         %AdjustmentRow{ key: "adjustment-#{slot}", slot: slot }

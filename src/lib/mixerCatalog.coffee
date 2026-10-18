@@ -8,8 +8,8 @@
 # servo count, its morphological flags and the GPIO map string.
 ###
 export KERNELS = [
-  { id: 'servo', label: 'Direktantrieb', glyph: '🪽' }
-  { id: 'gearbox', label: 'Getriebe', glyph: '⚙️' }
+  { id: 'servo', label: 'mixer.kernel.servo', glyph: '🪽' }
+  { id: 'gearbox', label: 'mixer.kernel.gearbox', glyph: '⚙️' }
 ]
 
 # Hermetic: each profile is a body plan, not a setting.
@@ -75,29 +75,29 @@ export firstForKernel = (kernel) ->
 # Flapping wing pairs are absent: they live in Schlagdynamik.
 export controlSurfacesForProfile = (profile) ->
   out = []
-  out.push { id: 'rudder', label: 'Seitenruder' } if profile.rudder
+  out.push { id: 'rudder', label: 'mixer.surface.rudder' } if profile.rudder
   if profile.vtail
-    out.push { id: 'vtailLeft', label: 'V-Leitwerk L' }
-    out.push { id: 'vtailRight', label: 'V-Leitwerk R' }
+    out.push { id: 'vtailLeft', label: 'mixer.surface.vtailLeft' }
+    out.push { id: 'vtailRight', label: 'mixer.surface.vtailRight' }
   else if profile.elevator
-    out.push { id: 'elevator', label: 'Höhenruder' }
-  out.push { id: 'motor', label: 'Motor' } if profile.motor
+    out.push { id: 'elevator', label: 'mixer.surface.elevator' }
+  out.push { id: 'motor', label: 'mixer.surface.motor' } if profile.motor
   out
 
 # Trim fields per profile morphology — what the body plan can bend.
 export trimsForProfile = (profile) ->
   out = []
   if profile.kernel is 'servo'
-    out.push { prop: 'leftWing', label: 'Flügel L' }
-    out.push { prop: 'rightWing', label: 'Flügel R' }
-    out.push { prop: 'rudder', label: 'Seitenruder' } if profile.rudder
+    out.push { prop: 'leftWing', label: 'mixer.trim.leftWing' }
+    out.push { prop: 'rightWing', label: 'mixer.trim.rightWing' }
+    out.push { prop: 'rudder', label: 'mixer.surface.rudder' } if profile.rudder
     if profile.servos >= 4
-      out.push { prop: 'backLeftWing', label: 'Flügel L hinten' }
+      out.push { prop: 'backLeftWing', label: 'mixer.trim.backLeftWing' }
   else
-    out.push { prop: 'rudder', label: 'Seitenruder' } if profile.rudder
+    out.push { prop: 'rudder', label: 'mixer.surface.rudder' } if profile.rudder
     if profile.vtail
-      out.push { prop: 'vtailLeft', label: 'V-Leitwerk L' }
-      out.push { prop: 'vtailRight', label: 'V-Leitwerk R' }
+      out.push { prop: 'vtailLeft', label: 'mixer.surface.vtailLeft' }
+      out.push { prop: 'vtailRight', label: 'mixer.surface.vtailRight' }
     else
-      out.push { prop: 'elevator', label: 'Höhenruder' } if profile.servos <= 3
+      out.push { prop: 'elevator', label: 'mixer.surface.elevator' } if profile.servos <= 3
   out

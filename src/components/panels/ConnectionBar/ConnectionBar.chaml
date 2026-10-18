@@ -3,6 +3,7 @@ import { fmt1 } from '../../../lib/essential.coffee'
 import useFirmwareConnection from '../../../hooks/useFirmwareConnection.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import useAppStore from '../../../stores/useAppStore.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 import Tooltip from '../../overlays/Tooltip/Tooltip.coffee'
 import StatusIsland from '../../display/StatusIsland/StatusIsland.coffee'
 import Icon from '../../primitives/Icon/Icon.coffee'
@@ -13,6 +14,7 @@ import Icon from '../../primitives/Icon/Icon.coffee'
   teleFlap = useTelemetryStore (s) -> s.flapFrequency
   storeViewMode = useAppStore (s) -> s.viewMode
   storeSetViewMode = useAppStore (s) -> s.setViewMode
+  { t } = useI18n()
   connected = props.connected ? conn.connected
   batteryVoltage = props.batteryVoltage ? teleBattery
   flapFrequency = props.flapFrequency ? teleFlap
@@ -21,13 +23,13 @@ import Icon from '../../primitives/Icon/Icon.coffee'
   freq = fmt1(flapFrequency || 0) + ' Hz'
   volts = fmt1(batteryVoltage || 0) + 'V'
   statusState = if props.connected? then (if connected then 'streaming' else 'disconnected') else conn.state
-  statusLabel = if props.connected? and connected then 'BREATHING' else conn.label
+  statusLabel = if props.connected? and connected then t('conn.breathing') else conn.label
   connectionBusy = conn.state in ['scanning', 'handshaking']
-  connectionAction = if conn.connected then 'DISCONNECT' else if conn.state == 'scanning' then 'SELECTING…' else if conn.state == 'handshaking' then 'SYNCING…' else 'CONNECT'
+  connectionAction = if conn.connected then t('chrome.disconnect') else if conn.state == 'scanning' then t('chrome.selecting') else if conn.state == 'handshaking' then t('chrome.syncing') else t('chrome.connect')
   deviceLabel = conn.identity?.board?.targetName || conn.identity?.board?.identifier
-  connectTooltip = if conn.supported then 'Connect an OrniFlight controller over WebSerial' else 'WebSerial is not available in this browser'
+  connectTooltip = if conn.supported then t('chrome.connectTooltip') else t('chrome.connectUnsupported')
   connectIcon = if conn.connected then 'plug-off' else 'plug'
-.connection-bar{ role: 'banner', aria-label: 'Studio toolbar' }
+.connection-bar{ role: 'banner', aria-label: t('chrome.toolbar') }
   .toolbar-primary
     %BrandMark
     %Separator
@@ -36,30 +38,30 @@ import Icon from '../../primitives/Icon/Icon.coffee'
         %span.connect-symbol
           %Icon{ name: connectIcon, size: 12 }
         %span= connectionAction
-    %Tooltip{ label: 'Live connection state' }
+    %Tooltip{ label: t('chrome.liveState') }
       %StatusIsland{ state: statusState, label: statusLabel, attempts: conn.attempts, frequency: flapFrequency, voltage: batteryVoltage, error: conn.lastError, deviceLabel: deviceLabel }
     %Separator
-    %Tooltip{ label: 'Current wingbeat frequency' }
-      %MetricBadge{ label: 'Flap', value: freq, numericValue: flapFrequency, suffix: ' Hz' }
-    %Tooltip{ label: 'Flight battery voltage' }
-      %MetricBadge{ label: 'Battery', value: volts, numericValue: batteryVoltage || 0, suffix: 'V' }
+    %Tooltip{ label: t('chrome.flapFrequency') }
+      %MetricBadge{ label: t('chrome.flap'), value: freq, numericValue: flapFrequency, suffix: ' Hz' }
+    %Tooltip{ label: t('chrome.batteryVoltage') }
+      %MetricBadge{ label: t('chrome.battery'), value: volts, numericValue: batteryVoltage || 0, suffix: 'V' }
     %Separator
-    %Tooltip{ label: 'Studio version' }
+    %Tooltip{ label: t('chrome.version') }
       %VersionBadge
     .toolbar-spacer
-    %Tooltip{ label: 'Open command palette · Ctrl/⌘ K' }
+    %Tooltip{ label: t('chrome.commands') }
       %button.toolbar-launcher{ type: 'button', onClick: -> window.dispatchEvent(new Event('orniflight:commands')) }
         %Icon{ name: 'cmd', className: 'launcher-mark', size: 11 }
-        %span COMMANDS
+        %span= t('chrome.commandsLabel')
         %kbd K
     - if import.meta.env.DEV
-      %Tooltip{ label: 'Toggle live state inspector · Ctrl/⌘ Shift D' }
+      %Tooltip{ label: t('chrome.state') }
         %button.toolbar-launcher.debug{ type: 'button', onClick: -> window.dispatchEvent(new Event('orniflight:debug')) }
           %Icon{ name: 'bug', className: 'launcher-mark', size: 11 }
-          %span STATE
-    %Tooltip{ label: 'Switch light and dark theme' }
+          %span= t('chrome.stateLabel')
+    %Tooltip{ label: t('chrome.theme') }
       %ThemeToggle.toolbar-theme
-    %Tooltip{ label: 'Change workspace layout' }
+    %Tooltip{ label: t('chrome.layout') }
       %ViewModeToggle.toolbar-theme{ mode: viewMode || 'split', onModeChange: onViewModeChange || (->) }
   .toolbar-nav-row
     %ConfigTabs

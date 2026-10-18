@@ -9,52 +9,54 @@
 # Every sub-view path lives under its module path so the dock item
 # stays highlighted across the whole module and the top menu mirrors
 # it naturally.
+#
+# Labels are i18n keys (src/i18n/{de,en}.coffee) — resolve them at
+# render time through t(). Icons stay registry keys (src/lib/icons.coffee).
 ###
 
-# Icons are registry keys (src/lib/icons.coffee) — one SVG vocabulary
-# shared by dock, sub-menu, palette and page headlines.
 MODULES = [
-  ['/basic',    'Grundkonfiguration', 'wing']
-  ['/profiles', 'Flugprofile',        'layers']
-  ['/servos',   'Servos',             'gear']
-  ['/control',  'Steuerung',          'sliders']
-  ['/sensors',  'Sensorik',           'radar']
-  ['/system',   'System',             'grid']
-  ['/safety',   'Sicherheit',         'shield']
-  ['/cli',      'CLI',                'terminal']
+  ['/basic',    'nav.modules.basic',    'wing']
+  ['/profiles', 'nav.modules.profiles', 'layers']
+  ['/servos',   'nav.modules.servos',   'gear']
+  ['/control',  'nav.modules.control',  'sliders']
+  ['/sensors',  'nav.modules.sensors',  'radar']
+  ['/system',   'nav.modules.system',   'grid']
+  ['/safety',   'nav.modules.safety',   'shield']
+  ['/cli',      'nav.modules.cli',      'terminal']
 ]
 
 SUBTABS =
   basic: [
-    ['/basic/body',     'Körperplan', 'body']
-    ['/basic/airframe', 'Flugwerk',   'airframe']
+    ['/basic/body',     'nav.subtabs.basic.body',     'body']
+    ['/basic/airframe', 'nav.subtabs.basic.airframe', 'airframe']
   ]
-  profiles: [['/profiles', 'Profile', 'layers']]
-  servos:   [['/servos', 'Servos', 'gear']]
+  profiles: [['/profiles', 'nav.subtabs.profiles.profiles', 'layers']]
+  servos:   [['/servos', 'nav.subtabs.servos.servos', 'gear']]
   control: [
-    ['/control/pid',            'PID',          'gauge']
-    ['/control/schlagdynamik',  'Schlagdynamik', 'function']
-    ['/control/modes',          'Modi',         'toggle']
-    ['/control/receiver',    'Empfänger',  'antenna']
-    ['/control/adjustments', 'Justierung', 'wrench']
+    ['/control/pid',            'nav.subtabs.control.pid',           'gauge']
+    ['/control/strokedynamics',  'nav.subtabs.control.schlagdynamik', 'function']
+    ['/control/modes',          'nav.subtabs.control.modes',         'toggle']
+    ['/control/receiver',    'nav.subtabs.control.receiver',    'antenna']
+    ['/control/adjustments', 'nav.subtabs.control.adjustments', 'wrench']
   ]
   sensors: [
-    ['/sensors/hardware', 'Sensoren', 'chip']
-    ['/sensors/gyro',     'Gyro',     'gyro']
+    ['/sensors/hardware', 'nav.subtabs.sensors.hardware', 'chip']
+    ['/sensors/gyro',     'nav.subtabs.sensors.gyro',     'gyro']
   ]
   system: [
-    ['/system/device', 'Gerät',    'device']
-    ['/system/ports',  'Ports',    'ports']
-    ['/system/power',  'Power',    'battery']
-    ['/system/vtx',    'VTX',      'broadcast']
-    ['/system/osd',    'OSD',      'overlay']
-    ['/system/voice',  'Sprache',  'voice']
-    ['/system/memory', 'Speicher', 'memory']
-    ['/system/flash',  'The Molt', 'bolt']
-    ['/system/data',   'Daten',    'data']
+    ['/system/device', 'nav.subtabs.system.device', 'device']
+    ['/system/ports',  'nav.subtabs.system.ports',  'ports']
+    ['/system/power',  'nav.subtabs.system.power',  'battery']
+    ['/system/vtx',    'nav.subtabs.system.vtx',    'broadcast']
+    ['/system/osd',    'nav.subtabs.system.osd',    'overlay']
+    ['/system/voice',  'nav.subtabs.system.voice',  'voice']
+    ['/system/memory', 'nav.subtabs.system.memory', 'memory']
+    ['/system/flash',  'nav.subtabs.system.flash',  'bolt']
+    ['/system/data',   'nav.subtabs.system.data',   'data']
+    ['/system/app',    'nav.subtabs.system.app',    'sliders']
   ]
-  safety: [['/safety', 'Failsafe', 'shield']]
-  cli:    [['/cli', 'CLI', 'terminal']]
+  safety: [['/safety', 'nav.subtabs.safety.failsafe', 'shield']]
+  cli:    [['/cli', 'nav.subtabs.cli.cli', 'terminal']]
 
 # Canonical path (module root or sub-view) → module id.
 PATH_TO_MODULE = {}
@@ -79,7 +81,7 @@ subtabsForPath = (path) ->
   return [] if not path or path is '/'
   SUBTABS[moduleIdForPath path] ? []
 
-# Module metadata by id — icon/label/path for contextual headers.
+# Module metadata by id — icon/label-key/path for contextual headers.
 MODULE_BY_ID = {}
 for [modPath, label, icon] in MODULES
   MODULE_BY_ID[modPath.slice 1] = { path: modPath, label, icon }

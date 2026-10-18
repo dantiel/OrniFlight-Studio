@@ -34,8 +34,8 @@ describe 'OsdEditorView', ->
     expect(screen.getByText 'SIMULATION').toBeInTheDocument()
     expect(screen.getByText 'Elements').toBeInTheDocument()
     expect(screen.getByText 'Properties').toBeInTheDocument()
-    expect(screen.getByText 'Save').toBeInTheDocument()
-    expect(screen.getByText 'Read device').toBeDisabled()
+    expect(screen.getByText 'Speichern').toBeInTheDocument()
+    expect(screen.getByText 'Gerät lesen').toBeDisabled()
     for label in ['RSSI', 'Altitude', 'Timer 1', 'Stick left']
       expect(screen.getAllByText(label).length).toBeGreaterThan 0
 

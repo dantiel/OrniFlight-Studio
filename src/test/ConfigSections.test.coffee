@@ -30,16 +30,16 @@ describe 'ConfigSections', ->
     renderApp()
     expect(sections().getByText 'SIMULATION').toBeInTheDocument()
 
-  it 'starts clean without a DIRTY badge', ->
+  it 'starts clean without a UNSAVED badge', ->
     renderApp()
-    expect(sections().queryByText 'DIRTY').not.toBeInTheDocument()
+    expect(sections().queryByText 'UNGESPEICHERT').not.toBeInTheDocument()
 
   it 'flags the draft dirty when a field changes', ->
     renderApp()
     input = screen.getByLabelText 'Wing span'
     fireEvent.change input, { target: { value: '1500' } }
     fireEvent.blur input
-    expect(sections().getByText 'DIRTY').toBeInTheDocument()
+    expect(sections().getByText 'UNGESPEICHERT').toBeInTheDocument()
     expect(
       useConfigurationStore.getState().draft.geometry.wingSpan
     ).toBe 1500
@@ -49,28 +49,28 @@ describe 'ConfigSections', ->
     input = screen.getByLabelText 'Wing span'
     fireEvent.change input, { target: { value: '1500' } }
     fireEvent.blur input
-    fireEvent.click sections().getByText 'Save'
-    expect(sections().queryByText 'DIRTY').not.toBeInTheDocument()
+    fireEvent.click sections().getByText 'Speichern'
+    expect(sections().queryByText 'UNGESPEICHERT').not.toBeInTheDocument()
     expect(useConfigurationStore.getState().saved.geometry.wingSpan).toBe 1500
 
   it 'revert stays disabled while the draft is clean', ->
     renderApp()
-    expect(sections().getByText 'Revert').toBeDisabled()
+    expect(sections().getByText 'Verwerfen').toBeDisabled()
 
   it 'revert restores the saved draft', ->
     renderApp()
     input = screen.getByLabelText 'Wing span'
     fireEvent.change input, { target: { value: '1500' } }
     fireEvent.blur input
-    fireEvent.click sections().getByText 'Revert'
+    fireEvent.click sections().getByText 'Verwerfen'
     expect(
       useConfigurationStore.getState().draft.geometry.wingSpan
     ).toBe 1200
-    expect(sections().queryByText 'DIRTY').not.toBeInTheDocument()
+    expect(sections().queryByText 'UNGESPEICHERT').not.toBeInTheDocument()
 
   it 'disables Read device while in sim mode', ->
     renderApp()
-    expect(sections().getByText 'Read device').toBeDisabled()
+    expect(sections().getByText 'Gerät lesen').toBeDisabled()
 
   it 'reads servo configurations from the device on demand', ->
     store = useConfigurationStore.getState()
@@ -85,8 +85,8 @@ describe 'ConfigSections', ->
       writeServoConfiguration: -> Promise.resolve null
     }
     renderApp()
-    expect(sections().getByText 'Read device').toBeEnabled()
-    fireEvent.click sections().getByText 'Read device'
+    expect(sections().getByText 'Gerät lesen').toBeEnabled()
+    fireEvent.click sections().getByText 'Gerät lesen'
     await waitFor ->
       expect(useConfigurationStore.getState().draft.servos).toEqual configs
     expect(sections().getByText 'DEVICE').toBeInTheDocument()

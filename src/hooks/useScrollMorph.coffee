@@ -39,6 +39,7 @@ useScrollMorph = (hostRef, opts = {}) ->
     toolbar = shell?.querySelector '.connection-bar'
     raf = null
     lastSafeArea = null
+    lastDeckDock = null
 
     frame = ->
       raf = null
@@ -65,6 +66,13 @@ useScrollMorph = (hostRef, opts = {}) ->
       if safeArea isnt lastSafeArea
         shell?.style.setProperty '--of-safe-area-bar', "#{safeArea}px"
         lastSafeArea = safeArea
+      # The docked deck's height alone, for sticky decks that must pin
+      # BELOW the docked bar. Sticky top is measured from the padded
+      # content edge, so this must NOT include the toolbar (unlike
+      # --of-safe-area-bar, which is the absolute blur safe area).
+      if deckH isnt lastDeckDock
+        shell?.style.setProperty '--of-deck-dock', "#{deckH}px"
+        lastDeckDock = deckH
 
     onScroll = ->
       raf = requestAnimationFrame(frame) unless raf?
@@ -82,6 +90,7 @@ useScrollMorph = (hostRef, opts = {}) ->
       window.removeEventListener 'resize', onScroll
       media?.removeEventListener? 'change', onScroll
       shell?.style.removeProperty '--of-safe-area-bar'
+      shell?.style.removeProperty '--of-deck-dock'
 
   []
 

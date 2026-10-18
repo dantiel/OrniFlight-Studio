@@ -3,37 +3,189 @@
 // language throughout.
 
 .layout-math
-  // ── parallax field around the fixed waveform ──
-  // The rail holds the waveform anchor (sticky), the flow carries
-  // the signal chain and the layer cards past it. Each layer card
-  // drifts at its own --plx depth against --scroll-progress.
-  .math-grid
+  // ── two-pane working surface ──
+  // Params occupy the narrow third (scrollable); the plotter deck
+  // owns the wide two-thirds and stays pinned while the params move.
+  // Each layer card still drifts at its own --plx depth.
+  .schlag-layout
     display: grid
-    grid-template-columns: minmax(260px, 320px) 1fr
+    grid-template-columns: minmax(300px, 380px) minmax(0, 1fr)
     gap: var(--of-space-6)
     align-items: start
 
-  .math-rail
-    position: sticky
-    top: calc(
-      var(--of-safe-area-bar, var(--of-toolbar-height)) + var(--of-space-4))
-    z-index: 2
-
-  .math-flow
+  .schlag-params
     display: flex
     flex-direction: column
     gap: var(--of-space-6)
     min-width: 0
 
+  .schlag-plots
+    position: sticky
+    // Sticky top is measured from the padded content edge (70px below
+    // the viewport top), so it must NOT include the toolbar height.
+    // --of-deck-dock is the docked morph-deck height (0 until it docks),
+    // so the plotter pins flush under the docked bar with a small gap —
+    // no double-count of the toolbar, no nudge when the bar docks.
+    top: calc(var(--of-deck-dock, 0px) + var(--of-space-4))
+    z-index: 2
+    min-width: 0
+
   .math-layers
     display: grid
-    grid-template-columns: repeat(2, minmax(0, 1fr))
+    grid-template-columns: 1fr
     gap: var(--of-space-6)
     align-items: start
 
   .math-layer
     transform: translate3d(
       0, calc(var(--scroll-progress, 0) * var(--plx, 0px)), 0)
+
+  // ── the plotter deck — tabs + stage + persistent signature ──
+
+  .plot-deck
+    display: flex
+    flex-direction: column
+    gap: var(--of-space-4)
+    min-width: 0
+
+  .plot-deck-bar
+    display: flex
+    gap: var(--of-space-2)
+    padding: var(--of-space-2)
+    border: 1px solid var(--of-glass-rim-soft)
+    border-radius: var(--of-radius-md)
+    background: var(--of-glass-card)
+    backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+    -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+
+  .plot-deck-tab
+    flex: 1
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    gap: 8px
+    padding: 8px 10px
+    border-radius: 8px
+    border: 1px solid transparent
+    background: transparent
+    color: var(--of-text-muted)
+    cursor: pointer
+    font-family: inherit
+    font-size: 11px
+    letter-spacing: 0.08em
+    transition: color var(--of-dur-fast), background var(--of-dur-fast), border-color var(--of-dur-fast)
+
+    &:hover
+      color: var(--of-text-primary)
+
+    &.plot-deck-tab-on
+      color: var(--of-accent-alt)
+      border-color: var(--of-border-accent)
+      background: rgba(var(--of-accent-rgb), 0.08)
+
+  .plot-deck-tab-glyph
+    font-size: 14px
+    line-height: 1
+
+  .plot-deck-stage
+    position: relative
+    height: clamp(280px, 40vh, 430px)
+    border: 1px solid var(--of-glass-rim-soft)
+    border-radius: var(--of-radius-md)
+    background: var(--of-glass-card)
+    overflow: hidden
+
+    .stroke-scope
+      height: 100%
+
+    .stroke-scope-canvas
+      height: auto
+
+    .viewport-canvas
+      width: 100%
+      height: 100%
+
+    .plot-deck-3d
+      height: 100%
+      display: flex
+      flex-direction: column
+
+      .viewport-canvas
+        flex: 1
+        min-height: 0
+
+    .gyro-disturb
+      flex: none
+      display: flex
+      flex-direction: column
+      gap: var(--of-space-2)
+      padding: var(--of-space-3) var(--of-space-4)
+      border-top: 1px solid var(--of-border-1)
+      background: color-mix(in srgb, var(--of-glass-card) 72%, transparent)
+
+      .gyro-disturb-hint
+        font-size: 10px
+        letter-spacing: 0.04em
+        color: var(--of-text-muted)
+        line-height: 1.45
+
+      .gyro-disturb-row
+        display: flex
+        align-items: center
+        gap: var(--of-space-3)
+        flex-wrap: wrap
+
+      .gyro-disturb-field
+        flex: 1
+        min-width: 200px
+        display: grid
+        grid-template-columns: auto 1fr auto
+        align-items: center
+        gap: var(--of-space-3)
+
+      .gyro-disturb-label
+        font-size: 11px
+        letter-spacing: 0.05em
+        font-weight: 500
+        white-space: nowrap
+
+      .gyro-disturb-slider
+        width: 100%
+
+      .gyro-disturb-value
+        min-width: 26px
+        text-align: right
+        font-size: 11px
+        font-family: var(--of-font-mono)
+        color: var(--of-text-soft)
+
+      .gyro-disturb-btn
+        padding: 5px 12px
+        border: 1px solid var(--of-glass-rim-soft)
+        border-radius: var(--of-radius-sm)
+        background: var(--of-glass-bg)
+        color: var(--of-accent-alt)
+        font-size: 10px
+        letter-spacing: 0.1em
+        cursor: pointer
+        transition: border-color var(--of-dur-fast), background var(--of-dur-fast)
+
+        &:hover
+          border-color: rgba(var(--of-accent-rgb), 0.5)
+          background: var(--of-glass-card-hover)
+
+      .gyro-disturb-reset
+        color: var(--of-text-soft)
+
+  .plot-deck-ribbon
+    min-width: 0
+
+    .math-wave
+      padding: var(--of-space-4)
+
+      .inspector-section
+        padding: 0
+        border-bottom: none
 
   // ── the fixed waveform anchor ──
 
@@ -75,6 +227,188 @@
     font: 650 10px/1 var(--of-font-mono)
     letter-spacing: 0.16em
     color: var(--of-text-soft)
+
+  // ── the living waveform scope (wing + gyro + ferocity in motion) ──
+
+  .stroke-scope
+    position: relative
+    display: flex
+    flex-direction: column
+    border: 1px solid var(--of-glass-rim-soft)
+    border-radius: var(--of-radius-md)
+    background: var(--of-glass-card)
+    overflow: hidden
+
+  .stroke-scope-canvas
+    display: block
+    width: 100%
+    height: 280px
+    flex: 1 1 auto
+    min-height: 0
+
+  .stroke-scope-empty
+    position: absolute
+    inset: 0
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    gap: var(--of-space-2)
+    color: var(--of-text-muted)
+    font: 600 11px/1 var(--of-font-mono)
+    letter-spacing: 0.12em
+
+  .stroke-scope-empty-glyph
+    font-size: 26px
+    color: var(--orgone-c)
+    opacity: 0.6
+
+  // ── scope toolbar — legend + curve config ──
+
+  .scope-toolbar
+    display: flex
+    align-items: center
+    gap: var(--of-space-2)
+    padding: var(--of-space-2) var(--of-space-3)
+    border-bottom: 1px solid var(--of-glass-rim-soft)
+    background: rgba(0, 0, 0, 0.12)
+    flex: 0 0 auto
+    min-width: 0
+
+  .scope-legend
+    display: flex
+    flex-wrap: wrap
+    gap: 4px 12px
+    flex: 1 1 auto
+    min-width: 0
+
+  .scope-legend-chip
+    display: inline-flex
+    align-items: center
+    gap: 5px
+    font: 600 9px/1 var(--of-font-mono)
+    letter-spacing: 0.04em
+    color: var(--of-text-soft)
+    white-space: nowrap
+
+  .scope-legend-swatch
+    width: 9px
+    height: 9px
+    border-radius: 2px
+    flex: 0 0 auto
+
+  .scope-config-trigger
+    flex: 0 0 auto
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    min-width: 26px
+    height: 22px
+    padding: 0 6px
+    border-radius: 6px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-glass-bg)
+    color: var(--of-text-secondary)
+    cursor: pointer
+    font-size: 11px
+    letter-spacing: 0.06em
+
+    &:hover
+      border-color: var(--of-accent)
+      color: var(--of-accent)
+
+  .scope-menu
+    position: absolute
+    top: 34px
+    right: var(--of-space-2)
+    z-index: 5
+    width: 240px
+    max-height: 70%
+    overflow-y: auto
+    padding: var(--of-space-3)
+    border: 1px solid var(--of-glass-rim-soft)
+    border-radius: var(--of-radius-md)
+    background: var(--of-glass-card)
+    backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+    -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+    box-shadow: var(--of-glass-shadow)
+
+  .scope-menu-group
+    margin: 0
+    padding: 0
+    border: 0
+    display: grid
+    gap: 4px
+
+    + .scope-menu-group
+      margin-top: var(--of-space-3)
+      padding-top: var(--of-space-3)
+      border-top: 1px solid var(--of-border-1)
+
+    legend
+      font: 650 9px/1 var(--of-font-mono)
+      letter-spacing: 0.14em
+      text-transform: uppercase
+      color: var(--of-text-muted)
+      margin-bottom: 6px
+
+  .scope-curve-option
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 3px 4px
+    border-radius: 6px
+    cursor: pointer
+    font-size: 11px
+    color: var(--of-text-secondary)
+
+    &:hover
+      background: rgba(var(--of-accent-rgb), 0.08)
+
+    input
+      margin: 0
+      accent-color: var(--of-accent)
+
+  .scope-swatch
+    width: 9px
+    height: 9px
+    border-radius: 2px
+    flex: 0 0 auto
+
+  .scope-option-label
+    flex: 1 1 auto
+    min-width: 0
+
+  // ── frequency modulator ──
+
+  .freq-mod
+    display: flex
+    flex-direction: column
+    gap: var(--of-space-4)
+
+  .freq-mod-row
+    display: flex
+    flex-direction: column
+    gap: 6px
+
+  .freq-mod-label
+    font: 600 10px/1 var(--of-font-mono)
+    letter-spacing: 0.14em
+    color: var(--of-text-muted)
+
+  .freq-mod-select
+    width: 100%
+    padding: 6px 8px
+    border-radius: 8px
+    border: 1px solid var(--of-border-1)
+    background: var(--of-glass-bg)
+    color: var(--of-text-primary)
+    font-family: inherit
+    font-size: 12px
+
+  .freq-mod-slider
+    width: 100%
+    margin: 0
 
   .math-mode-badge
     font-size: 10px
@@ -143,56 +477,6 @@
   .math-action-spot
     color: var(--of-accent-alt)
     border-color: var(--of-accent-dim)
-
-  // ── signal chain — nine layers, one breath ──
-
-  .math-chain-row
-    display: flex
-    flex-wrap: wrap
-    gap: var(--of-space-3)
-
-  .math-chain-node
-    display: flex
-    flex-direction: column
-    align-items: flex-start
-    gap: 4px
-    min-width: 96px
-    padding: 10px 12px
-    border-radius: 12px
-    border: 1px solid var(--of-glass-rim-soft)
-    background: var(--of-glass-bg)
-    color: var(--of-text-secondary)
-    cursor: pointer
-    font-family: inherit
-    transition: border-color var(--of-dur-normal) var(--of-ease-out), transform var(--of-dur-normal) var(--of-ease-out)
-
-    &:hover
-      border-color: rgba(var(--orgone-a-rgb), 0.7)
-      color: var(--of-text-primary)
-      transform: translateY(-1px)
-
-  .math-chain-glyph
-    font-size: 16px
-    line-height: 1
-
-  .math-chain-name
-    font: 600 10px/1 var(--of-font-mono)
-    letter-spacing: 0.12em
-    text-transform: uppercase
-
-  .math-chain-bar
-    width: 100%
-    height: 3px
-    border-radius: 2px
-    background: var(--of-border-1)
-    overflow: hidden
-
-  .math-chain-fill
-    display: block
-    height: 100%
-    border-radius: inherit
-    background: var(--orgone-gradient)
-    transition: width var(--of-dur-normal) var(--of-ease-out)
 
   // ── layer cards ──
 
@@ -347,16 +631,14 @@
     color: var(--of-text-secondary)
 
 @media (max-width: 900px)
-  .math-grid
+  .schlag-layout
     grid-template-columns: 1fr
-  .math-rail
+  .schlag-plots
     position: static
   .math-layers
     grid-template-columns: 1fr
 
 @media (prefers-reduced-motion: reduce)
-  .math-chain-node,
-  .math-chain-fill,
   .espelho-gauge-fill
     transition: none
   .math-layer

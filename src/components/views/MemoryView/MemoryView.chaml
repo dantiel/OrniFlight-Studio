@@ -1,15 +1,17 @@
 ~~~
 import { callWith } from '../../../lib/essential.coffee'
 import useAppStore from '../../../stores/useAppStore.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
-- PROFILES = [['Gentle Glide', 'Slow, stable soaring.'], ['Agile Swirl', 'High-rate acrobatics with flips.'], ['Race Wind', 'Maximum thrust, minimal correction.'], ['Night Murmur', 'Quiet flight, reduced cadence.']]
+- { t } = useI18n()
+- profileKeys = [['memory.profile1', 'memory.profile1Desc'], ['memory.profile2', 'memory.profile2Desc'], ['memory.profile3', 'memory.profile3Desc'], ['memory.profile4', 'memory.profile4Desc']]
 - PROFILE_ICONS = ['🕊️', '🦅', '⚡', '🦉']
 - activeProfile = useAppStore (s) -> s.activeProfile
 - setActiveProfile = useAppStore (s) -> s.setActiveProfile
 .system-view
   .system-view-head
-    %h1.system-view-title Speicher
+    %h1.system-view-title= t('memory.title')
   .system-memory-grid
-    - for entry, i in PROFILES
-      %ProfileCard{ key: i, icon: PROFILE_ICONS[i] || '◇', title: entry[0], description: entry[1], index: i + 1, isActive: (i + 1 == activeProfile), onActivate: callWith(setActiveProfile, i + 1) }
+    - for keys, i in profileKeys
+      %ProfileCard{ key: i, icon: PROFILE_ICONS[i] || '◇', title: t(keys[0]), description: t(keys[1]), index: i + 1, isActive: (i + 1 == activeProfile), onActivate: callWith(setActiveProfile, i + 1) }

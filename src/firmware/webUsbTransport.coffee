@@ -52,12 +52,17 @@ detect = (device, onLog = (->)) ->
   iface = device.configuration.interfaces[0]
   await device.claimInterface iface.interfaceNumber
   onLog 'INFO', "USB DFU device opened: #{device.productName or 'STM32 DFU'}"
-  # Try to get chip ID via GETSTATUS (some bootloaders return it in wValue)
-  # For now, we infer from USB VID/PID
-  vid = device.vendorId
-  pid = device.productId
-  chipId = if vid is 0x0483 and pid is 0xDF11 then 0x439 else null   # Assume F303
-  info = dfu.CHIP_IDS[chipId] or { target: 'STM32F303', mcu: 'STM32F303xC', flash: '256 KB' }
+  # Read the real chip ID via the DfuSe GETID command — the USB
+  # VID/PID (0x0483:0xDF11) is identical for every STM32 DFU target,
+  # so it cannot identify the silicon.
+  chipId = null
+  idr = await dfu.getDeviceId device, iface.interfaceNumber
+  if idr.ok
+    chipId = idr.value
+    onLog 'INFO', "Bootloader chip ID 0x#{chipId.toString 16}"
+  else
+    onLog 'WARN', "Could not read chip ID (#{idr.error}) — assuming F405"
+  info = dfu.CHIP_IDS[chipId] or { target: 'STM32F405', mcu: 'STM32F405xG', flash: '1 MB' }
   onLog 'INFO', "Detected #{info.mcu} (#{info.flash}) via USB DFU"
   {
     name: device.productName or 'STM32 DFU'

@@ -58,6 +58,7 @@ STATUS_ERR_STALLEDPKT  = 0x0F
 #   0x43 = ERASE_PAGE, payload = page + 0x43 || 0xFFFF for mass erase
 #   0x21 = WRITE_MEMORY (followed by data)
 
+CMD_GET_ID    = 0x02
 CMD_SET_ADDR  = 0x21
 CMD_ERASE     = 0x43
 CMD_MASS_ERASE = 0xFFFF
@@ -151,6 +152,45 @@ waitIdle = (device, iface = 0, timeout = 30000) ->
       return makeResult false, null, 'DFU error state'
     if Date.now() - start > timeout
       return makeResult false, null, 'DFU waitIdle timeout'
+
+# DfuSe GETID (0x02): read the 16-bit product ID from the bootloader.
+# The upload response is [len, PID_lo, PID_hi, bootloader_version] on
+# most STM32 bootloaders, but a few omit the length byte — scan for a
+# known chip ID in either endianness instead of trusting the layout.
+scanChipId = (bytes) ->
+  for i in [0...Math.max(0, bytes.length - 1)]
+    le = bytes[i] | (bytes[i + 1] << 8)
+    be = (bytes[i] << 8) | bytes[i + 1]
+    return le if CHIP_IDS[le]
+    return be if CHIP_IDS[be]
+  null
+
+getDeviceId = (device, iface = 0) ->
+  dn = await device.controlTransferOut
+    requestType: 'class'
+    recipient: 'interface'
+    request: DFU_DNLOAD
+    value: 0
+    index: iface
+    length: 1
+  , new Uint8Array [CMD_GET_ID]
+  unless dn.status is 'ok'
+    return makeResult false, null, 'GETID DNLOAD failed'
+  sr = await getStatus device, iface
+  return sr unless sr.ok
+  await new Promise (resolve) -> setTimeout resolve, Math.min(sr.value.pollTimeout, 100)
+  up = await device.controlTransferIn
+    requestType: 'class'
+    recipient: 'interface'
+    request: DFU_UPLOAD
+    value: 0
+    index: iface
+    length: 8
+  unless up.status is 'ok' and up.data?.length
+    return makeResult false, null, 'GETID UPLOAD failed'
+  pid = scanChipId up.data
+  if pid? then makeResult true, pid, null
+  else makeResult false, null, "unrecognised GETID response #{Array.from up.data}"
 
 # ── STM32 DFU commands ───────────────────────────────────────
 
@@ -277,6 +317,7 @@ export {
   DFU_CLASS, DFU_SUBCLASS, DFU_PROTOCOL
   CHIP_IDS, SECTORS, FLASH_BASE
   getStatus, clearStatus, getState, waitIdle
+  getDeviceId
   setAddress, erasePage, massErase, writeChunk
   eraseRegion, writeImage
 }

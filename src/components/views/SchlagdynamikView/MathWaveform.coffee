@@ -4,6 +4,7 @@ import useOrnithopterStore from '../../../stores/useOrnithopterStore.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import { strokePreviewPath } from '../../../lib/mathSuite.coffee'
 import Section from '../../layout/Section/Section.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 
 # The fixed waveform — one full flap cycle drawn through the same
 # kernel the physics breathes. The path derives live from the
@@ -14,6 +15,7 @@ MathWaveform = ->
   ondas = useOrnithopterStore (state) ->
     state.draft.profiles[state.draft.activeProfile].ondas
   frequency = useTelemetryStore (state) -> state.flapFrequency
+  { t } = useI18n()
   down = ondas.ferocity_downstroke
   up = ondas.ferocity_upstroke
   path = useMemo (-> strokePreviewPath down, up, 240, 110), [down, up]
@@ -22,8 +24,8 @@ MathWaveform = ->
   h 'div',
     { id: 'math-waveform', className: 'morph-section math-wave' },
     h(Section,
-      { heading: 'Waveform',
-        subheading: 'Ein kompletter Schlagzyklus aus dem Wellenkern — der fixe Anker der Schichten.' },
+      { heading: t('schlagdynamik.waveform'),
+        subheading: t('schlagdynamik.waveformSub') },
       h('div', { className: 'math-wave-field' },
         h('svg',
           { className: 'math-wave-svg', viewBox: '0 0 240 110',
@@ -39,14 +41,14 @@ MathWaveform = ->
               strokeWidth: 2, vectorEffect: 'non-scaling-stroke' }),
           h('circle', { className: 'math-wave-bead', cx: 12, cy: 55, r: 3 })),
         h('div', { className: 'math-wave-legend' },
-          h('span', null, "⬇ Down #{down}%"),
+          h('span', null, t('schlagdynamik.down', { v: down })),
           h('span', { className: 'math-wave-asym' },
-            "Asymmetrie #{Math.abs(down - up)}%"),
-          h('span', null, "⬆ Up #{up}%")),
+            t('schlagdynamik.asymmetry', { v: Math.abs(down - up) })),
+          h('span', null, t('schlagdynamik.up', { v: up }))),
         h('div', { className: 'math-wave-freq' },
           if freq > 0
-            "#{freq.toFixed(1)} Hz · live"
+            t('schlagdynamik.hzLive', { hz: freq.toFixed(1) })
           else
-            'Ruhe — keine Schlagfrequenz')))
+            t('schlagdynamik.rest'))))
 
 export default MathWaveform

@@ -21,16 +21,16 @@ describe 'FailsafeView', ->
     expect(screen.getAllByText('Arming').length).toBeGreaterThan 0
     expect(screen.getByText 'Features').toBeInTheDocument()
     expect(screen.getByText 'Beeper').toBeInTheDocument()
-    expect(screen.getByText 'Read device').toBeDisabled()
-    expect(screen.getByText 'Save').toBeEnabled()
-    expect(screen.getByText 'Revert').toBeDisabled()
+    expect(screen.getByText 'Gerät lesen').toBeDisabled()
+    expect(screen.getByText 'Speichern').toBeEnabled()
+    expect(screen.getByText 'Verwerfen').toBeDisabled()
 
   it 'patches the failsafe draft through the guard-time input', ->
     render h FailsafeView, null
     guardTime = document.querySelectorAll('.safety-input')[0]
     fireEvent.change guardTime, { target: { value: '12' } }
     expect(state().draft.failsafe.delay).toBe 12
-    expect(screen.getByText 'DIRTY').toBeInTheDocument()
+    expect(screen.getByText 'UNGESPEICHERT').toBeInTheDocument()
 
   it 'toggles a feature bit through its checkbox', ->
     render h FailsafeView, null
@@ -50,7 +50,7 @@ describe 'FailsafeView', ->
   it 'commits locally in sim mode through the save button', ->
     render h FailsafeView, null
     state().setFailsafe { delay: 8 }
-    fireEvent.click screen.getByText 'Save'
+    fireEvent.click screen.getByText 'Speichern'
     await waitFor ->
       expect(state().saved.failsafe.delay).toBe 8
     expect(state().dirty).toBe false

@@ -125,6 +125,7 @@ describe 'useModesStore', ->
 
   it 'treats a zero-width range as empty regardless of box', ->
     state().setRangeField 0, 'permanentId', 28
+    state().setRangeField 0, 'endStep', 0
     expect(state().draft.ranges[0].permanentId).toBe 28
     expect(isRangeUsable state().draft.ranges[0]).toBe false
 

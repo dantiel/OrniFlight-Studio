@@ -3,8 +3,10 @@ import {
   FORGE_FEATURES, hasFeature
 } from '../../../firmware/forgeFeatures.coffee'
 import { useState } from 'react'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
+- { t } = useI18n()
 - forge = props.forge || {}
 - [target, setTarget] = useState 'TINYFISH'
 - [versionTag, setVersionTag] = useState ''
@@ -16,9 +18,9 @@ import { useState } from 'react'
 - failed = current?.ready and not done
 - statusText = current?.status or 'idle'
 - statusClass = { true: 'online', false: 'offline' }[online] ? 'unknown'
-- statusWord = { true: 'online', false: 'offline' }[online] ? '…'
-- buildLabel = if forge.building then 'Forging…' else '⚒️ Forge build'
-- loadLabel = if forge.loading then 'Loading…' else 'Load image'
+- statusWord = { true: t('flash.forgeOnline'), false: t('flash.forgeOffline') }[online] ? '…'
+- buildLabel = if forge.building then t('flash.forging') else t('flash.forgeBuild')
+- loadLabel = if forge.loading then t('flash.loading') else t('flash.loadImage')
 - features = forge.features || []
 - pickTarget = (e) -> setTarget(e.target.value)
 - pickTag = (e) -> setVersionTag(e.target.value)
@@ -30,8 +32,8 @@ import { useState } from 'react'
 .cloud-forge
   .cf-head
     %div.cf-head-copy
-      %span.cf-head-title The Forge
-      %span.cf-head-sub Cloud build · dantiel/OrniFlight
+      %span.cf-head-title= t('flash.forge')
+      %span.cf-head-sub= t('flash.forgeSub')
     %span.cf-status{ className: "cf-status #{statusClass}" }
       %span.cf-dot
       %span.cf-status-word= statusWord
@@ -39,25 +41,24 @@ import { useState } from 'react'
     .cf-banner
       %span.cf-banner-glyph ⚒️
       %span.cf-banner-text
-        The Forge is not configured. Set VITE_FORGE_API_BASE or
-        append ?forge= to the URL.
+        = t('flash.forgeNotConfigured')
   - else
     .cf-body
       .cf-buildline
         %label.cf-field
-          %span.cf-label Target
+          %span.cf-label= t('flash.target')
           %select.cf-select{ value: target, onChange: pickTarget }
-            - for t in targets
-              %option{ key: t, value: t }= t
+            - for tgt in targets
+              %option{ key: tgt, value: tgt }= tgt
         %label.cf-field.cf-field-grow
-          %span.cf-label Build label
-          %input.cf-input{ type: 'text', placeholder: 'optional build label', value: versionTag, onChange: pickTag }
+          %span.cf-label= t('flash.buildLabel')
+          %input.cf-input{ type: 'text', placeholder: t('flash.buildLabelPlaceholder'), value: versionTag, onChange: pickTag }
         %button.cf-build{ disabled: forge.building or forge.loading, onClick: build }
           = buildLabel
       .cf-flags
         .cf-flags-head
-          %span.cf-flags-title Build flags
-          %span.cf-flags-count= "#{features.length} of #{FORGE_FEATURES.length} included"
+          %span.cf-flags-title= t('flash.buildFlags')
+          %span.cf-flags-count= t('flash.flagsCount', { n: features.length, total: FORGE_FEATURES.length })
         .cf-flag-grid
           - for f in FORGE_FEATURES
             %label.cf-flag{ key: f.id, className: "cf-flag#{if hasFeature(features, f.id) then ' on' else ' off'}" }
@@ -70,10 +71,10 @@ import { useState } from 'react'
       - if current
         .cf-run
           .cf-run-line
-            %span.cf-run-label Status
+            %span.cf-run-label= t('flash.status')
             %span.cf-run-value= statusText
           - if current.htmlUrl
-            %a.cf-run-link{ href: current.htmlUrl, target: '_blank', rel: 'noopener' } GitHub run ↗
+            %a.cf-run-link{ href: current.htmlUrl, target: '_blank', rel: 'noopener' }= t('flash.githubRun')
           - if done
             %button.cf-load{ disabled: forge.loading, onClick: (-> loadRun(current.runId)) }
               = loadLabel
@@ -83,7 +84,7 @@ import { useState } from 'react'
         %div.cf-error= forge.error
       - if forge.history.length
         .cf-history
-          .cf-history-title Recent builds
+          %div.cf-history-title= t('flash.recentBuilds')
           - for b in forge.history.slice(0, 6)
             %button.cf-history-item{ key: b.run_id, onClick: (-> loadRun(b.run_id)) }
               %span.cf-history-sha= shortSha(b.head_sha)

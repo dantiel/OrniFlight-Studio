@@ -3,8 +3,10 @@ import { fmt1 } from '../../../lib/essential.coffee'
 import useEngineStore from '../../../stores/useEngineStore.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import useAppStore from '../../../stores/useAppStore.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
+- { t } = useI18n()
 - sim = useEngineStore()
 - tele = useTelemetryStore()
 - storedTab = useAppStore (s) -> s.activeTab
@@ -14,10 +16,12 @@ import useAppStore from '../../../stores/useAppStore.coffee'
 - setWaveCurves = useAppStore (s) -> s.setWaveCurves
 - gyroCurves = useAppStore (s) -> s.gyroCurves
 - setGyroCurves = useAppStore (s) -> s.setGyroCurves
+- cadenceBadge = t('flight.cadence', { hz: fmt1(tele.flapFrequency) })
+- strokeBadge = t('flight.stroke', { amp: fmt1(tele.amplitude) })
 .view-layout.layout-flight
   %ViewArea{ area: 'vport' }
     %DeferredAircraftViewport{ attitude: tele.attitude || [0, 0, 0], wingAngleL: tele.wingAngleL || 0, wingAngleR: tele.wingAngleR || 0, flapFrequency: tele.flapFrequency || 0, onBump: sim.bump }
-    %ViewportOverlay{ badges: ["Cadence #{fmt1(tele.flapFrequency)} Hz", "Stroke #{fmt1(tele.amplitude)}°"] }
+    %ViewportOverlay{ badges: [cadenceBadge, strokeBadge] }
   %ViewArea{ area: 'params' }
     - unless props.tab
       %TabBar{ activeTab: activeTab, onTabChange: setActiveTab }

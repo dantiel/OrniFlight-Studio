@@ -1,34 +1,36 @@
 ~~~
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import useDeviceStore from '../../../stores/useDeviceStore.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
+- { t } = useI18n()
 - CHANS = ['Roll', 'Pitch', 'Yaw', 'Throttle', 'Aux 1', 'Aux 2', 'Aux 3', 'Aux 4']
 - tele = useTelemetryStore()
 - device = useDeviceStore()
 - visibleChannels = if tele.rcChannels?.length then tele.rcChannels.slice(0, 16) else [0, 0, 0, 0]
 - channelDisplays = visibleChannels.map((value) -> if value then "#{value} µs" else '—')
-- sourceDisplay = if device.source == 'device' then 'Live MSP data' else 'Offline profile'
-- mappingDisplay = if device.identity?.rxMap?.length then device.identity.rxMap.join(' · ') else 'Read on connect'
-- statusDisplay = if device.status?.armed then 'Armed · editing locked' else 'Disarmed'
-- linkDisplay = if tele.linkQuality then "#{Math.round(tele.linkQuality)}%" else 'Not reported by MSP'
-- updateDisplay = if tele.source == 'device' then 'Flight controller' else 'Waiting'
+- sourceDisplay = if device.source == 'device' then t('voice.liveMsp') else t('voice.offlineProfile')
+- mappingDisplay = if device.identity?.rxMap?.length then device.identity.rxMap.join(' · ') else t('voice.readOnConnect')
+- statusDisplay = if device.status?.armed then t('voice.armedLocked') else t('voice.disarmed')
+- linkDisplay = if tele.linkQuality then "#{Math.round(tele.linkQuality)}%" else t('voice.notReported')
+- updateDisplay = if tele.source == 'device' then t('voice.flightController') else t('voice.waiting')
 .system-view
   .system-view-head
-    %h1.system-view-title Sprache
+    %h1.system-view-title= t('voice.title')
   .system-columns
     .system-stack
-      %Section{ heading: 'Receiver', subheading: 'Input transport and firmware mapping.' }
-        %ParamRow{ label: 'Source', display: sourceDisplay }
-        %ParamRow{ label: 'Channels', display: String(tele.rcChannels?.length || 0) }
-        %ParamRow{ label: 'Mapping', display: mappingDisplay }
-        %ParamRow{ label: 'Status', display: statusDisplay }
-      %Section{ heading: 'Link Quality', subheading: 'Signal health and diagnostics.' }
-        %ParamRow{ label: 'RSSI', display: "#{Math.round(tele.rssi || 0)}%" }
-        %ParamRow{ label: 'Link quality', display: linkDisplay }
-        %ParamRow{ label: 'Update source', display: updateDisplay }
+      %Section{ heading: t('voice.receiver'), subheading: t('voice.receiverSub') }
+        %ParamRow{ label: t('voice.source'), display: sourceDisplay }
+        %ParamRow{ label: t('voice.channels'), display: String(tele.rcChannels?.length || 0) }
+        %ParamRow{ label: t('voice.mapping'), display: mappingDisplay }
+        %ParamRow{ label: t('voice.status'), display: statusDisplay }
+      %Section{ heading: t('voice.linkQuality'), subheading: t('voice.linkQualitySub') }
+        %ParamRow{ label: t('voice.rssi'), display: "#{Math.round(tele.rssi || 0)}%" }
+        %ParamRow{ label: t('voice.link'), display: linkDisplay }
+        %ParamRow{ label: t('voice.updateSource'), display: updateDisplay }
     .system-stack
-      %Section{ heading: 'Live Channels', subheading: 'Raw receiver pulse values from the controller.' }
+      %Section{ heading: t('voice.liveChannels'), subheading: t('voice.liveChannelsSub') }
         - for value, i in visibleChannels
           %ParamRow{ key: i, label: CHANS[i] || "CH#{i + 1}", display: channelDisplays[i] }
   %PlotWorkspace{ workspace: 'receiver', history: tele.waveformHistory || [] }

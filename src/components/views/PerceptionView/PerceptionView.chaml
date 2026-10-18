@@ -3,8 +3,10 @@ import { fmt1 } from '../../../lib/essential.coffee'
 import { useDeferredValue } from 'react'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import useAppStore from '../../../stores/useAppStore.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
+- { t } = useI18n()
 - DEFAULT_GYRO = { roll: 0, pitch: 0, yaw: 0 }
 - DEFAULT_SERVOS = [0, 0, 0, 0, 0, 0]
 - tele = useTelemetryStore()
@@ -17,17 +19,17 @@ import useAppStore from '../../../stores/useAppStore.coffee'
 - deferredServos = useDeferredValue(tele.servos || DEFAULT_SERVOS)
 .view-layout.layout-perception
   %ViewArea{ area: 'gyro' }
-    %Section{ heading: 'Gyroscope', subheading: 'Live angular velocity on all three axes.' }
+    %Section{ heading: t('perception.gyroscope'), subheading: t('perception.gyroscopeSub') }
       %GyroBars{ gyro: deferredGyro }
-    %Section{ heading: 'Angular Rates' }
-      %ParamRow{ label: 'Rate Roll', display: fmt1(gyro.roll) + ' °/s' }
-      %ParamRow{ label: 'Rate Pitch', display: fmt1(gyro.pitch) + ' °/s' }
-      %ParamRow{ label: 'Rate Yaw', display: fmt1(gyro.yaw) + ' °/s' }
+    %Section{ heading: t('perception.angularRates') }
+      %ParamRow{ label: t('perception.rateRoll'), display: fmt1(gyro.roll) + ' °/s' }
+      %ParamRow{ label: t('perception.ratePitch'), display: fmt1(gyro.pitch) + ' °/s' }
+      %ParamRow{ label: t('perception.rateYaw'), display: fmt1(gyro.yaw) + ' °/s' }
   %ViewArea{ area: 'sensors' }
-    %Section{ heading: 'Gyro Configuration', subheading: 'Sampling range, rate, and filtering.' }
-      %ParamRow{ label: 'Gyro Range', display: '±2000°/s' }
-      %ParamRow{ label: 'Gyro LPF', display: '256 Hz / 8 kHz' }
-      %ParamRow{ label: 'Bus', display: 'I²C · 400 kHz' }
-      %ParamRow{ label: 'Sample Rate', display: '500 Hz' }
+    %Section{ heading: t('perception.gyroConfig'), subheading: t('perception.gyroConfigSub') }
+      %ParamRow{ label: t('perception.gyroRange'), display: '±2000°/s' }
+      %ParamRow{ label: t('perception.gyroLpf'), display: '256 Hz / 8 kHz' }
+      %ParamRow{ label: t('perception.bus'), display: 'I²C · 400 kHz' }
+      %ParamRow{ label: t('perception.sampleRate'), display: '500 Hz' }
   %ViewArea{ area: 'waves' }
     %PlotWorkspace{ workspace: 'sensors', history: deferredHistory }

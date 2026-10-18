@@ -35,13 +35,13 @@ describe 'PidTuningView', ->
     # The ONDAS parameters live only in the Math view — no doubling.
     expect(document.querySelectorAll '.ondas-layer').toHaveLength 0
     link = screen.getByText 'ONDAS öffnen → Schlagdynamik'
-    expect(link.getAttribute('href')).toBe '/control/schlagdynamik'
+    expect(link.getAttribute('href')).toBe '/control/strokedynamics'
 
   it 'shows the UNSAVED badge after a draft edit', ->
     renderView()
     slider = document.querySelector '.param-slider'
     fireEvent.input slider, { target: { value: '5' } }
-    expect(screen.getByText 'UNSAVED').toBeInTheDocument()
+    expect(screen.getByText 'UNGESPEICHERT').toBeInTheDocument()
     expect(useTuningStore.getState().draft.pid.roll.P).toBe 5
 
   it 'renders the DEVICE badge without the sim banner', ->
@@ -57,7 +57,7 @@ describe 'PidTuningView', ->
     slider = document.querySelector '.param-slider'
     fireEvent.input slider, { target: { value: '5' } }
     user = userEvent.setup()
-    await user.click screen.getByText 'Save'
+    await user.click screen.getByText 'Speichern'
     state = useTuningStore.getState()
     expect(state.dirty).toBe false
     expect(state.mode).toBe 'sim'
@@ -70,6 +70,6 @@ describe 'PidTuningView', ->
     await act -> await useTuningStore.getState().save()
     fireEvent.input slider, { target: { value: '7' } }
     user = userEvent.setup()
-    await user.click screen.getByText 'Revert'
+    await user.click screen.getByText 'Verwerfen'
     expect(useTuningStore.getState().draft.pid.roll.P).toBe 5
     expect(useTuningStore.getState().dirty).toBe false

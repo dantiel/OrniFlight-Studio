@@ -1,10 +1,12 @@
 ~~~
 import { transportLabel } from '../../../firmware/flashUi.coffee'
+import { getT, useI18n } from '../../../i18n/index.coffee'
 statusFor = (isLive, lastError, runtimeConnected) ->
-  if isLive and not lastError then 'BREATHING'
-  else if lastError then 'NO SYNC'
-  else if runtimeConnected then 'CONNECTED'
-  else 'DRY-RUN'
+  t = getT()
+  if isLive and not lastError then t('flash.breathing')
+  else if lastError then t('flash.noSync')
+  else if runtimeConnected then t('flash.connected')
+  else t('flash.dryRun')
 firmwareFor = (runtimeConnected, ri, fallback) ->
   if runtimeConnected and ri?.firmware?.version
     "app #{ri.firmware.version}"
@@ -12,6 +14,7 @@ firmwareFor = (runtimeConnected, ri, fallback) ->
     fallback or '—'
 ~~~
 
+- { t } = useI18n()
 - c = props.ctrl || {}
 - d = props.device || c.device || {}
 - transport = props.transport || c.transport || 'sim'
@@ -32,8 +35,8 @@ firmwareFor = (runtimeConnected, ri, fallback) ->
 - dName = rc and ri?.name or d.name or 'OrniFlight'
 - dTarget = rc and ri?.board?.targetName or d.target or 'ORNI-F4'
 - dFirmware = firmwareFor rc, ri, d.firmware
-- detectLabel = if detecting then 'Scanning…' else 'Detect board'
-- bridgeLabel = if detecting then 'Scanning…' else 'Enter bootloader'
+- detectLabel = if detecting then t('flash.scanningDetect') else t('flash.detectBoard')
+- bridgeLabel = if detecting then t('flash.scanningDetect') else t('flash.enterBootloaderRow')
 - detectDisabled = !!detecting
 - onDetectSerial = props.onDetectSerial || c.onDetectSerial || (->)
 - onDetectWebUsb = props.onDetectWebUsb || c.onDetectWebUsb || (->)
@@ -53,20 +56,20 @@ firmwareFor = (runtimeConnected, ri, fallback) ->
       = transportName
   .device-body
     .device-row
-      %span.device-row-label MCU
+      %span.device-row-label= t('flash.mcu')
       %span.device-row-value= d.mcu || '—'
     .device-row
-      %span.device-row-label Flash
+      %span.device-row-label= t('flash.flashRom')
       %span.device-row-value= d.flash || '—'
     .device-row
-      %span.device-row-label Firmware
+      %span.device-row-label= t('flash.firmware')
       %span.device-row-value= dFirmware
     .device-row
-      %span.device-row-label Bootloader
+      %span.device-row-label= t('flash.bootloaderRow')
       %span.device-row-value= d.bootloader || '—'
     - if hasLastError
       .device-row.device-row-error
-        %span.device-row-label Sync
+        %span.device-row-label= t('flash.sync')
         %span.device-row-value= lastError
   .device-foot
     %span.device-uid= d.uid || ''
@@ -76,14 +79,14 @@ firmwareFor = (runtimeConnected, ri, fallback) ->
     .device-actions
       - if isLive
         %button.device-btn{ onClick: releaseOnClick }
-          = 'Release'
+          = t('flash.release')
       - else if runtimeConnected
         %button.device-btn{ onClick: onBridge, disabled: detectDisabled }
           = bridgeLabel
       - else
         - if serialSupported
           %button.device-btn{ onClick: onDetectSerial, disabled: detectDisabled }
-            = 'Serial'
+            = t('flash.serial')
         - if webUsbSupported
           %button.device-btn.usb{ onClick: onDetectWebUsb, disabled: detectDisabled }
-            = 'USB DFU'
+            = t('flash.usbDfu')

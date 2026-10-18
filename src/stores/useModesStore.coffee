@@ -43,7 +43,11 @@ defaultRanges = ->
       permanentId: 0
       auxChannelIndex: 0
       startStep: 0
-      endStep: 0
+      # A fresh range starts spread across the whole band so the dual
+      # slider is immediately grabbable; zero-width remains the wire's
+      # "empty" signal and is still expressible by dragging the thumbs
+      # together.
+      endStep: MODE_RANGE_STEP_MAX
       modeLogic: 0
       linkedToPermId: 0
     }

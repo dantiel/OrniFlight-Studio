@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import h from '../../../app/h.coffee'
 import { MODULES } from '../../../lib/navigation.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 import Icon from '../../primitives/Icon/Icon.coffee'
 
 # Top-level modules — the bird's-eye path through the suite.
@@ -11,7 +12,8 @@ import Icon from '../../primitives/Icon/Icon.coffee'
 
 Dock = ->
   [hovered, setHovered] = useState -1
-  h 'nav', { className: 'dock-shell', 'aria-label': 'Primary navigation' },
+  { t } = useI18n()
+  h 'nav', { className: 'dock-shell', 'aria-label': t('chrome.primaryNav') },
     h 'div', { className: 'dock', onMouseLeave: -> setHovered -1 },
       MODULES.map ([to, label, icon], i) ->
         scale = switch
@@ -29,6 +31,6 @@ Dock = ->
             animate: { scale }
             transition: { type: 'spring', stiffness: 340, damping: 22 }
           , h Icon, { name: icon, size: 19 }
-          h 'span', { className: 'dock-label' }, label
+          h 'span', { className: 'dock-label' }, t(label)
 
 export default Dock

@@ -3,15 +3,17 @@ import { useState, useRef, memo } from 'react'
 import { OSD_ITEMS, OSD_PROFILE_COUNT, GRID_COLS, GRID_ROWS, visibleInProfile, posCell } from '../../../lib/osdCatalog.coffee'
 import useOsdStore from '../../../stores/useOsdStore.coffee'
 import makeOsdHandlers, { osdItemStyle } from './OsdEditorView.handlers.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - osd = useOsdStore()
+- { t } = useI18n()
 - [selected, setSelected] = useState null
 - gridRef = useRef null
 - handlers = makeOsdHandlers osd, gridRef, setSelected
 - draft = osd.draft
 - profile = osd.profileIndex
-- modeLabel = if osd.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- modeLabel = if osd.mode == 'sim' then t('common.simulation') else t('common.device')
 - readDisabled = osd.mode != 'device' or !osd.session
 - visibleItems = OSD_ITEMS.filter (item) -> visibleInProfile draft[item.index], profile
 - selectedItem = if selected? then OSD_ITEMS[selected] else null
@@ -31,32 +33,32 @@ import makeOsdHandlers, { osdItemStyle } from './OsdEditorView.handlers.coffee'
 - revertOsd = -> osd.revert()
 .osd-workspace
   .osd-header
-    %h1.osd-title OSD
+    %h1.osd-title= t('osd.title')
     %span.osd-mode-badge{ className: "osd-mode-#{osd.mode}" }
       = modeLabel
     - if osd.dirty
-      %span.osd-dirty-badge UNSAVED
+      %span.osd-dirty-badge= t('common.unsaved')
     - if osd.lastError
       .osd-error
         = osd.lastError
     .osd-profile-selector
-      %label{ key: 'profile-label', htmlFor: 'osd-profile' } Profile
+      %label{ key: 'profile-label', htmlFor: 'osd-profile' }= t('osd.profile')
       %select#osd-profile{ key: 'profile-select', value: String(profile), onChange: setProfile }
         - for p in [1..OSD_PROFILE_COUNT]
           %option{ key: "profile-#{p}", value: String(p) }
-            = "Profile #{p}"
+            = t('osd.profileN', { n: p })
   - if osd.mode == 'sim'
-    .osd-sim-banner SIMULATION — Änderungen werden nicht persistiert
+    %div.osd-sim-banner= t('osd.simBanner')
   .osd-toolbar
     %button.osd-action.osd-action-read{ type: 'button', onClick: readOsd, disabled: readDisabled }
-      Read device
+      = t('common.read')
     %button.osd-action.osd-action-save{ type: 'button', onClick: saveOsd }
-      Save
+      = t('common.save')
     %button.osd-action.osd-action-revert{ type: 'button', onClick: revertOsd, disabled: !osd.dirty }
-      Revert
+      = t('common.revert')
   .osd-body
     .osd-palette
-      %h2.osd-pane-title Elements
+      %h2.osd-pane-title= t('osd.elements')
       .osd-palette-list
         - for item in OSD_ITEMS
           %button.osd-palette-item{ key: item.key, type: 'button', title: item.label, className: paletteClass(item), onClick: handlers.addFor(item) }
@@ -73,7 +75,7 @@ import makeOsdHandlers, { osdItemStyle } from './OsdEditorView.handlers.coffee'
             %span.osd-item-label
               = item.label
     .osd-props
-      %h2.osd-pane-title Properties
+      %h2.osd-pane-title= t('osd.properties')
       - if selected?
         .osd-props-body
           .osd-props-name
@@ -88,12 +90,12 @@ import makeOsdHandlers, { osdItemStyle } from './OsdEditorView.handlers.coffee'
             %span.osd-props-field-label Y
             %input{ type: 'number', min: '0', max: maxY, value: selectedCell.y, onChange: setY }
           .osd-props-visibility
-            %span.osd-props-visibility-label{ key: 'visibility-label' } Visibility
+            %span.osd-props-visibility-label{ key: 'visibility-label' }= t('osd.visibility')
             - for p in [1..OSD_PROFILE_COUNT]
               %label.osd-props-check{ key: "vis-#{p}" }
                 %input{ type: 'checkbox', checked: visFor(p), onChange: setVis(p) }
                 %span
-                  = "Profile #{p}"
+                  = t('osd.profileN', { n: p })
       - else
         .osd-props-empty
-          Select an element to edit its position and visibility.
+          = t('osd.empty')

@@ -76,7 +76,9 @@ DEFAULT_ADJUSTMENT_RANGE = Object.freeze
   adjustmentIndex: 0
   auxChannelIndex: 0
   startStep: 0
-  endStep: 0
+  # Default spread to the full step band so the dual slider renders
+  # grabbable; the slot stays disabled until a function is chosen.
+  endStep: ADJUSTMENT_CHANNEL_STEP_MAX
   adjustmentConfig: 0
   auxSwitchChannelIndex: 0
 

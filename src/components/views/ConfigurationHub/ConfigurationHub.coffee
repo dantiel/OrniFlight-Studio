@@ -4,45 +4,46 @@ import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import useFirmwareConnection from '../../../hooks/useFirmwareConnection.coffee'
 import useDeviceStore from '../../../stores/useDeviceStore.coffee'
 import h from '../../../app/h.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 
 HUBS =
   device:
-    title: 'Device'
-    subtitle: 'Controller identity, hardware and system-wide configuration.'
+    titleKey: 'hub.device.title'
+    subtitleKey: 'hub.device.subtitle'
     groups: [
-      ['Board & Craft', 'Target, craft name, firmware identity and capabilities.', 'Profile']
-      ['Ports & Peripherals', 'Serial functions, receiver input and telemetry output.', 'Device']
-      ['System', 'Loop timing, features, arming, beeper and alignment.', 'Profile']
-      ['Calibration & Reset', 'Sensor calibration, defaults and bootloader actions.', 'Live']
-      ['Backup & Restore', 'Portable configuration snapshots and device diffs.', 'File']
-      ['Advanced / CLI', 'Raw firmware settings and diagnostic commands.', 'Device']
+      ['boardCraft', 'boardCraftDesc', 'Profile']
+      ['portsPeripherals', 'portsPeripheralsDesc', 'Device']
+      ['system', 'systemDesc', 'Profile']
+      ['calibrationReset', 'calibrationResetDesc', 'Live']
+      ['backupRestore', 'backupRestoreDesc', 'File']
+      ['advancedCli', 'advancedCliDesc', 'Device']
     ]
   power:
-    title: 'Power'
-    subtitle: 'Battery state, metering, calibration and protection thresholds.'
+    titleKey: 'hub.power.title'
+    subtitleKey: 'hub.power.subtitle'
     groups: [
-      ['Battery', 'Capacity, cell detection, minimum, warning and maximum voltage.', 'Profile']
-      ['Voltage Meter', 'Source, scale, divider and multiplier calibration.', 'Device']
-      ['Current Meter', 'Source, scale, offset and consumption calibration.', 'Device']
-      ['Warnings', 'Low-voltage and consumed-capacity thresholds.', 'Profile']
+      ['battery', 'batteryDesc', 'Profile']
+      ['voltageMeter', 'voltageMeterDesc', 'Device']
+      ['currentMeter', 'currentMeterDesc', 'Device']
+      ['warnings', 'warningsDesc', 'Profile']
     ]
   safety:
-    title: 'Safety'
-    subtitle: 'Arming constraints and deterministic behavior after link loss.'
+    titleKey: 'hub.safety.title'
+    subtitleKey: 'hub.safety.subtitle'
     groups: [
-      ['Arming', 'Arming angle, checks, auto-disarm and kill-switch behavior.', 'Profile']
-      ['Channel Fallback', 'Hold or configured fallback value for each receiver channel.', 'Profile']
-      ['Link Loss', 'Detection delay, stage timing and throttle behavior.', 'Profile']
-      ['Recovery', 'Drop, land, recovery mode and capability-gated rescue.', 'Capability']
+      ['arming', 'armingDesc', 'Profile']
+      ['channelFallback', 'channelFallbackDesc', 'Profile']
+      ['linkLoss', 'linkLossDesc', 'Profile']
+      ['recovery', 'recoveryDesc', 'Capability']
     ]
   data:
-    title: 'Data'
-    subtitle: 'Telemetry, flight recording, storage and diagnostics.'
+    titleKey: 'hub.data.title'
+    subtitleKey: 'hub.data.subtitle'
     groups: [
-      ['Live Telemetry', 'Inspect and record active sensor, receiver and output streams.', 'Live']
-      ['Blackbox', 'Logging device, rate, debug mode and field selection.', 'Device']
-      ['Storage', 'Onboard flash or SD status, erase and download.', 'Live']
-      ['Files & Diagnostics', 'Open logs offline, export data and compare sessions.', 'File']
+      ['liveTelemetry', 'liveTelemetryDesc', 'Live']
+      ['blackbox', 'blackboxDesc', 'Device']
+      ['storage', 'storageDesc', 'Live']
+      ['filesDiagnostics', 'filesDiagnosticsDesc', 'File']
     ]
 
 ConfigurationHub = (props) ->
@@ -51,6 +52,7 @@ ConfigurationHub = (props) ->
   conn = useFirmwareConnection()
   identity = useDeviceStore (state) -> state.identity
   status = useDeviceStore (state) -> state.status
+  { t } = useI18n()
   hardwareConnected = conn.connected and conn.source == 'device'
   [nameDraft, setNameDraft] = useState identity?.name or ''
   [saveState, setSaveState] = useState 'idle'
@@ -68,72 +70,72 @@ ConfigurationHub = (props) ->
       await conn.setCraftName nameDraft
       setSaveState 'saved'
     catch error
-      setSaveState error?.message or 'Save failed'
+      setSaveState error?.message or t('hub.saveFailed')
 
   deviceSummary = null
   if props.kind == 'device' and identity
     sensorNames = Object.entries(identity.capabilities?.sensors or {})
       .filter((entry) -> entry[1])
       .map((entry) -> entry[0])
-    deviceSummary = h 'section', { className: 'hub-device-summary', 'aria-label': 'Connected controller' },
+    deviceSummary = h 'section', { className: 'hub-device-summary', 'aria-label': t('hub.connectedController') },
       h 'div', { className: 'hub-device-field hub-device-craft' },
-        h('span', null, 'CRAFT'),
+        h('span', null, t('hub.craft')),
         h 'form', { onSubmit: saveName },
           h('input', {
             value: nameDraft
             maxLength: 16
             disabled: not hardwareConnected or status?.armed or saveState == 'saving'
-            'aria-label': 'Craft name'
+            'aria-label': t('hub.craftName')
             onChange: (event) -> setNameDraft event.target.value
           }),
           h('button', {
             type: 'submit'
             disabled: not hardwareConnected or status?.armed or saveState == 'saving' or not nameDraft.trim()
-          }, if saveState == 'saving' then 'Saving…' else 'Apply')
+          }, if saveState == 'saving' then t('hub.saving') else t('hub.apply'))
         h('small', { className: if saveState not in ['idle', 'saved'] then 'error' else '' },
           if status?.armed
-            'Writes locked while armed'
+            t('hub.writesLocked')
           else if saveState == 'saved'
-            'Verified on device'
+            t('hub.verified')
           else if saveState not in ['idle', 'saving']
             saveState
           else
-            '16 characters max (firmware) · EEPROM write + read-back')
+            t('hub.maxChars'))
       h 'div', { className: 'hub-device-field' },
-        h('span', null, 'FIRMWARE'),
+        h('span', null, t('hub.firmware')),
         h('strong', null, "#{identity.variant} #{identity.firmware.version}"),
-        h('small', null, "MSP API #{identity.api.version} · #{identity.build.revision or 'local build'}")
+        h('small', null, "MSP API #{identity.api.version} · #{identity.build.revision or t('hub.localBuild')}")
       h 'div', { className: 'hub-device-field' },
-        h('span', null, 'TARGET'),
+        h('span', null, t('hub.target')),
         h('strong', null, identity.board.boardName or identity.board.targetName or identity.board.identifier),
         h('small', null, "#{identity.board.identifier} · MCU #{identity.board.mcuTypeId}")
       h 'div', { className: 'hub-device-field' },
-        h('span', null, 'LIVE STATUS'),
-        h('strong', { className: if status?.armed then 'status-armed' else 'status-safe' }, if status?.armed then 'ARMED' else 'DISARMED'),
-        h('small', null, "CPU #{status?.cpuLoad or 0}% · #{if sensorNames.length then sensorNames.join(', ') else 'no sensors reported'}")
+        h('span', null, t('hub.liveStatus')),
+        h('strong', { className: if status?.armed then 'status-armed' else 'status-safe' }, if status?.armed then t('hub.armed') else t('hub.disarmed')),
+        h('small', null, "CPU #{status?.cpuLoad or 0}% · #{if sensorNames.length then sensorNames.join(', ') else t('hub.noSensors')}")
 
   h 'div', { className: 'configuration-hub' },
     h 'header', { className: 'hub-header' },
       h 'div', null,
-        h 'span', { className: 'hub-kicker' }, 'CONFIGURATION WORKSPACE'
-        h 'h1', null, spec.title
-        h 'p', null, spec.subtitle
+        h 'span', { className: 'hub-kicker' }, t('hub.kicker')
+        h 'h1', null, t(spec.titleKey)
+        h 'p', null, t(spec.subtitleKey)
       h 'div', { className: "hub-source #{if hardwareConnected then 'connected' else ''}" },
         h 'span', { className: 'hub-source-dot' }
-        if hardwareConnected then 'DEVICE CONNECTED' else 'OFFLINE PROFILE'
+        if hardwareConnected then t('hub.deviceConnected') else t('hub.offlineProfile')
     if conn.lastError then h('div', { className: 'hub-connection-error', role: 'alert' }, conn.lastError)
     deviceSummary
     if props.kind == 'power' then h 'div', { className: 'hub-live-strip' },
-      h 'span', null, 'LIVE BATTERY'
+      h 'span', null, t('hub.liveBattery')
       h 'strong', null, "#{Number(tele.batteryVoltage || 0).toFixed(1)} V"
-      h 'span', null, if hardwareConnected then 'from controller' else 'simulation source'
+      h 'span', null, if hardwareConnected then t('hub.fromController') else t('hub.simulationSource')
     h 'div', { className: 'hub-grid' }, spec.groups.map((group) ->
       h 'article', { className: 'hub-card', key: group[0] },
         h 'div', { className: 'hub-card-top' },
-          h 'h2', null, group[0]
+          h 'h2', null, t("hub.groups.#{group[0]}")
           h 'span', { className: "availability availability-#{group[2].toLowerCase()}" }, group[2]
-        h 'p', null, group[1]
-        h 'span', { className: 'hub-card-state' }, if hardwareConnected and group[2] in ['Device', 'Live'] then 'Available from controller' else 'Offline schema'
+        h 'p', null, t("hub.groups.#{group[1]}")
+        h 'span', { className: 'hub-card-state' }, if hardwareConnected and group[2] in ['Device', 'Live'] then t('hub.available') else t('hub.offlineSchema')
     )
 
 export default ConfigurationHub

@@ -78,19 +78,19 @@ export servoPresetById = (id) ->
 # Named input sources — the Betaflight inputSource_e subset that drives
 # ornithopter control surfaces. `code` is the wire u8 for the mix rule.
 export INPUT_SOURCES = [
-  { id: 'none',         label: 'Keine',           code: 0 }
-  { id: 'stabRoll',     label: 'Stab. Roll',      code: 1 }
-  { id: 'stabPitch',    label: 'Stab. Nick',      code: 2 }
-  { id: 'stabYaw',      label: 'Stab. Gier',      code: 3 }
-  { id: 'stabThrottle', label: 'Stab. Gas',       code: 4 }
-  { id: 'rcRoll',       label: 'RC Roll',         code: 5 }
-  { id: 'rcPitch',      label: 'RC Nick',         code: 6 }
-  { id: 'rcYaw',        label: 'RC Gier',         code: 7 }
-  { id: 'rcThrottle',   label: 'RC Gas',          code: 8 }
-  { id: 'aux1',         label: 'AUX 1 (Kanal 5)', code: 9 }
-  { id: 'aux2',         label: 'AUX 2 (Kanal 6)', code: 10 }
-  { id: 'aux3',         label: 'AUX 3 (Kanal 7)', code: 11 }
-  { id: 'aux4',         label: 'AUX 4 (Kanal 8)', code: 12 }
+  { id: 'none',         label: 'servo.input.none',         code: 0 }
+  { id: 'stabRoll',     label: 'servo.input.stabRoll',     code: 1 }
+  { id: 'stabPitch',    label: 'servo.input.stabPitch',    code: 2 }
+  { id: 'stabYaw',      label: 'servo.input.stabYaw',      code: 3 }
+  { id: 'stabThrottle', label: 'servo.input.stabThrottle', code: 4 }
+  { id: 'rcRoll',       label: 'servo.input.rcRoll',       code: 5 }
+  { id: 'rcPitch',      label: 'servo.input.rcPitch',      code: 6 }
+  { id: 'rcYaw',        label: 'servo.input.rcYaw',        code: 7 }
+  { id: 'rcThrottle',   label: 'servo.input.rcThrottle',   code: 8 }
+  { id: 'aux1',         label: 'servo.input.aux1',         code: 9 }
+  { id: 'aux2',         label: 'servo.input.aux2',         code: 10 }
+  { id: 'aux3',         label: 'servo.input.aux3',         code: 11 }
+  { id: 'aux4',         label: 'servo.input.aux4',         code: 12 }
 ]
 
 export inputSourceById = (id) ->

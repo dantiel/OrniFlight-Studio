@@ -36,22 +36,35 @@ describe 'SchlagdynamikView', ->
     renderView()
     expect(screen.getByText 'Schlagdynamik').toBeInTheDocument()
     expect(screen.getByText 'SIMULATION').toBeInTheDocument()
-    expect(screen.getByText 'Read device').toBeInTheDocument()
-    expect(screen.getByText 'Save').toBeInTheDocument()
-    expect(screen.getByText 'Revert').toBeInTheDocument()
+    expect(screen.getByText 'Gerät lesen').toBeInTheDocument()
+    expect(screen.getByText 'Speichern').toBeInTheDocument()
+    expect(screen.getByText 'Verwerfen').toBeInTheDocument()
     expect(screen.getByText '→ Espelho').toBeInTheDocument()
 
-  it 'anchors the layer flow to the fixed waveform rail', ->
+  it 'pins the plotter deck beside the scrolling params', ->
     renderView()
-    rail = document.querySelector '.math-rail'
-    expect(rail).toBeInTheDocument()
-    expect(rail.querySelector '.math-wave-svg').toBeInTheDocument()
-    expect(screen.getByText 'Waveform').toBeInTheDocument()
+    layout = document.querySelector '.schlag-layout'
+    expect(layout).toBeInTheDocument()
+    expect(document.querySelector '.schlag-params').toBeInTheDocument()
+    plots = document.querySelector '.schlag-plots'
+    expect(plots).toBeInTheDocument()
+    expect(plots.querySelector '.plot-deck').toBeInTheDocument()
+    expect(document.querySelector '.math-wave-svg').toBeInTheDocument()
+    expect(screen.getByText 'Signatur').toBeInTheDocument()
     layers = document.querySelectorAll '.math-layers .math-layer'
     expect(layers.length).toBe 10
     depths = Array.from(layers).map (el) ->
       el.style.getPropertyValue '--plx'
     expect(depths.some (d) -> d.trim() isnt '0px').toBe true
+
+  it 'mounts the living stroke scope with an offline empty state', ->
+    renderView()
+    scope = document.querySelector '.stroke-scope'
+    expect(scope).toBeInTheDocument()
+    expect(scope.querySelector '.stroke-scope-canvas').toBeInTheDocument()
+    empty = scope.querySelector '.stroke-scope-empty'
+    expect(empty).toBeInTheDocument()
+    expect(screen.getByText 'Kein Signal — verbinde einen Controller oder starte die Simulation.').toBeInTheDocument()
 
   it 'renders ten layer cards and eighteen param rows', ->
     renderView()
@@ -68,17 +81,18 @@ describe 'SchlagdynamikView', ->
 
   it 'honours signed registry ranges on the sliders', ->
     renderView()
-    cadence = rowFor('Phase advance').querySelector '.param-slider'
+    cadence = rowFor('Phasenvoreilung').querySelector '.param-slider'
     expect(cadence.getAttribute 'min').toBe '-100'
     expect(cadence.getAttribute 'max').toBe '100'
-    down = rowFor('Downstroke shape').querySelector '.param-slider'
+    down = rowFor('Downstroke-Form').querySelector '.param-slider'
     expect(down.getAttribute 'min').toBe '1'
-    anchor = rowFor('Damping anchor').querySelector '.param-slider'
+    anchor = rowFor('Dämpfungsanker').querySelector '.param-slider'
     expect(anchor.getAttribute 'min').toBe '0'
 
-  it 'renders the stroke preview and the espelho readouts', ->
+  it 'renders the stroke preview and switches the deck to the espelho readouts', ->
     renderView()
     expect(document.querySelector '.math-stroke path').toBeInTheDocument()
+    fireEvent.click screen.getByText 'Spiegel'
     expect(document.querySelectorAll '.espelho-gauge').toHaveLength 4
     expect(screen.getAllByText('0.000').length).toBeGreaterThan 0
     expect(screen.getByText '0°').toBeInTheDocument()

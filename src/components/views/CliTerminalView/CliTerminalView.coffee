@@ -2,6 +2,7 @@ import './CliTerminalView.sass'
 import { useEffect, useRef, useState } from 'react'
 import h from '../../../app/h.coffee'
 import useCliSession from '../../../hooks/useCliSession.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 
 # ═══════════════════════════════════════════════════════════════
 # CliTerminalView — split-UI terminal. h() component (not CHAML):
@@ -14,6 +15,7 @@ CliTerminalView = ->
   # autoEnter: a connected craft takes the channel over on view
   # mount — the CLI shares the global connection, no picker.
   cli = useCliSession({ autoEnter: true })
+  { t } = useI18n()
   [command, setCommand] = useState ''
   [histIdx, setHistIdx] = useState -1
   draftRef = useRef ''
@@ -78,38 +80,37 @@ CliTerminalView = ->
   h 'main', { className: 'cli-view', 'aria-labelledby': 'cli-title' },
     h 'header', { className: 'cli-head' },
       h 'div', { className: 'cli-title-block' },
-        h 'h1', { id: 'cli-title', className: 'cli-title' }, 'CLI Terminal'
-        h 'p', { className: 'cli-subtitle' },
-          'Text console of the flight controller'
+        h 'h1', { id: 'cli-title', className: 'cli-title' }, t('cli.title')
+        h 'p', { className: 'cli-subtitle' }, t('cli.subtitle')
       h 'div', { className: 'cli-actions' },
         h 'span', {
           className: "cli-badge #{if live then 'cli-badge-live' else ''}"
           role: 'status'
-        }, if live then '● LIVE' else '◌ SIMULATION'
+        }, if live then t('cli.live') else t('cli.simulation')
         h 'button', {
           className: 'cli-btn'
           type: 'button'
           hidden: live
           disabled: not cli.canEnter
           onClick: -> cli.enter()
-        }, 'Open device CLI'
+        }, t('cli.open')
         h 'button', {
           className: 'cli-btn cli-btn-exit'
           type: 'button'
           hidden: not live
           onClick: -> cli.exit()
-        }, 'Exit CLI'
+        }, t('cli.exit')
         h 'button', {
           className: 'cli-btn'
           type: 'button'
           onClick: -> cli.clear()
-        }, 'Clear'
+        }, t('cli.clear')
     h 'div', {
       className: 'cli-screen'
       ref: scrollRef
       role: 'log'
       'aria-live': 'polite'
-      'aria-label': 'CLI output'
+      'aria-label': t('cli.output')
       onMouseDown: -> inputRef.current?.focus()
     },
       cli.lines.map (line, i) ->
@@ -117,7 +118,7 @@ CliTerminalView = ->
       if cli.pending
         h 'div', { className: 'cli-line cli-pending' }, cli.pending
       else if not cli.lines.length
-        h 'div', { className: 'cli-line cli-muted' }, '─ idle ─'
+        h 'div', { className: 'cli-line cli-muted' }, t('cli.idle')
     h 'form', {
       className: 'cli-input-row'
       onSubmit: (e) ->
@@ -131,12 +132,12 @@ CliTerminalView = ->
         ref: inputRef
         value: command
         placeholder: if live
-          'type a command — tab completes'
+          t('cli.placeholderLive')
         else
-          'simulation — try help, version, status'
+          t('cli.placeholderSim')
         autoComplete: 'off'
         spellCheck: 'false'
-        'aria-label': 'CLI command input'
+        'aria-label': t('cli.commandInput')
         onChange: (e) -> setCommand e.target.value
         onKeyDown: onKeyDown
       }

@@ -7,13 +7,15 @@ import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
 import ParamRow from '../../primitives/ParamRow/ParamRow.chaml'
 import PidBankGrid from './PidBankGrid.coffee'
 import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - tuning = useTuningStore()
 - draft = tuning.draft
 - hostRef = useRef(null)
 - useScrollMorph(hostRef)
-- modeLabel = if tuning.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- { t } = useI18n()
+- modeLabel = if tuning.mode == 'sim' then t('common.simulation') else t('common.device')
 - readDisabled = tuning.mode != 'device' or !tuning.session
 - saveDisabled = tuning.mode == 'device' and !tuning.loadedSession
 - gyroDlpfDisplay = "#{draft.filter.gyroDlpfHz} Hz"
@@ -23,47 +25,45 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
   %header.morph-head
     %div.morph-head-title
       %span.morph-kicker.orgone-kicker
-        = ' STEUERUNG · FLIGHT CONTROL'
+        = t('pid.kicker')
       %h1.orgone-display.orgone-display-shimmer
         %ModuleIcon{ className: 'morph-head-glyph', size: 30 }
-        %span Flight Control
+        %span= t('pid.title')
       %p.morph-hermes
-        = "Der Reglerkern: zwölf PID-Gains über vier Achsen, Raten und Filter. Die ONDAS-Mathematik lebt in der Schlagdynamik — eine einzige Wahrheit."
+        = t('pid.hermes')
   .morph-deck.pid-deck
     %span.pid-mode-badge{ className: "pid-mode-#{tuning.mode}" }
       = modeLabel
     - if tuning.dirty
-      %span.pid-dirty-badge UNSAVED
+      %span.pid-dirty-badge= t('common.unsaved')
     .pid-actions
       %button.pid-action.pid-action-read{ type: 'button',
-                                          onClick: (->
-                                            tuning.loadFromDevice().catch (-> null)),
+                                          onClick: (-> tuning.loadFromDevice().catch (-> null)),
                                           disabled: readDisabled }
-        Read device
+        = t('common.read')
       %button.pid-action.pid-action-save{ type: 'button',
-                                          onClick: (->
-                                            tuning.save().catch (-> null)),
+                                          onClick: (-> tuning.save().catch (-> null)),
                                           disabled: saveDisabled }
-        Save
+        = t('common.save')
       %button.pid-action.pid-action-revert{ type: 'button',
                                             onClick: (-> tuning.revert()),
                                             disabled: !tuning.dirty }
-        Revert
+        = t('common.revert')
   - if tuning.mode == 'sim'
-    .pid-sim-banner SIMULATION — Werte werden nicht persistiert
+    %div.pid-sim-banner= t('pid.simBanner')
   - if tuning.lastError
     .pid-error{ role: 'alert' }
       = tuning.lastError
   .morph-section.pid-bank
-    %Section{ heading: 'PID Bank',
-              subheading: 'Vier Achsen je drei Terme — jeder Axis-Block ein Flügelschlag des Reglers.' }
+    %Section{ heading: t('pid.bank'),
+              subheading: t('pid.bankSub') }
       %PidBankGrid{ draft: draft, pidMax: PID_GAIN_MAX }
   .pid-split
     .morph-section.pid-rates
-      %Section{ heading: 'Rates',
-                subheading: 'Stick-Antwort formen — RC-Rate, Super-Rate, Expo.' }
+      %Section{ heading: t('pid.rates'),
+                subheading: t('pid.ratesSub') }
         %ParamRow{ key: 'rate-rcRate',
-                   label: 'RC rate',
+                   label: t('pid.rcRate'),
                    value: draft.rate.rcRate,
                    min: '0',
                    max: '250',
@@ -71,7 +71,7 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: String(draft.rate.rcRate),
                    onInput: rateHandlers.rcRate }
         %ParamRow{ key: 'rate-superRate',
-                   label: 'Super rate',
+                   label: t('pid.superRate'),
                    value: draft.rate.superRate,
                    min: '0',
                    max: '100',
@@ -79,7 +79,7 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: String(draft.rate.superRate),
                    onInput: rateHandlers.superRate }
         %ParamRow{ key: 'rate-expo',
-                   label: 'Expo',
+                   label: t('pid.expo'),
                    value: draft.rate.expo,
                    min: '0',
                    max: '100',
@@ -87,10 +87,10 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: String(draft.rate.expo),
                    onInput: rateHandlers.expo }
     .morph-section.pid-filters
-      %Section{ heading: 'Filters',
-                subheading: 'Gyro- und D-Term-Filterung (MSP 92).' }
+      %Section{ heading: t('pid.filters'),
+                subheading: t('pid.filtersSub') }
         %ParamRow{ key: 'filter-gyroDlpf',
-                   label: 'Gyro DLPF',
+                   label: t('pid.gyroDlpf'),
                    value: draft.filter.gyroDlpfHz,
                    min: '0',
                    max: '1000',
@@ -98,7 +98,7 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: gyroDlpfDisplay,
                    onInput: filterHandlers.gyroDlpfHz }
         %ParamRow{ key: 'filter-gyroNotch',
-                   label: 'Gyro notch',
+                   label: t('pid.gyroNotch'),
                    value: draft.filter.gyroNotchHz,
                    min: '0',
                    max: '1000',
@@ -106,7 +106,7 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: gyroNotchDisplay,
                    onInput: filterHandlers.gyroNotchHz }
         %ParamRow{ key: 'filter-notchQ',
-                   label: 'Notch Q',
+                   label: t('pid.notchQ'),
                    value: draft.filter.gyroNotchQ,
                    min: '0',
                    max: '16',
@@ -114,7 +114,7 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: String(draft.filter.gyroNotchQ),
                    onInput: filterHandlers.gyroNotchQ }
         %ParamRow{ key: 'filter-dTermDlpf',
-                   label: 'D-term DLPF',
+                   label: t('pid.dTermDlpf'),
                    value: draft.filter.dTermDlpfHz,
                    min: '0',
                    max: '1000',
@@ -122,10 +122,10 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: dTermDlpfDisplay,
                    onInput: filterHandlers.dTermDlpfHz }
   .morph-section.pid-ondas-link
-    %Section{ heading: 'ONDAS',
-              subheading: 'Die ONDAS-Mathematik wird nur in der Schlagdynamik gepflegt — hier lebt der Verweis.' }
+    %Section{ heading: t('pid.ondas'),
+              subheading: t('pid.ondasSub') }
       .pid-ondas-body
         %p.pid-ondas-note
-          = "Achtzehn Parameter in zehn gekoppelten Schichten. Damit PID und Schlagdynamik nie doppelt führen, öffnet die Suite den vollständigen ONDAS-Entwurf."
-        %NavLink.pid-ondas-cta{ to: '/control/schlagdynamik' }
-          ONDAS öffnen → Schlagdynamik
+          = t('pid.ondasNote')
+        %NavLink.pid-ondas-cta{ to: '/control/strokedynamics' }
+          = t('pid.ondasCta')

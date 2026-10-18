@@ -13,7 +13,10 @@
   gap: var(--of-space-5)
   padding: var(--of-space-6)
   position: relative
-  z-index: 1
+  // No z-index here: a stacking context would trap the Molt's sticky
+  // .molt-deck below the shared .progressive-blur (z-index 20). The
+  // deck carries z-index 25 and must escape to the shell's root context
+  // to sit above the blur (but still under the toolbar at z-index 30).
 
 .system-sidebar, .system-inspector
   position: sticky

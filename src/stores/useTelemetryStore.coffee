@@ -33,6 +33,7 @@ useTelemetryStore = create(
       waveformHistory: []
       batteryVoltage:  0
       flapFrequency:   0
+      cadence:         0
       liveWaveform:    null
       rssi:            0
       linkQuality:     0
@@ -59,6 +60,7 @@ useTelemetryStore = create(
           flapPhase = 0, pairCount = 2, servoMounts = []
           servos = [], waveformHistory = []
           batteryVoltage = 0, flapFrequency = 0
+          cadence = 0
           liveWaveform = null
           rssi = 0, linkQuality = 0
           rcChannels = []
@@ -73,6 +75,11 @@ useTelemetryStore = create(
         sample = {
           t, wingL: wingAngleL, wingR: wingAngleR
           gyroRoll, gyroPitch, gyroYaw
+          flapPhase
+          cadence
+          ferStroke: liveWaveform?.strokeFerocity ? 0
+          ferReturn: liveWaveform?.returnFerocity ? 0
+          ferShape: liveWaveform?.ferocityShapeMix ? 0
           servo1: servos[0], servo2: servos[1], servo3: servos[2], servo4: servos[3]
           rcRoll: frame.rcRoll, rcPitch: frame.rcPitch
           rcYaw: frame.rcYaw, rcThrottle: frame.rcThrottle
@@ -97,6 +104,7 @@ useTelemetryStore = create(
           waveformHistory: history
           batteryVoltage
           flapFrequency
+          cadence
           liveWaveform
           rssi
           linkQuality

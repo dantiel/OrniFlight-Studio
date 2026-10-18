@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { getActor } from '../../../hooks/useConnection.coffee'
 import h from '../../../app/h.coffee'
 import Icon from '../../primitives/Icon/Icon.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 
 import { MODULES } from '../../../lib/navigation.coffee'
 
@@ -16,18 +17,19 @@ CommandPalette = ->
   [active, setActive] = useState 0
   inputRef = useRef null
   navigate = useNavigate()
+  { t, locale } = useI18n()
   commands = useMemo ->
     routeItems = ROUTES.map ([label, path, icon]) ->
-      { label, icon, hint: path, run: (-> navigate path) }
+      { label: t(label), icon, hint: path, run: (-> navigate path) }
     routeItems.concat [
-      { label: 'Connect device', icon: 'plug', hint: 'connection', run: (-> getActor().send { type: 'CONNECT' }) }
-      { label: 'Disconnect device', icon: 'plug-off', hint: 'connection', run: (-> getActor().send { type: 'DISCONNECT' }) }
-      { label: 'Toggle theme', icon: 'moon', hint: 'appearance', run: ->
+      { label: t('commands.connect'), icon: 'plug', hint: 'connection', run: (-> getActor().send { type: 'CONNECT' }) }
+      { label: t('commands.disconnect'), icon: 'plug-off', hint: 'connection', run: (-> getActor().send { type: 'DISCONNECT' }) }
+      { label: t('commands.toggleTheme'), icon: 'moon', hint: 'appearance', run: ->
           root = document.documentElement
           root.dataset.theme = if root.dataset.theme == 'light' then 'dark' else 'light'
       }
     ]
-  , [navigate]
+  , [navigate, locale]
   filtered = commands.filter (cmd) -> "#{cmd.label} #{cmd.hint}".toLowerCase().includes query.toLowerCase()
   run = (cmd) ->
     cmd?.run?()
@@ -64,7 +66,7 @@ CommandPalette = ->
         className: 'command-palette'
         role: 'dialog'
         'aria-modal': true
-        'aria-label': 'Studio commands'
+        'aria-label': t('commands.ariaLabel')
         initial: { opacity: 0, scale: 0.96, y: -8 }
         animate: { opacity: 1, scale: 1, y: 0 }
         exit: { opacity: 0, scale: 0.97, y: -5 }
@@ -74,7 +76,7 @@ CommandPalette = ->
           h 'input',
             ref: inputRef
             value: query
-            placeholder: 'Navigate or run a command…'
+            placeholder: t('commands.placeholder')
             onChange: (e) -> setQuery e.target.value
             onKeyDown: (e) ->
               if e.key == 'ArrowDown'
@@ -97,7 +99,7 @@ CommandPalette = ->
             , h(Icon, { name: cmd.icon, className: 'command-icon', size: 14 }),
               h('span', null, cmd.label),
               h('small', null, cmd.hint)
-          else h 'p', { className: 'command-empty' }, 'No matching command'
-        h 'footer', null, '↑↓ select · ↵ run · Ctrl/⌘ K toggle'
+          else h 'p', { className: 'command-empty' }, t('commands.empty')
+        h 'footer', null, t('commands.footer')
 
 export default CommandPalette

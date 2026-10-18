@@ -3,6 +3,7 @@ import h from '../../../app/h.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import { espelhoDiagnostic } from '../../../lib/mathSuite.coffee'
 import Section from '../../layout/Section/Section.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 
 gauge = (label, value) ->
   h('div', { className: 'espelho-gauge', key: label }, [
@@ -21,6 +22,7 @@ gauge = (label, value) ->
 # without a craft attached. Renders clean zeros on silence.
 MathEspelho = ->
   telemetry = useTelemetryStore()
+  { t } = useI18n()
   hist = telemetry.waveformHistory or []
   freq = telemetry.flapFrequency or 0
   diagFor = (field) ->
@@ -41,13 +43,13 @@ MathEspelho = ->
     [
       h(Section,
         { key: 'sec',
-          heading: 'Espelho Skew Diagnostic',
-          subheading: 'Der Spiegel: |2. Harmonische| / |Grundwelle| der Schlagbewegung — der Fingerabdruck der Asymmetrie. Im Gerät über DEBUG_ESPELHO, hier aus der Live-Telemetrie.' },
+          heading: t('schlagdynamik.espelhoHeading'),
+          subheading: t('schlagdynamik.espelhoSub') },
         [
           h('div', { className: 'espelho-source' },
             h('span',
               { className: "espelho-source-badge espelho-source-#{if liveDevice then 'device' else 'sim'}" },
-              (if liveDevice then 'DEBUG_ESPELHO' else 'SIM · stroke-derived')))
+              (if liveDevice then t('schlagdynamik.debugEspelho') else t('schlagdynamik.simDerived'))))
           h('div', { className: 'espelho-grid' }, [
             gauge 'ROLL', ratioOf(rollDiag, 0)
             gauge 'PITCH', ratioOf(pitchDiag, 1)
@@ -58,7 +60,7 @@ MathEspelho = ->
                 { className: 'espelho-dial',
                   style: { '--espelho-phase': "#{phase}deg" } },
                 h('span', { className: 'espelho-dial-needle' }))
-              h('span', { className: 'espelho-dial-label' }, 'PHASE')
+              h('span', { className: 'espelho-dial-label' }, t('schlagdynamik.phase'))
               h('span', { className: 'espelho-dial-value' },
                 "#{phase.toFixed(0)}°")
             ])

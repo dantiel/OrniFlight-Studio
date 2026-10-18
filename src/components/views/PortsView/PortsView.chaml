@@ -2,11 +2,13 @@
 import { memo } from 'react'
 import usePortsStore from '../../../stores/usePortsStore.coffee'
 import { SERIAL_FUNCTIONS, BAUD_RATES, BAUD_FIELDS, portLabel, functionLabels } from '../../../lib/serialCatalog.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - store = usePortsStore()
+- { t } = useI18n()
 - draft = store.draft
-- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- modeLabel = if store.mode == 'sim' then t('common.simulation') else t('common.device')
 - readDisabled = store.mode != 'device' or !store.session
 - saveDisabled = store.mode == 'device' and !store.loadedSession
 - boolFromEvent = (f) -> (e) -> f e.target.checked
@@ -20,18 +22,18 @@ import { SERIAL_FUNCTIONS, BAUD_RATES, BAUD_FIELDS, portLabel, functionLabels } 
       %span.system-mode-badge{ className: "system-mode-#{store.mode}" }
         = modeLabel
       - if store.dirty
-        %span.system-dirty-badge DIRTY
-    %h1.system-view-title Ports
+        %span.system-dirty-badge= t('common.unsaved')
+    %h1.system-view-title= t('ports.title')
     .system-view-actions
       %button.system-action.system-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
-        Read device
+        = t('common.read')
       %button.system-action.system-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
-        Save
+        = t('common.save')
       %button.system-action.system-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
-        Revert
-  %Section{ heading: 'UART Ports', subheading: 'MSP 54/55 — 7-byte wire records.' }
+        = t('common.revert')
+  %Section{ heading: t('ports.heading'), subheading: t('ports.sub') }
     %p.system-note
-      Enabling a function clears conflicting functions on the same port — exactly like the firmware arbitration.
+      = t('ports.note')
   .system-port-list
     - for port in draft
       .port-row{ key: "port-#{port.identifier}" }

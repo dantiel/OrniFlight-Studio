@@ -28,9 +28,9 @@ describe 'Sensors, Power & Adjustments views', ->
     expect(screen.getByText 'Sensor Hardware').toBeInTheDocument()
     expect(screen.getByText 'Board Alignment').toBeInTheDocument()
     expect(screen.getByText 'Calibration').toBeInTheDocument()
-    expect(screen.getByText 'Read device').toBeDisabled()
-    expect(screen.getByText 'Save').toBeEnabled()
-    expect(screen.getByText 'Revert').toBeDisabled()
+    expect(screen.getByText 'Gerät lesen').toBeDisabled()
+    expect(screen.getByText 'Speichern').toBeEnabled()
+    expect(screen.getByText 'Verwerfen').toBeDisabled()
     expect(screen.getByText 'Calibrate Accelerometer').toBeDisabled()
     expect(screen.getByText 'Calibrate Magnetometer').toBeDisabled()
 
@@ -39,12 +39,12 @@ describe 'Sensors, Power & Adjustments views', ->
     selects = document.querySelectorAll '.sensors-select'
     fireEvent.change selects[0], { target: { value: '2' } }
     expect(sensorState().draft.sensorConfig.accHardware).toBe 2
-    expect(screen.getByText 'DIRTY').toBeInTheDocument()
+    expect(screen.getByText 'UNGESPEICHERT').toBeInTheDocument()
 
   it 'commits locally in sim mode through the sensors save button', ->
     render h SensorsView, null
     sensorState().setSensorConfig { accHardware: 3 }
-    fireEvent.click screen.getByText 'Save'
+    fireEvent.click screen.getByText 'Speichern'
     await waitFor ->
       expect(sensorState().saved.sensorConfig.accHardware).toBe 3
     expect(sensorState().dirty).toBe false
@@ -56,7 +56,7 @@ describe 'Sensors, Power & Adjustments views', ->
     expect(screen.getByText 'Battery').toBeInTheDocument()
     expect(screen.getByText 'Meters').toBeInTheDocument()
     expect(screen.getByLabelText 'Minimum cell voltage (0.01 V)').toBeInTheDocument()
-    expect(screen.getByText 'Read device').toBeDisabled()
+    expect(screen.getByText 'Gerät lesen').toBeDisabled()
 
   it 'patches the battery draft through the capacity input', ->
     render h PowerView, null
@@ -74,4 +74,4 @@ describe 'Sensors, Power & Adjustments views', ->
     selects = document.querySelectorAll '.adjustment-select'
     fireEvent.change selects[0], { target: { value: '5' } }
     expect(adjustmentState().draft.ranges[0].adjustmentConfig).toBe 5
-    expect(screen.getByText 'DIRTY').toBeInTheDocument()
+    expect(screen.getByText 'UNGESPEICHERT').toBeInTheDocument()

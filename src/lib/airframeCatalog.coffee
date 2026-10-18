@@ -29,27 +29,27 @@ export MOUNT_LIMITS =
 export MOUNT_PAIRS = 4
 
 export AIRFRAME_FIELDS = [
-  { id: 'wingSpan', label: 'Spannweite',
-    hermes: 'Flügelspannweite der Zelle.', unit: 'mm' }
-  { id: 'chord', label: 'Profiltiefe',
-    hermes: 'Mittlere Flügeltiefe.', unit: 'mm' }
-  { id: 'totalMass', label: 'Masse',
-    hermes: 'Abflugmasse.', unit: 'g' }
-  { id: 'cgX', label: 'Schwerpunkt längs',
-    hermes: 'CG-Station, + zur Nase.', unit: 'σ' }
-  { id: 'cgZ', label: 'Schwerpunkt vertikal',
-    hermes: 'Höhe über der Flügelebene.', unit: 'mm' }
-  { id: 'cgLat', label: 'Schwerpunkt lateral',
-    hermes: 'Roll-Balance, + nach rechts.', unit: 'σ' }
+  { id: 'wingSpan', label: 'airframe.field.wingSpan.label',
+    hermes: 'airframe.field.wingSpan.hermes', unit: 'mm' }
+  { id: 'chord', label: 'airframe.field.chord.label',
+    hermes: 'airframe.field.chord.hermes', unit: 'mm' }
+  { id: 'totalMass', label: 'airframe.field.totalMass.label',
+    hermes: 'airframe.field.totalMass.hermes', unit: 'g' }
+  { id: 'cgX', label: 'airframe.field.cgX.label',
+    hermes: 'airframe.field.cgX.hermes', unit: 'σ' }
+  { id: 'cgZ', label: 'airframe.field.cgZ.label',
+    hermes: 'airframe.field.cgZ.hermes', unit: 'mm' }
+  { id: 'cgLat', label: 'airframe.field.cgLat.label',
+    hermes: 'airframe.field.cgLat.hermes', unit: 'σ' }
 ]
 
 export MOUNT_FIELDS = [
-  { id: 'angle', label: 'Montagewinkel',
-    hermes: 'Anstellwinkel des Servos.', unit: '°' }
-  { id: 'station', label: 'Station',
-    hermes: 'Lage vor/hinter der CG-Achse.', unit: 'mm' }
-  { id: 'vertical', label: 'Vertikal',
-    hermes: 'Höhe über/unter der Flügelebene.', unit: 'mm' }
+  { id: 'angle', label: 'airframe.mount.angle.label',
+    hermes: 'airframe.mount.angle.hermes', unit: '°' }
+  { id: 'station', label: 'airframe.mount.station.label',
+    hermes: 'airframe.mount.station.hermes', unit: 'mm' }
+  { id: 'vertical', label: 'airframe.mount.vertical.label',
+    hermes: 'airframe.mount.vertical.hermes', unit: 'mm' }
 ]
 
 export defaultAirframe = ->

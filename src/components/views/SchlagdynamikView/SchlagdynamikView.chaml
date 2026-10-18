@@ -1,66 +1,66 @@
 ~~~
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import './SchlagdynamikView.sass'
 import useOrnithopterStore from '../../../stores/useOrnithopterStore.coffee'
-import useScrollMorph, { scrollMorphTo } from '../../../hooks/useScrollMorph.coffee'
+import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
 import { ondasHandlers } from './handlers.coffee'
-import MathChain from './MathChain.coffee'
 import MathLayerStack from './MathLayerStack.coffee'
-import MathEspelho from './MathEspelho.coffee'
-import MathWaveform from './MathWaveform.coffee'
+import PlotDeck from './PlotDeck.coffee'
+import FreqMod from './FreqMod.coffee'
 import ProfileSelector from '../../primitives/ProfileSelector/ProfileSelector.coffee'
 import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
+import RcInputStrip from '../../controls/RcInputStrip/RcInputStrip.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - orni = useOrnithopterStore()
 - hostRef = useRef(null)
 - useScrollMorph(hostRef)
+- { t } = useI18n()
+- [plotMode, setPlotMode] = useState 'motion'
 - profileIndex = orni.draft.activeProfile
 - ondas = orni.draft.profiles[profileIndex].ondas
-- modeLabel = if orni.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- modeLabel = if orni.mode == 'sim' then t('common.simulation') else t('common.device')
 - readDisabled = orni.mode != 'device' or !orni.session
 - saveDisabled = orni.mode == 'device' and !orni.loadedSession
 .morph-doc.layout-math{ ref: hostRef }
   %header.morph-head
     %div.morph-head-title
       %span.morph-kicker.orgone-kicker
-        = ' STEUERUNG · SCHLAGDYNAMIK'
+        = t('schlagdynamik.kicker')
       %h1.orgone-display.orgone-display-shimmer
         %ModuleIcon{ className: 'morph-head-glyph', size: 30 }
-        %span Schlagdynamik
+        %span= t('schlagdynamik.title')
       %p.morph-hermes
-        = "Die Schlagmathematik des Vogels: achtzehn Parameter in zehn gekoppelten Schichten — vom PID-Fehler zur phasengekoppelten Schlagbewegung. Jede Schicht trägt Vorzeichen, Einheit und ihre Rolle; der Espelho-Spiegel liest die Schlag-Asymmetrie live."
+        = t('schlagdynamik.hermes')
   .morph-deck.math-deck
     %span.math-mode-badge{ className: "math-mode-#{orni.mode}" }
       = modeLabel
     %ProfileSelector
     %span.math-profile-chip
-      = "Profil #{profileIndex + 1} · ONDAS-Ziel"
+      = t('schlagdynamik.profileChip', { n: profileIndex + 1 })
     - if orni.dirty
-      %span.math-dirty-badge DIRTY
+      %span.math-dirty-badge= t('common.unsaved')
     .math-actions
       %button.math-action{ type: 'button',
                             onClick: (-> orni.loadFromDevice().catch (-> null)),
                             disabled: readDisabled }
-        Read device
+        = t('common.read')
       %button.math-action{ type: 'button',
                             onClick: (-> orni.save().catch (-> null)),
                             disabled: saveDisabled }
-        Save
+        = t('common.save')
       %button.math-action{ type: 'button',
                             onClick: (-> orni.revert()),
                             disabled: !orni.dirty }
-        Revert
+        = t('common.revert')
       %button.math-action.math-action-spot{ type: 'button',
-                                            onClick: (-> scrollMorphTo 'math-espelho-diag') }
-        → Espelho
-  .math-grid
-    .math-rail
-      %MathWaveform
-    .math-flow
-      .morph-section.math-chain
-        %Section{ heading: 'Signal Chain',
-                  subheading: 'Zehn Schichten in Flugrichtung — vom Regelfehler zur Schlagbewegung. Ein Klick bringt die Schicht in Sicht.' }
-          %MathChain{ ondas: ondas }
+                                            onClick: (-> setPlotMode 'mirror') }
+        = t('schlagdynamik.espelho')
+  .schlag-layout
+    .schlag-params
       %MathLayerStack{ ondas: ondas, onInput: ondasHandlers }
-  %MathEspelho
+      %FreqMod
+    .schlag-plots
+      %RcInputStrip
+      %PlotDeck{ active: plotMode, onActive: setPlotMode }

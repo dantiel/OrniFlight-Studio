@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { openPort } from '../firmware/serialTransport.coffee'
+import {
+  openPort, classifySerialOpenError
+} from '../firmware/serialTransport.coffee'
 
 makeFakePort = ->
   {
@@ -31,3 +33,24 @@ describe 'serialTransport · AN3155 port negotiation', ->
       stopBits: 1
       parity: 'even'
       flowControl: 'none'
+
+  it 'retries a vanished port across the re-enumeration window', ->
+    vi.useFakeTimers()
+    try
+      port = makeFakePort()
+      port.open
+        .mockImplementationOnce -> Promise.reject Object.assign new Error('Failed to open serial port'), { name: 'NetworkError' }
+        .mockImplementationOnce -> Promise.reject Object.assign new Error('Failed to open serial port'), { name: 'NetworkError' }
+      opening = openPort port
+      await vi.advanceTimersByTimeAsync 1100
+      await opening
+      expect(port.open).toHaveBeenCalledTimes 3
+    finally
+      vi.useRealTimers()
+
+  it 'classifies a NetworkError as a re-enumeration / contention hint', ->
+    error = classifySerialOpenError Object.assign(
+      new Error('Failed to open serial port'), { name: 'NetworkError' }
+    )
+    expect(error.message).toMatch /re-enumerated after reboot/
+    expect(error.name).toBe 'NetworkError'

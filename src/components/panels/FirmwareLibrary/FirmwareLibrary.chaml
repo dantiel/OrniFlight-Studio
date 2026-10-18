@@ -1,7 +1,9 @@
 ~~~
 import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
+- { t } = useI18n()
 - c = props.ctrl || {}
 - catalog = props.catalog || c.catalog || []
 - localImage = props.localImage ? c.localImage
@@ -13,21 +15,21 @@ import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
 - total = catalog.length + (if localImage then 1 else 0) + (if cloudImage then 1 else 0)
 .firmware-library
   .fw-head
-    %span.fw-head-title Firmware Images
+    %span.fw-head-title= t('flash.firmwareImages')
     %span.fw-head-count= String(total)
   .fw-local
     %label.fw-local-btn
       %span.fw-local-glyph 🪶
-      %span.fw-local-text Load local image
+      %span.fw-local-text= t('flash.loadLocal')
       %input.fw-local-input{ type: 'file', accept: '.bin,.hex,.elf', onChange: (e) -> onLocal(e.target.files?[0]) }
   - if loading
     .fw-empty
       %span.fw-empty-glyph 📡
-      .fw-empty-text Scanning the nest for images…
+      %div.fw-empty-text= t('flash.scanning')
   - else if total == 0
     .fw-empty
       %span.fw-empty-glyph 🪶
-      .fw-empty-text No firmware found — load a local image.
+      %div.fw-empty-text= t('flash.noFirmware')
   - else
     .fw-list
       - if cloudImage
@@ -35,7 +37,7 @@ import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
           .fw-card-top
             %span.fw-card-name= cloudImage.name
             %span.fw-channel{ className: 'fw-channel fw-channel-cloud' }
-              = 'cloud'
+              = t('flash.cloud')
           %div.fw-card-version= "v#{cloudImage.version}"
           .fw-card-meta
             %span= cloudImage.target
@@ -46,8 +48,8 @@ import { fmtBytes } from '../../../firmware/firmwareCatalog.coffee'
           .fw-card-top
             %span.fw-card-name= localImage.name
             %span.fw-channel{ className: 'fw-channel fw-channel-local' }
-              = 'local'
-          %div.fw-card-version= 'custom'
+              = t('flash.local')
+          %div.fw-card-version= t('flash.custom')
           .fw-card-meta
             %span= localImage.target
             %span= fmtBytes(localImage.size)

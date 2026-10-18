@@ -148,10 +148,12 @@ handFirmwarePortToFlasher = ->
   identity = _session.identity
   _closing = true
   try
-    client.send MSP_CODES.REBOOT, [1]
+    await client.send MSP_CODES.REBOOT, [1]
   catch error
     null
-  await delay 250
+  # Give the firmware time to latch the jump and the USB device time to
+  # re-enumerate; too short and the flasher reopens a vanished port.
+  await delay 1200
   try
     _session?.stop()
     await client.close()

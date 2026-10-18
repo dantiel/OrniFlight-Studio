@@ -92,7 +92,7 @@ useFlashController = ->
       catch detectError
         fwStore.appendLog 'ERROR', detectError.message
         fwStore.appendLog 'HINT',
-          'If the board stayed in app mode, hold BOOT0 and retry Serial.'
+          'The board re-enumerated after reboot. If it now shows as an STM32 BOOTLOADER (DFU) device, use Detect → USB DFU. If it is still a serial port, close any other serial monitor and retry Serial.'
     catch e
       handleError e
 

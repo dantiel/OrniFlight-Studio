@@ -1,13 +1,17 @@
+~~~
+import { useI18n } from '../../../i18n/index.coffee'
+~~~
+- { t } = useI18n()
 - log = props.log || []
 - reversed = log.slice().reverse()
 .flash-console
   .console-head
-    %span.console-title Flash Log
+    %span.console-title= t('flash.flashLog')
     %button.console-clear{ onClick: props.onClear || (->) }
-      = 'clear'
+      = t('flash.clear')
   .console-body
     - if log.length == 0
-      .console-empty The console is silent. Awaiting transmigration…
+      %div.console-empty= t('flash.consoleSilent')
     - else
       - for entry, i in reversed
         %div.console-line{ key: i, className: "console-line console-line-#{entry.level.toLowerCase()}" }

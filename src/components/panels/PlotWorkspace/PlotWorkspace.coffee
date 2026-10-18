@@ -6,17 +6,19 @@ import { curvesForWorkspace } from '../../../telemetry/curveCatalog.coffee'
 import {
   profileKey, defaultPlots, clonePlots
 } from '../../../telemetry/plotProfiles.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 
-MODE_LABELS =
-  full: 'Horizon'
-  split: 'Nest'
-  compact: 'Roost'
+MODE_KEYS =
+  full: 'plots.horizon'
+  split: 'plots.nest'
+  compact: 'plots.roost'
 
 PlotWorkspace = ({ workspace = 'airframe', history = [], mode }) ->
   storedMode = useAppStore (state) -> state.viewMode
   plotProfiles = useAppStore (state) -> state.plotProfiles or {}
   setPlotProfile = useAppStore (state) -> state.setPlotProfile
   resetPlotProfile = useAppStore (state) -> state.resetPlotProfile
+  { t } = useI18n()
   activeMode = mode or storedMode or 'split'
   key = profileKey workspace, activeMode
   defaults = useMemo (-> defaultPlots workspace, activeMode), [workspace, activeMode]
@@ -37,7 +39,7 @@ PlotWorkspace = ({ workspace = 'airframe', history = [], mode }) ->
     copy = {
       source...
       id: "#{source.id}-copy-#{Date.now().toString(36)}"
-      title: "#{source.title} copy"
+      title: t('plots.copy', { title: source.title })
       curves: source.curves[...]
     }
     next = plots[...]
@@ -49,7 +51,7 @@ PlotWorkspace = ({ workspace = 'airframe', history = [], mode }) ->
       ...clonePlots(plots)
       {
         id: "custom-#{Date.now().toString(36)}"
-        title: 'New plot'
+        title: t('plots.newPlot')
         curves: if firstCurve then [firstCurve] else []
       }
     ]
@@ -72,22 +74,22 @@ PlotWorkspace = ({ workspace = 'airframe', history = [], mode }) ->
   },
     h 'header', { className: 'plot-workspace-toolbar' },
       h 'div', { className: 'plot-profile-label' },
-        h('span', { className: 'plot-profile-kicker' }, 'Plot profile'),
-        h('strong', null, "#{workspace} · #{MODE_LABELS[activeMode] or activeMode}"),
-        h('span', { className: 'plot-profile-state' }, if customized then 'Customized · saved locally' else 'Default'),
+        h('span', { className: 'plot-profile-kicker' }, t('plots.profile')),
+        h('strong', null, t('plots.profileLabel', { workspace: workspace, mode: t(MODE_KEYS[activeMode] or 'plots.nest') })),
+        h('span', { className: 'plot-profile-state' }, if customized then t('plots.customized') else t('plots.default')),
       h 'div', { className: 'plot-workspace-actions' },
         h('button', {
           type: 'button'
-          title: 'Restore the default plots for this workspace and layout'
+          title: t('plots.resetTitle')
           disabled: not customized
           onClick: -> resetPlotProfile key
-        }, 'Reset'),
+        }, t('plots.reset')),
         h('button', {
           type: 'button'
           className: 'primary'
-          title: 'Add another configurable plot'
+          title: t('plots.addTitle')
           onClick: addPlot
-        }, '+ Plot'),
+        }, t('plots.addPlot')),
     h('div', { className: 'plot-card-strip' }, cards)
 
 export default PlotWorkspace

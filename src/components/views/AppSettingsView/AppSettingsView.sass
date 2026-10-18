@@ -1,0 +1,134 @@
+// ═══════════════════════════════════════════
+// AppSettingsView — studio preferences (language, theme, layout)
+// ═══════════════════════════════════════════
+.app-settings-view
+  position: relative
+  z-index: 1
+  width: 100%
+  max-width: 960px
+  margin: 0 auto
+  padding: var(--of-space-6) var(--of-space-6) var(--of-space-10)
+  display: flex
+  flex-direction: column
+  gap: var(--of-space-6)
+
+.app-settings-head
+  padding: var(--of-space-2) var(--of-space-1)
+
+  h1
+    font-family: var(--of-font-heading)
+    font-size: 34px
+    letter-spacing: 0.14em
+    margin: 0
+    font-weight: 400
+    display: flex
+    align-items: center
+    gap: 0.34em
+
+.app-settings-kicker
+  font-size: 10px
+  letter-spacing: 0.2em
+  color: var(--of-accent)
+  text-transform: uppercase
+
+.app-settings-glyph
+  width: 0.7em
+  height: 0.7em
+  flex: none
+  align-self: center
+  color: var(--of-accent)
+
+.app-settings-sub
+  margin: var(--of-space-2) 0 0
+  max-width: 60ch
+  color: var(--of-text-muted)
+  font-size: var(--of-text-sm)
+  line-height: 1.55
+
+.app-settings-section
+  padding: var(--of-space-5)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-glass-radius)
+  background: var(--of-glass-card)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur))
+  box-shadow: inset 0 1px 0 var(--of-glass-rim), var(--of-glass-shadow)
+
+.app-settings-section-title
+  font-family: var(--of-font-heading)
+  font-size: 16px
+  letter-spacing: 0.08em
+  margin: 0 0 var(--of-space-2)
+  font-weight: 400
+
+.app-settings-hint
+  margin: 0 0 var(--of-space-4)
+  color: var(--of-text-muted)
+  font-size: var(--of-text-sm)
+  line-height: 1.5
+
+.language-grid
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr))
+  gap: var(--of-space-3)
+
+.language-option
+  position: relative
+  display: grid
+  grid-template-columns: auto 1fr
+  grid-template-areas: 'flag native' 'flag english'
+  align-items: center
+  column-gap: var(--of-space-3)
+  padding: var(--of-space-3) var(--of-space-4)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: 10px
+  background: var(--of-surface-raised, rgba(255, 255, 255, 0.03))
+  color: var(--of-text)
+  font: inherit
+  text-align: left
+  cursor: pointer
+  transition: border-color var(--of-dur-fast), background var(--of-dur-fast)
+
+  &:hover
+    background: var(--of-surface-hover, rgba(255, 255, 255, 0.06))
+
+  &.is-active
+    border-color: rgba(var(--of-accent-rgb), 0.45)
+    background: rgba(var(--of-accent-rgb), 0.12)
+
+.language-flag
+  grid-area: flag
+  font-size: 20px
+  line-height: 1
+
+.language-native
+  grid-area: native
+  font-size: 13px
+  font-weight: 500
+
+.language-english
+  grid-area: english
+  font-size: 11px
+  color: var(--of-text-muted)
+
+.language-check
+  position: absolute
+  top: 6px
+  right: 8px
+  font-size: 12px
+  color: var(--of-accent-alt)
+
+.app-settings-row
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: var(--of-space-4)
+  padding: var(--of-space-3) 0
+
+  & + &
+    border-top: 1px solid var(--of-border-1)
+
+.app-settings-label
+  font-size: var(--of-text-sm)
+  letter-spacing: 0.04em
+  color: var(--of-text-soft)

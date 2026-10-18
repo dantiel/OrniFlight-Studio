@@ -21,7 +21,7 @@ describe 'ConnectionBar — Interaction', ->
   it 'renders flap and battery metric badge labels', ->
     renderApp()
     expect(screen.getByText 'Flap').toBeInTheDocument()
-    expect(screen.getByText 'Battery').toBeInTheDocument()
+    expect(screen.getByText 'Akku').toBeInTheDocument()
 
   it 'renders brand identifiers', ->
     renderApp()
@@ -31,7 +31,7 @@ describe 'ConnectionBar — Interaction', ->
   it 'renders the active module sub-views in the top menu', ->
     renderApp()
     links = document.querySelectorAll 'a.config-view-btn'
-    expect(links.length).toBe 9
+    expect(links.length).toBe 10
     texts = Array.from(links).map (l) -> l.textContent
     expect(texts).toContain 'Gerät'
     expect(texts).toContain 'Ports'
@@ -42,3 +42,4 @@ describe 'ConnectionBar — Interaction', ->
     expect(texts).toContain 'Speicher'
     expect(texts).toContain 'The Molt'
     expect(texts).toContain 'Daten'
+    expect(texts).toContain 'App'

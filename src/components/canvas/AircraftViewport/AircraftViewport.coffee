@@ -17,8 +17,9 @@ PI = Math.PI
 
 AircraftViewport = ({
   attitude, wingAngleL, wingAngleR, flapFrequency, flapPhase,
-  amplitude, pairCount, servoMounts,
-  aeroelasticFlapCoefficient, aeroelasticGlideCoefficient, onBump
+  pairCount, servoMounts,
+  aeroelasticFlapCoefficient, aeroelasticGlideCoefficient, onBump,
+  onDisturb
 }) ->
 
   mountRef = useRef null
@@ -31,6 +32,9 @@ AircraftViewport = ({
   trailRef = useRef null
   ringsRef = useRef null
   frameCount = useRef 0
+  disturbRef = useRef { active: false, startX: 0, startY: 0, dx: 0, dy: 0 }
+  disturbCbRef = useRef onDisturb
+  disturbCbRef.current = onDisturb
 
   # ── Init THREE ──────────────────────────────────────────
   useEffect ->
@@ -188,12 +192,69 @@ AircraftViewport = ({
     window.addEventListener 'resize', resize
     handleClick = -> onBump?()
     el.addEventListener 'click', handleClick
+
+    # ── Drag-to-disturb ────────────────────────────────────
+    # Right-drag injects directional angular-rate disturbance into the
+    # model, faithful to the configurator: LEFT drag orbits, RIGHT drag
+    # disturbs. Track the cumulative delta and project it through the
+    # camera each frame so a drag "down-right" tugs the bird the same
+    # way from any viewing angle.
+    handleContextMenu = (e) -> e.preventDefault()
+    handleMouseDown = (e) ->
+      return unless e.button is 2   # right button only
+      e.preventDefault()
+      disturbRef.current =
+        active: true, startX: e.clientX, startY: e.clientY, dx: 0, dy: 0
+      el.classList.add 'disturb-active'
+    handleMouseMove = (e) ->
+      d = disturbRef.current
+      return unless d.active
+      d.dx = e.clientX - d.startX
+      d.dy = e.clientY - d.startY
+    handleMouseUp = ->
+      d = disturbRef.current
+      return unless d.active
+      d.active = false
+      d.dx = 0
+      d.dy = 0
+      el.classList.remove 'disturb-active'
+
+    el.addEventListener 'contextmenu', handleContextMenu
+    el.addEventListener 'mousedown', handleMouseDown
+    window.addEventListener 'mousemove', handleMouseMove
+    window.addEventListener 'mouseup', handleMouseUp
+
+    # Project the clamped screen-drag delta through the camera into
+    # world-space and forward it as (roll, pitch, yaw) torque demand.
+    # Mirrors the configurator's _applyDisturbDrag: dx→roll+yaw,
+    # dy→pitch, both clamped to ±100 so a sweep is a nudge, not a launch.
+    clampD = (lo, hi, x) -> Math.max lo, Math.min hi, x
+    applyDisturb = ->
+      d = disturbRef.current
+      return unless d.active
+      dx = clampD -100, 100, d.dx
+      dy = clampD -100, 100, d.dy
+      cam = cameraRef.current
+      unless cam
+        disturbCbRef.current? dx, dy, dx * 0.5
+        return
+      lookDir = cam.position.clone().normalize().negate()
+      worldUp = new THREE.Vector3 0, 1, 0
+      camRight = new THREE.Vector3().crossVectors(worldUp, lookDir).normalize()
+      camUp = new THREE.Vector3().crossVectors(lookDir, camRight).normalize()
+      wx = camRight.x * dx + camUp.x * dy
+      wy = camRight.y * dx + camUp.y * dy
+      wz = camRight.z * dx + camUp.z * dy
+      if isFinite(wx) and isFinite(wy) and isFinite(wz)
+        disturbCbRef.current? wx, wz, wx * 0.5
+
     trailRef.current = FlightTrail scene
     ringsRef.current = AttitudeRings scene
 
     render = ->
       animRef.current = requestAnimationFrame render
       frameCount.current += 1
+      applyDisturb()
       if frameCount.current % 3 == 0 and modelRef.current
         pos = modelRef.current.position
         trailRef.current.push pos.x, pos.y, pos.z
@@ -205,6 +266,10 @@ AircraftViewport = ({
       cancelAnimationFrame animRef.current if animRef.current
       window.removeEventListener 'resize', resize
       el.removeEventListener 'click', handleClick
+      el.removeEventListener 'contextmenu', handleContextMenu
+      el.removeEventListener 'mousedown', handleMouseDown
+      window.removeEventListener 'mousemove', handleMouseMove
+      window.removeEventListener 'mouseup', handleMouseUp
       trailRef.current?.dispose()
       ringsRef.current?.dispose()
       renderer.dispose()
@@ -224,30 +289,33 @@ AircraftViewport = ({
     modelRef.current.rotation.set roll, yaw, -pitch
     ringsRef.current?.update { roll, pitch, yaw }
 
-    # Flap amplitude (rad) — from telemetry amplitude (deg).
-    amp = ((amplitude ? 45) * PI / 180)
-    # L/R differential extracted from the engine's asymmetric angles.
-    diff = ((wingAngleL or 0) - (wingAngleR or 0)) / 2
-    phase = flapPhase or 0
+    # Wing angles come straight from the model (rad). They already carry
+    # the flap centre (stick + PID) AND the oscillation, so a glide with
+    # collapsed amplitude still visibly steers. Positive = wing UP on both
+    # sides — the model's physical-angle convention.
+    angleL = wingAngleL or 0
+    angleR = wingAngleR or 0
 
-    # Aeroelastic twist: wing tip whips with flap velocity.
+    # Aeroelastic twist: velocity-proportional flex (cosine of phase). The
+    # two meshes are MIRROR images (wingR.rotation.y = PI), so a twist
+    # applied with the SAME sign pitches their leading edges in OPPOSITE
+    # directions. Negate the mirrored side so both wings flex together —
+    # configurator model.coffee applies +velL / -velR for the same reason.
+    phase = flapPhase or 0
     aero = (aeroelasticFlapCoefficient ? 20) * 0.004
+    twist = Math.cos(phase) * aero
 
     for pair, i in pairRefs.current
-      pairPhase = phase + pair.phaseShift
-      base = amp * Math.sin pairPhase
-      leftAngle  = base + diff
-      rightAngle = base - diff
-
-      # Twist proportional to flap velocity (cosine of phase).
-      twist = Math.cos(pairPhase) * aero
-
-      pair.pivotL.rotation.z = leftAngle
-      pair.pivotR.rotation.z = -rightAngle
+      # pivotL sits at +X (right wing): +rotation.z = tip UP.
+      # pivotR sits at -X (left wing, mirrored mesh): +rotation.z = tip
+      # DOWN, so negate to keep "up positive" on both sides.
+      pair.pivotL.rotation.z = angleR
+      pair.pivotR.rotation.z = -angleL
+      # Mirrored flex: right +, left − → both leading edges pitch together.
       pair.wingL.rotation.x = twist
-      pair.wingR.rotation.x = twist
+      pair.wingR.rotation.x = -twist
     return
-  , [attitude, wingAngleL, wingAngleR, flapPhase, amplitude, pairCount]
+  , [attitude, wingAngleL, wingAngleR, flapPhase, pairCount]
 
   # ── Render mount ───────────────────────────────────────
   createElement 'div', { className: 'viewport-canvas', ref: mountRef }

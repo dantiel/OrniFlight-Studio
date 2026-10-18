@@ -3,17 +3,20 @@ import { useRef } from 'react'
 import useFlashController from '../../../hooks/useFlashController.coffee'
 import useMoltMorph from '../../../hooks/useMoltMorph.coffee'
 import { moltScrollTo } from '../../../hooks/useMoltMorph.coffee'
-import { FLASH_OPTIONS } from '../../../firmware/flashUi.coffee'
+import { flashOptions } from '../../../firmware/flashUi.coffee'
 import { transportLabel } from '../../../firmware/flashUi.coffee'
 import { moltDeck } from '../../../firmware/flashUi.coffee'
 import StudioAccordion from '../../controls/StudioAccordion/StudioAccordion.coffee'
 import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - ctrl = useFlashController()
 - moltRef = useRef(null)
 - useMoltMorph(moltRef)
+- { t } = useI18n()
 - transportWord = transportLabel(ctrl.transport)
+- options = flashOptions(t)
 - pickOption = (key) -> (e) -> ctrl.onOption(key, e.target.checked)
 - wrapSelect = (id) -> ctrl.onSelect(id); moltScrollTo('molt-flash-deck')
 - wrapLoad = (id) -> ctrl.forge.onLoad(id); moltScrollTo('molt-flash-deck')
@@ -35,11 +38,10 @@ import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
 .molt-view.layout-flash{ ref: moltRef }
   %header.molt-head
     %div.molt-head-title
-      %span.molt-kicker.orgone-kicker SYSTEM · THE MOLT
-      %h1.orgone-display.orgone-display-shimmer The Molt
+      %span.molt-kicker.orgone-kicker= t('flash.kicker')
+      %h1.orgone-display.orgone-display-shimmer= t('flash.title')
       %p.molt-hermes
-        Strip the old plumage — forge a fitted build in the cloud,
-        weave it onto the board over Serial or USB DFU.
+        = t('flash.hermes')
   %div.molt-deck{ className: "molt-deck#{deckLiveClass}" }
     %span.deck-device
       %span.deck-glyph 🐦
@@ -64,7 +66,7 @@ import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
     %CloudForge{ forge: deckForge }
   %section.molt-section.molt-deck-section#molt-flash-deck
     %div.deck-head
-      %span.deck-head-kicker.orgone-kicker THE FLASH DECK
+      %span.deck-head-kicker.orgone-kicker= t('flash.deckKicker')
       %span.deck-head-state= deckStateWord
     %div.molt-stage-grid
       %FlashProgress{ phase: ctrl.phase, progress: ctrl.progress, label: ctrl.label }
@@ -72,9 +74,9 @@ import CloudForge from '../../panels/CloudForge/CloudForge.chaml'
         %FlashButton{ btn: ctrl.btn, onClick: ctrl.onClick }
         - if ctrl.error
           %div.forge-error= ctrl.error
-        %StudioAccordion{ title: 'Advanced flash options', defaultOpen: false }
+        %StudioAccordion{ title: t('flash.advancedOptions'), defaultOpen: false }
           %div.forge-options
-            - for opt in FLASH_OPTIONS
+            - for opt in options
               %label.fw-option{ key: opt[0] }
                 %input.fw-option-check{ type: 'checkbox', checked: ctrl.options[opt[0]], onChange: pickOption(opt[0]) }
                 %span.fw-option-label= opt[1]

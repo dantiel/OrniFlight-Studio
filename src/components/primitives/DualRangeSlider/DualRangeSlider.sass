@@ -1,6 +1,7 @@
 // DualRangeSlider — one rail, two clamped thumbs.
-// Both inputs lie on the same track; pointer events pass only through
-// the thumbs, so the top input never swallows the bottom one.
+// The thumbs are divs positioned by percentage; pointer events drive
+// the drag directly, so no native range quirk can swallow the input.
+// The upper (right) thumb always sits above the lower one.
 
 .dual-range
   display: flex
@@ -9,9 +10,16 @@
   min-width: 0
   width: 100%
 
+  &.is-disabled
+    opacity: 0.4
+    pointer-events: none
+
 .dual-range-track
   position: relative
   height: 22px
+  cursor: pointer
+  touch-action: none
+  user-select: none
 
 .dual-range-rail
   position: absolute
@@ -22,61 +30,41 @@
   transform: translateY(-50%)
   border-radius: 999px
   background: var(--of-border-2)
-  overflow: hidden
 
 .dual-range-fill
   position: absolute
-  top: 0
-  bottom: 0
+  top: 50%
+  height: 4px
+  transform: translateY(-50%)
   border-radius: 999px
   background: linear-gradient(90deg, var(--of-accent-dim), var(--of-accent))
 
 .dual-range-thumb
   position: absolute
-  inset: 0
-  width: 100%
-  height: 22px
-  margin: 0
-  appearance: none
-  -webkit-appearance: none
-  background: transparent
-  pointer-events: none
+  top: 50%
+  width: 16px
+  height: 16px
+  transform: translate(-50%, -50%)
+  border-radius: 50%
+  background: var(--of-accent-alt)
+  border: 2px solid var(--of-surface-1)
+  box-shadow: 0 0 8px var(--of-simulation-glow)
   cursor: grab
+  touch-action: none
+
+  &:active
+    cursor: grabbing
+
+  &.dual-range-low
+    z-index: 1
+
+  &.dual-range-high
+    z-index: 2
 
   &:focus-visible
-    outline: none
+    outline: 2px solid var(--of-accent)
+    outline-offset: 2px
 
-  &::-webkit-slider-runnable-track
-    background: transparent
-    height: 22px
-
-  &::-webkit-slider-thumb
-    pointer-events: auto
-    -webkit-appearance: none
-    width: 14px
-    height: 14px
-    border-radius: 50%
-    background: var(--of-accent-alt)
-    border: 2px solid var(--of-surface-1)
-    box-shadow: 0 0 8px var(--of-simulation-glow)
-    cursor: grab
-
-  &::-moz-range-track
-    background: transparent
-    height: 4px
-
-  &::-moz-range-thumb
-    pointer-events: auto
-    width: 12px
-    height: 12px
-    border-radius: 50%
-    background: var(--of-accent-alt)
-    border: 2px solid var(--of-surface-1)
-    box-shadow: 0 0 8px var(--of-simulation-glow)
-    cursor: grab
-
-// The bound labels sit at the rail's ends — low on the left, high on
-// the right — so two equal thumbs never stack their values.
 .dual-range-labels
   display: flex
   justify-content: space-between

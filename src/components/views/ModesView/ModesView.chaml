@@ -1,20 +1,24 @@
 ~~~
 import { useRef } from 'react'
-import { fmt0, intFromEvent } from '../../../lib/essential.coffee'
+import { fmt0 } from '../../../lib/essential.coffee'
 import useModesStore from '../../../stores/useModesStore.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import useScrollMorph from '../../../hooks/useScrollMorph.coffee'
 import { modeCatalogEntries, ACRO_HINT } from '../../../lib/modeCatalog.coffee'
 import { MODE_RANGE_USEC_MIN, MODE_RANGE_STEP_MAX } from '../../../protocol/mspDecoders.coffee'
 import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
+import DualRangeSlider from '../../primitives/DualRangeSlider/DualRangeSlider.coffee'
+import RcInputStrip from '../../controls/RcInputStrip/RcInputStrip.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - store = useModesStore()
 - draft = store.draft
 - hostRef = useRef(null)
 - useScrollMorph(hostRef)
+- { t } = useI18n()
 - telemetry = useTelemetryStore (state) -> state.rcChannels
-- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- modeLabel = if store.mode == 'sim' then t('common.simulation') else t('common.device')
 - readDisabled = store.mode != 'device' or !store.session
 - saveDisabled = store.mode == 'device' and !store.loadedSession
 - entries = modeCatalogEntries()
@@ -28,50 +32,54 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
 - readFromDevice = -> store.loadFromDevice().catch log 'Modes read failed'
 - saveToDevice = -> store.save().catch log 'Modes save failed'
 - setRange = (index, key) -> (value) -> store.setRangeField index, key, value
+- rangeLowLabel = (r) -> "#{fmt0(usFromStep(r.startStep))} µs"
+- rangeHighLabel = (r) -> "#{fmt0(usFromStep(r.endStep))} µs"
 .morph-doc.layout-modes{ ref: hostRef }
   %header.morph-head
     %div.morph-head-title
       %span.morph-kicker.orgone-kicker
-        = ' STEUERUNG · FLIGHT MODES'
+        = t('modes.kicker')
       %h1.orgone-display.orgone-display-shimmer
         %ModuleIcon{ className: 'morph-head-glyph', size: 30 }
-        %span Flight Modes
+        %span= t('modes.title')
       %p.morph-hermes
-        = "Zwanzig AUX-Slots gegen den Live-Kanalstrom — Box, Kanal und 900–2100 µs Band. Eine Reihe leuchtet, wenn ihr Kanal im Bereich liegt."
+        = t('modes.hermes')
   .morph-deck.modes-deck
     %span.modes-mode-badge{ className: "modes-mode-#{store.mode}" }
       = modeLabel
     - if store.dirty
-      %span.modes-dirty-badge DIRTY
+      %span.modes-dirty-badge= t('common.unsaved')
     .modes-actions
       %button.modes-action.modes-action-read{ type: 'button',
                                               onClick: readFromDevice,
                                               disabled: readDisabled }
-        Read device
+        = t('common.read')
       %button.modes-action.modes-action-save{ type: 'button',
                                               onClick: saveToDevice,
                                               disabled: saveDisabled }
-        Save
+        = t('common.save')
       %button.modes-action.modes-action-revert{ type: 'button',
                                                 onClick: (-> store.revert()),
                                                 disabled: !store.dirty }
-        Revert
+        = t('common.revert')
+  - if store.mode == 'sim'
+    %RcInputStrip
   .modes-split
     .morph-section.modes-note-card
-      %Section{ heading: 'Flight Modes',
-                subheading: 'AUX ranges armed against the live channel stream.' }
+      %Section{ heading: t('modes.noteHeading'),
+                subheading: t('modes.noteSub') }
         %p.modes-note
-          = "#{ACRO_HINT.name} is implicit — the default whenever no range is active."
+          = t('modes.noteAcro', { name: ACRO_HINT.name })
     .morph-section.modes-note-card
-      %Section{ heading: 'Range Logic' }
+      %Section{ heading: t('modes.rangeHeading') }
         %p.modes-note
-          Extra columns (AND / OR / XOR, linked box) appear when the firmware exposes MSP 238.
+          = t('modes.rangeNote')
         - if not draft.extrasAvailable
           %p.modes-note.modes-note-warn
-            Legacy firmware — logic and links ride at their defaults.
+            = t('modes.rangeWarn')
   .morph-section.modes-main
-    %Section{ heading: 'AUX Mode Ranges',
-              subheading: '20 activation slots — box, AUX channel and 900–2100 µs band.' }
+    %Section{ heading: t('modes.mainHeading'),
+              subheading: t('modes.mainSub') }
     - for range, index in draft.ranges
       .mode-range-row{ key: "range-#{index}", className: "mode-range-row #{if rangeActive(range) then 'mode-range-active' else ''}" }
         %span.mode-range-index
@@ -85,11 +93,6 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
             %option{ key: "aux-#{aux}", value: String(aux) }
               = "AUX#{aux + 1}"
         .mode-range-sliders
-          %span.mode-range-slider-label
-            = "#{fmt0(usFromStep(range.startStep))} µs"
-          %input.mode-range-slider{ type: 'range', min: '0', max: String(MODE_RANGE_STEP_MAX), step: '1', value: String(range.startStep), onInput: intFromEvent(setRange(index, 'startStep')) }
-          %span.mode-range-slider-label
-            = "#{fmt0(usFromStep(range.endStep))} µs"
-          %input.mode-range-slider{ type: 'range', min: '0', max: String(MODE_RANGE_STEP_MAX), step: '1', value: String(range.endStep), onInput: intFromEvent(setRange(index, 'endStep')) }
+          %DualRangeSlider{ min: 0, max: MODE_RANGE_STEP_MAX, step: 1, low: range.startStep, high: range.endStep, lowLabel: rangeLowLabel(range), highLabel: rangeHighLabel(range), onLow: setRange(index, 'startStep'), onHigh: setRange(index, 'endStep') }
         %span.mode-range-live{ className: "mode-range-live #{if rangeActive(range) then 'mode-range-live-active' else ''}" }
           = "#{fmt0(auxValue(range.auxChannelIndex))} µs"

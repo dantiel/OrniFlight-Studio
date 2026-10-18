@@ -32,17 +32,17 @@ describe 'ReceiverView', { timeout: 20000 }, ->
     expect(view().getByText 'Failsafe Channels').toBeInTheDocument()
     expect(view().getByText 'Live Channels').toBeInTheDocument()
 
-  it 'disables Read device in sim mode and shows no DIRTY badge', ->
+  it 'disables Read device in sim mode and shows no UNSAVED badge', ->
     renderView()
-    readButtons = view().getAllByText 'Read device'
+    readButtons = view().getAllByText 'Gerät lesen'
     expect(readButtons[0]).toBeDisabled()
-    expect(view().queryByText 'DIRTY').not.toBeInTheDocument()
+    expect(view().queryByText 'UNGESPEICHERT').not.toBeInTheDocument()
 
   it 'edits the provider select and flags the draft dirty', ->
     renderView()
     providerSelect = document.querySelector '.receiver-provider'
     fireEvent.change providerSelect, { target: { value: '2' } }
-    expect(view().getByText 'DIRTY').toBeInTheDocument()
+    expect(view().getByText 'UNGESPEICHERT').toBeInTheDocument()
     expect(useReceiverStore.getState().draft.provider).toBe 2
 
   it 'edits a channel-map position', ->
@@ -56,8 +56,8 @@ describe 'ReceiverView', { timeout: 20000 }, ->
     modeSelects = document.querySelectorAll '.rxfail-mode'
     fireEvent.change modeSelects[2], { target: { value: '2' } }
     expect(useReceiverStore.getState().draft.rxFail[2].mode).toBe 2
-    fireEvent.click view().getAllByText('Revert')[0]
-    expect(view().queryByText 'DIRTY').not.toBeInTheDocument()
+    fireEvent.click view().getAllByText('Verwerfen')[0]
+    expect(view().queryByText 'UNGESPEICHERT').not.toBeInTheDocument()
     expect(useReceiverStore.getState().draft.rxFail[2].mode).toBe 0
 
   it 'logs a failed device save instead of rejecting silently', ->
@@ -70,7 +70,7 @@ describe 'ReceiverView', { timeout: 20000 }, ->
     await useReceiverStore.getState().loadFromDevice session
     errorSpy = vi.spyOn(console, 'error').mockImplementation -> null
     renderView()
-    fireEvent.click view().getAllByText('Save')[0]
+    fireEvent.click view().getAllByText('Speichern')[0]
     await vi.waitFor -> expect(errorSpy).toHaveBeenCalled()
 
   it 'logs a failed device mode save instead of rejecting silently', ->
@@ -80,5 +80,5 @@ describe 'ReceiverView', { timeout: 20000 }, ->
     await useModesStore.getState().loadFromDevice session
     errorSpy = vi.spyOn(console, 'error').mockImplementation -> null
     render h(MemoryRouter, { initialEntries: ['/control/modes'] }, h(App, null))
-    fireEvent.click screen.getByText('Save')
+    fireEvent.click screen.getByText('Speichern')
     await vi.waitFor -> expect(errorSpy).toHaveBeenCalled()

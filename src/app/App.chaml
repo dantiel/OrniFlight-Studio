@@ -4,6 +4,7 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { useSimulation } from '../simulation/useSimulation.coffee'
 import useBridge from '../integration/useBridge.coffee'
+import { useI18n } from '../i18n/index.coffee'
 import AnimatedPage from './AnimatedPage.coffee'
 import ConnectionBar from '../components/panels/ConnectionBar/ConnectionBar.chaml'
 import FeatherField from '../components/canvas/FeatherField/FeatherField.coffee'
@@ -33,17 +34,19 @@ import AdjustmentsView from '../components/views/AdjustmentsView/AdjustmentsView
 import VoiceView from '../components/views/VoiceView/VoiceView.chaml'
 import MemoryView from '../components/views/MemoryView/MemoryView.chaml'
 import FlashingView from '../components/views/FlashingView/FlashingView.chaml'
+import AppSettingsView from '../components/views/AppSettingsView/AppSettingsView.coffee'
 import SystemShell from '../components/views/SystemShell/SystemShell.coffee'
 
 - useSimulation()
 - useBridge()
+- { t } = useI18n()
 - location = useLocation()
 - `const welcomeEl = h(AnimatedPage, null, h(WelcomeView, null))`
 - `const orniEl = h(AnimatedPage, null, h(OrnithopterView, null))`
 - `const profilesEl = h(AnimatedPage, null, h(FlightProfilesView, null))`
 - `const servosEl = h(AnimatedPage, null, h(ServosView, null))`
 - `const controlEl = h(AnimatedPage, null, h(PidTuningView, null))`
-- `const schlagdynamikEl = h(AnimatedPage, null, h(SchlagdynamikView, null))`
+- `const strokeDynamicsEl = h(AnimatedPage, null, h(SchlagdynamikView, null))`
 - `const modesEl = h(AnimatedPage, null, h(ModesView, null))`
 - `const receiverEl = h(AnimatedPage, null, h(ReceiverView, null))`
 - `const adjustmentsEl = h(AnimatedPage, null, h(AdjustmentsView, null))`
@@ -58,6 +61,7 @@ import SystemShell from '../components/views/SystemShell/SystemShell.coffee'
 - `const memoryEl = h(AnimatedPage, null, h(MemoryView, null))`
 - `const flashEl = h(AnimatedPage, null, h(FlashingView, null))`
 - `const dataEl = h(AnimatedPage, null, h(ConfigurationHub, {kind: 'data'}))`
+- `const appEl = h(AnimatedPage, null, h(AppSettingsView, null))`
 - `const safetyEl = h(AnimatedPage, null, h(FailsafeView, null))`
 - `const cliEl = h(AnimatedPage, null, h(CliTerminalView, null))`
 - `const basicEl = h(Navigate, { to: '/basic/body', replace: true })`
@@ -68,7 +72,7 @@ import SystemShell from '../components/views/SystemShell/SystemShell.coffee'
 .studio-shell{ role: 'application', aria-label: 'OrniFlight Studio' }
   %FeatherField
   %a.skip-link{ href: '#main-content' }
-    Skip to content
+    = t('chrome.skip')
   %ConnectionBar
   %ProgressiveBlur{ position: 'top' }
   %div#main-content{ role: 'main' }
@@ -82,7 +86,7 @@ import SystemShell from '../components/views/SystemShell/SystemShell.coffee'
         %Route{ path: '/servos', element: servosEl }
         %Route{ path: '/control', element: controlRedirectEl }
         %Route{ path: '/control/pid', element: controlEl }
-        %Route{ path: '/control/schlagdynamik', element: schlagdynamikEl }
+        %Route{ path: '/control/strokedynamics', element: strokeDynamicsEl }
         %Route{ path: '/control/modes', element: modesEl }
         %Route{ path: '/control/receiver', element: receiverEl }
         %Route{ path: '/control/adjustments', element: adjustmentsEl }
@@ -100,6 +104,7 @@ import SystemShell from '../components/views/SystemShell/SystemShell.coffee'
           %Route{ path: 'memory', element: memoryEl }
           %Route{ path: 'flash', element: flashEl }
           %Route{ path: 'data', element: dataEl }
+          %Route{ path: 'app', element: appEl }
         %Route{ path: '/safety', element: safetyEl }
         %Route{ path: '/cli', element: cliEl }
   %Dock

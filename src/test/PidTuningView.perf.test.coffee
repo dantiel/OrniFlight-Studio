@@ -59,7 +59,7 @@ describe 'PidTuningView render efficiency', ->
     slider = document.querySelector '.param-slider'
     fireEvent.input slider, { target: { value: '6.5' } }
     expect(useTuningStore.getState().draft.pid.roll.P).toBe 6.5
-    expect(screen.getByText 'UNSAVED').toBeInTheDocument()
+    expect(screen.getByText 'UNGESPEICHERT').toBeInTheDocument()
     expect(renderCount).toBe baseline + 1
     expect(lastRowProps.value).toBe 6.5
     expect(

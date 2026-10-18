@@ -1,20 +1,22 @@
 ~~~
 import { NavLink, useLocation } from 'react-router-dom'
 import { activeModuleForPath, subtabsForPath } from '../../../lib/navigation.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 import Icon from '../../primitives/Icon/Icon.coffee'
 ~~~
 
 - location = useLocation()
 - mod = activeModuleForPath location.pathname
 - subtabs = subtabsForPath location.pathname
-.config-view-selector{ role: 'navigation', aria-label: "#{mod.label} navigation" }
+- { t } = useI18n()
+.config-view-selector{ role: 'navigation', aria-label: "#{t mod.label} navigation" }
   .config-module
     %Icon{ name: mod.icon, size: 13, className: 'cm-icon' }
-    %span.config-module-name= mod.label
+    %span.config-module-name= t(mod.label)
   - if subtabs.length > 1
     .config-view-tabs
       - for tab in subtabs
         %NavLink{ to: tab[0], key: tab[0], className: 'config-view-btn' }
           - if tab[2]
             %Icon{ name: tab[2], size: 12, className: 'tab-icon' }
-          %span.tab-label= tab[1]
+          %span.tab-label= t(tab[1])

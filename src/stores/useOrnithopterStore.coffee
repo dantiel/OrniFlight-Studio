@@ -32,6 +32,7 @@ import { MATH_PARAMS } from '../lib/mathSuite.coffee'
 import {
   AIRFRAME_LIMITS, MOUNT_LIMITS, MOUNT_PAIRS, defaultAirframe
 } from '../lib/airframeCatalog.coffee'
+import { arrangementMounts } from '../simulation/OrnithopterModel.coffee'
 
 # servo_travel_time_ms: firmware constrains 30..500 ms per 60°.
 SPEED_LIMITS = [30, 500]
@@ -70,6 +71,7 @@ clampInt = (lo, hi, value) ->
   Math.max lo, Math.min hi, Math.round finiteOr lo, value
 
 defaultProfile = ->
+  name: ''
   glideAngle: -30
   flappingAngle: 0
   waveform: { WAVEFORM_DEFAULTS... }
@@ -141,6 +143,15 @@ mirrorAirframe = (airframe) ->
         phaseShift: 0
       }
 
+# Re-seed the airframe's mount document from the mixer profile's
+# arrangement archetype — switching a body plan must move the physical
+# mounts (the configurator's _applyArrangement writes its defaults into
+# the mount sliders). Keeps the 3D viewport faithful for multi-wing
+# layouts (single → quad, double_decker biplane).
+reseedMounts = (airframe, profileId) ->
+  mounts = arrangementMounts profileById(profileId).arrangement
+  { airframe..., mounts }
+
 mirrorToEngine = (draft) ->
   # Servo speed rides the engine as the travel-time of one stroke.
   engine.setSimulationParams
@@ -180,6 +191,7 @@ useOrnithopterStore = create (set, get) ->
     draft = clone get().draft
     draft.kernel = kernel
     draft.profileId = firstForKernel kernel
+    draft.airframe = reseedMounts draft.airframe, draft.profileId
     set { draft, dirty: true }
     mirrorToEngine draft
 
@@ -187,7 +199,9 @@ useOrnithopterStore = create (set, get) ->
     id = Number id
     unless Number.isFinite(id) and 0 <= id <= 7
       throw new Error "Unknown mixer profile: #{id}"
-    draft = { get().draft..., profileId: id }
+    draft = clone get().draft
+    draft.profileId = id
+    draft.airframe = reseedMounts draft.airframe, id
     set { draft, dirty: true }
     mirrorToEngine draft
 
@@ -224,6 +238,15 @@ useOrnithopterStore = create (set, get) ->
       draft: { get().draft..., profiles }
       dirty: true
     engine.setGlideAngle index, profiles[index].glideAngle
+
+  setProfileName: (index, name) ->
+    return unless 0 <= index < PROFILE_COUNT
+    name = String(name or '').slice 0, 24
+    profiles = clone get().draft.profiles
+    profiles[index].name = name
+    set
+      draft: { get().draft..., profiles }
+      dirty: true
 
   setFlappingAngle: (index, value) ->
     return unless 0 <= index < PROFILE_COUNT

@@ -24,7 +24,7 @@ describe 'ConfigTabs — Interaction', ->
     renderApp '/system/device'
     expect(labels()).toEqual [
       'Gerät', 'Ports', 'Power', 'VTX', 'OSD',
-      'Sprache', 'Speicher', 'The Molt', 'Daten'
+      'Sprache', 'Speicher', 'The Molt', 'Daten', 'App'
     ]
 
   it 'renders the Steuerung sub-views', ->

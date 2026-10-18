@@ -27,6 +27,7 @@ useAppStore = create(
         gyroCurves:   ['gyroRoll']
         plotProfiles: {}
         activeProfile: 1
+        locale:       'de'
 
         # ── Connection state (mirror of XState machine) ──
         connectionState: 'disconnected'
@@ -47,6 +48,7 @@ useAppStore = create(
           delete next[key]
           { plotProfiles: next }
         setActiveProfile:   (activeProfile)-> set { activeProfile }
+        setLocale:          (locale)      -> set { locale }
         setConnectionState: (connectionState, connected = false) ->
           set { connectionState, connected }
         setBattery:         (batteryVoltage, flapFrequency = 0) ->
@@ -61,6 +63,7 @@ useAppStore = create(
         gyroCurves:   state.gyroCurves
         plotProfiles: state.plotProfiles
         activeProfile: state.activeProfile
+        locale:       state.locale
     ),
     name: '📦 AppStore'               # Redux DevTools label
   )

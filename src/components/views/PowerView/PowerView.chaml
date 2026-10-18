@@ -1,10 +1,12 @@
 ~~~
 import { memo } from 'react'
 import usePowerStore from '../../../stores/usePowerStore.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - store = usePowerStore()
-- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- { t } = useI18n()
+- modeLabel = if store.mode == 'sim' then t('common.simulation') else t('common.device')
 - readDisabled = store.mode != 'device' or !store.session
 - saveDisabled = store.mode == 'device' and !store.loadedSession
 - log = (label) -> (error) -> console.error label, error
@@ -16,17 +18,17 @@ import usePowerStore from '../../../stores/usePowerStore.coffee'
       %span.system-mode-badge{ className: "system-mode-#{store.mode}" }
         = modeLabel
       - if store.dirty
-        %span.system-dirty-badge DIRTY
-    %h1.system-view-title Power
+        %span.system-dirty-badge= t('common.unsaved')
+    %h1.system-view-title= t('power.title')
     .system-view-actions
       %button.system-action.system-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
-        Read device
+        = t('common.read')
       %button.system-action.system-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
-        Save
+        = t('common.save')
       %button.system-action.system-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
-        Revert
+        = t('common.revert')
   %p.system-note
-    = "All three documents ride the wire format exactly. Every save runs SET + EEPROM_WRITE and verifies the read-back; writes lock while armed."
+    = t('power.note')
   - if store.lastError
     %div.power-error{ role: 'alert' }
       = store.lastError

@@ -20,7 +20,9 @@ import { getActor } from '../hooks/useConnection.coffee'
 # Pure projection: simulation engine → one telemetry frame
 snapshot = (engine) ->
   tel = engine.telemetry
+  sticks = engine.sticks
   t:               engine.t
+  source:          'simulation'
   gyroRoll:        tel.gyro.roll
   gyroPitch:       tel.gyro.pitch
   gyroYaw:         tel.gyro.yaw
@@ -33,9 +35,16 @@ snapshot = (engine) ->
   amplitude:       tel.amplitude
   batteryVoltage:  tel.batteryVoltage
   flapFrequency:   tel.flapFrequency
+  cadence:         tel.cadence
   liveWaveform:    { tel.liveWaveform... }
   servos:          tel.servoPositions[...]
   waveformHistory: tel.waveformHistory[...]
+  rcRoll:          sticks.roll
+  rcPitch:         sticks.pitch
+  rcYaw:           sticks.yaw
+  rcThrottle:      sticks.throttle
+  rcChannels:      [sticks.roll, sticks.pitch, sticks.yaw,
+                    sticks.throttle, engine.aux...]
   rssi:            0
   linkQuality:     0
 

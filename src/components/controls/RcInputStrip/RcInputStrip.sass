@@ -1,0 +1,53 @@
+// RcInputStrip — compact simulation test harness. A single horizontal
+// band of tiny labelled sliders; sticky-friendly so it can ride above a
+// plotter deck while the params scroll.
+
+.rc-strip
+  display: flex
+  flex-direction: column
+  gap: 6px
+  padding: var(--of-space-3)
+  border: 1px solid var(--of-glass-rim-soft)
+  border-radius: var(--of-radius-md)
+  background: var(--of-glass-card)
+  backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+  -webkit-backdrop-filter: blur(var(--of-glass-blur)) saturate(var(--of-glass-saturate))
+
+.rc-strip-head
+  font: 600 10px/1 var(--of-font-mono)
+  letter-spacing: 0.14em
+  color: var(--of-text-muted)
+  text-transform: uppercase
+
+.rc-strip-body
+  display: grid
+  grid-template-columns: repeat(8, minmax(56px, 1fr))
+  gap: var(--of-space-3)
+
+.rc-strip-cell
+  display: flex
+  flex-direction: column
+  gap: 3px
+  min-width: 0
+
+.rc-strip-label
+  font-size: 9px
+  font-family: var(--of-font-mono)
+  color: var(--of-text-soft)
+  letter-spacing: 0.04em
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.rc-strip-slider
+  width: 100%
+  margin: 0
+
+.rc-strip-value
+  font: 600 10px/1 var(--of-font-mono)
+  color: var(--of-accent-alt)
+  text-align: right
+
+@media (max-width: 720px)
+  .rc-strip-body
+    grid-template-columns: repeat(4, minmax(56px, 1fr))

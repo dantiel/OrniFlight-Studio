@@ -72,13 +72,16 @@
   // Shared primitives used by the slot rows.
   .adjustment-row
     display: grid
-    grid-template-columns: 72px 200px 90px 110px 110px 110px 120px
+    grid-template-columns: 72px 200px 90px 110px minmax(200px, 1fr) 120px
     gap: 8px
     align-items: end
     padding: 8px
     border-radius: 6px
     border: 1px solid var(--of-border-1)
     background: var(--of-glass-card)
+
+  .adjustment-field-range
+    min-width: 0
 
   .adjustment-field
     display: flex

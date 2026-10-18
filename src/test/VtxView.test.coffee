@@ -17,7 +17,7 @@ describe 'VtxView', ->
     expect(screen.getByText 'VTX Transmitter').toBeInTheDocument()
     expect(screen.getAllByText 'FATSHARK').toHaveLength 2
     expect(screen.getByText '5917').toBeInTheDocument()
-    expect(screen.getByText 'Read device').toBeDisabled()
+    expect(screen.getByText 'Gerät lesen').toBeDisabled()
     frequency = document.querySelector '.vtx-frequency'
     expect(frequency.textContent).toContain '5740'
 
@@ -28,7 +28,7 @@ describe 'VtxView', ->
     expect(draft.band).toBe 5
     expect(draft.channel).toBe 8
     expect(draft.freq).toBe 5917
-    expect(screen.getByText 'DIRTY').toBeInTheDocument()
+    expect(screen.getByText 'UNGESPEICHERT').toBeInTheDocument()
     active = document.querySelector '.vtx-band-cell-active'
     expect(active.textContent).toBe '5917'
 

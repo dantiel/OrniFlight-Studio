@@ -2,6 +2,7 @@ import h from '../../../app/h.coffee'
 import {
   MATH_PARAMS, mathParamsOf, strokePreviewPath
 } from '../../../lib/mathSuite.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 import MathParamRow from '../../primitives/MathParamRow/MathParamRow.coffee'
 
 # One layer card of the math suite: glyph + name + role, the layer's
@@ -9,6 +10,7 @@ import MathParamRow from '../../primitives/MathParamRow/MathParamRow.coffee'
 # down/up stroke preview. Lives in .coffee so the rows can map freely
 # (nested chaml loops escape their scope).
 MathLayerCard = ({ layer, ondas, onInput, plx = 0 }) ->
+  { t } = useI18n()
   keys = mathParamsOf layer.id
   down = ondas.ferocity_downstroke
   up = ondas.ferocity_upstroke
@@ -22,10 +24,10 @@ MathLayerCard = ({ layer, ondas, onInput, plx = 0 }) ->
             { d: strokePreviewPath(down, up), fill: 'none',
               stroke: 'currentColor', strokeWidth: '1.5' }))
         h('div', { className: 'math-stroke-legend' }, [
-          h('span', null, '⬇ Downstroke')
+          h('span', null, t('math.downstroke'))
           h('span', { className: 'math-stroke-asym' },
-            "Asymmetrie #{Math.abs(down - up)}%")
-          h('span', null, '⬆ Upstroke')
+            t('math.asymmetry', { value: Math.abs(down - up) }))
+          h('span', null, t('math.upstroke'))
         ])
       ])
     else
@@ -36,8 +38,8 @@ MathLayerCard = ({ layer, ondas, onInput, plx = 0 }) ->
     [
       h('div', { className: 'math-layer-head', key: 'head' }, [
         h('span', { className: 'math-layer-glyph' }, layer.glyph)
-        h('h2', { className: 'math-layer-name orgone-display' }, layer.name)
-        h('p', { className: 'math-layer-role' }, layer.role)
+        h('h2', { className: 'math-layer-name orgone-display' }, t(layer.name))
+        h('p', { className: 'math-layer-role' }, t(layer.role))
       ])
       keys.map (key) ->
         h MathParamRow,

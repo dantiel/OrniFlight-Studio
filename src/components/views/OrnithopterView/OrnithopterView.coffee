@@ -23,6 +23,7 @@ import {
   airframeDerived
 } from '../../../lib/airframeCatalog.coffee'
 import { getArrangement } from '../../../simulation/OrnithopterModel.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 
 Section = (props) ->
   h 'section', { className: 'orni-panel' },
@@ -51,6 +52,7 @@ OrnithopterView = ->
   orni = useOrnithopterStore()
   identity = useDeviceStore (state) -> state.identity
   draft = orni.draft
+  { t } = useI18n()
   profile = profileById draft.profileId
   trims = trimsForProfile profile
   pairCount = getArrangement(profile.arrangement).pairs
@@ -67,9 +69,9 @@ OrnithopterView = ->
       onClick: -> orni.setKernel k.id
     ,
       h 'span', { className: 'orni-segment-glyph' }, k.glyph
-      h 'span', null, k.label
+      h 'span', null, t(k.label)
 
-  modeLabel = if orni.mode is 'sim' then 'SIMULATION' else 'DEVICE'
+  modeLabel = if orni.mode is 'sim' then t('common.simulation') else t('common.device')
   saveDisabled = orni.mode is 'device' and not orni.loadedSession
   airDerived = airframeDerived draft.airframe
 
@@ -80,60 +82,56 @@ OrnithopterView = ->
         h 'div', { className: 'orni-head-text' },
           h 'h1', { className: 'orgone-display orgone-display-shimmer' },
             h ModuleIcon, { className: 'orni-head-glyph', size: 30 }
-            h 'span', null, 'GRUNDKONFIGURATION'
-          h 'p', { className: 'orni-hermes' },
-            'Körperplan · Flugwerk. ' +
-            'Die Antriebsseite des Vogels, eine Sicht pro Gelenk.'
+            h 'span', null, t('nav.modules.basic')
+
+          h 'p', { className: 'orni-hermes' }, t('ornithopter.hermes')
       h 'div', { className: 'orni-toolbar' },
         h 'span', { className: "orni-mode-badge orni-mode-#{orni.mode}" },
           modeLabel
         h 'span',
           className:
             "orni-dirty#{if orni.dirty then ' orni-dirty-on' else ''}"
-        , if orni.dirty then 'UNGESPEICHERT' else 'GESPEICHERT'
+        , if orni.dirty then t('common.unsaved') else t('common.saved')
         h 'button',
           className: 'orni-action orni-action-save'
           type: 'button'
           disabled: saveDisabled
           onClick: -> orni.save()
-        , 'Speichern'
+        , t('common.save')
         h 'button',
           className: 'orni-action'
           type: 'button'
           disabled: not orni.dirty
           onClick: -> orni.revert()
-        , 'Verwerfen'
+        , t('common.revert')
 
     # ── Körperplan ─────────────────────────────────────
     if subtab is 'body'
       h Section,
         icon: 'wing'
-        title: 'Körperplan'
-        hermes:
-          'Kernel und Mixer: wie der Antrieb den Flügel spannt — ' +
-          'direkt ins Gelenk oder über ein Getriebe.'
+        title: t('nav.subtabs.basic.body')
+        hermes: t('ornithopter.bodyHermes')
       ,
         h 'div', { className: 'orni-identity' },
           h 'div', { className: 'orni-identity-main' },
-            h 'span', { className: 'orni-identity-label' }, 'CRAFT NAME'
+            h 'span', { className: 'orni-identity-label' }, t('ornithopter.craftName')
             h 'strong', null,
-              identity?.name ? "#{draft.modelName} (Simulation)"
+              identity?.name ? t('ornithopter.simulation', { name: draft.modelName })
             h 'span', { className: 'orni-hermes' },
-              'Der Systemname wird vom Controller geführt (MSP_NAME, ' +
-              '16 Zeichen) und in System → Gerät gepflegt.'
+              t('ornithopter.craftNameNote')
           h Link, { to: '/system/device', className: 'orni-identity-link' },
-            'In System → Gerät bearbeiten'
+            t('ornithopter.editInSystem')
         h 'div', { className: 'orni-grid' },
           h Field,
-            { label: 'Kernel',
-              hermes: 'Direktantrieb oder Getriebe.',
-              meta: 'STUDIO' },
+            { label: t('ornithopter.kernel'),
+              hermes: t('ornithopter.kernelNote'),
+              meta: t('ornithopter.studio') },
             h 'div', { className: 'orni-segments' },
               kernelOptions k for k in KERNELS
           h Field,
-            { label: 'Mixer-Profil',
-              hermes: 'GPIO-Belegung laut Firmware.',
-              meta: 'STUDIO' },
+            { label: t('ornithopter.mixerProfile'),
+              hermes: t('ornithopter.mixerProfileNote'),
+              meta: t('ornithopter.studio') },
             h 'select',
               className: 'orni-input'
               value: draft.profileId
@@ -141,14 +139,12 @@ OrnithopterView = ->
             ,
               for p in profilesForKernel draft.kernel
                 h 'option', { key: p.id, value: p.id },
-                  "#{p.name} — #{p.servos} Servos"
-          h Field, { label: 'GPIO-Map' },
+                  t('ornithopter.mixerOption', { name: p.name, n: p.servos })
+          h Field, { label: t('ornithopter.gpioMap') },
             h 'div', { className: 'orni-map' }, profile.map
           h Field,
-            label: 'Schlagzeit'
-            hermes:
-              'servo_travel_time_ms der Firmware — Millisekunden ' +
-              'pro 60°-Schlag (30–500).'
+            label: t('ornithopter.strokeTime')
+            hermes: t('ornithopter.strokeTimeNote')
           ,
             h 'div', { className: 'orni-slider-row' },
               h 'input',
@@ -166,34 +162,32 @@ OrnithopterView = ->
               onChange: (e) ->
                 orni.applySpeedPreset e.target.value if e.target.value
             ,
-              h 'option', { value: '' }, '— Tempo —'
+              h 'option', { value: '' }, t('ornithopter.tempo')
               for p in SERVO_SPEED_PRESETS
                 h 'option', { key: p.id, value: p.id }, p.label
         if trims.length
           h 'div', { className: 'orni-trims' },
-            h 'h3', null, 'Trims'
+            h 'h3', null, t('ornithopter.trims')
             h 'p', { className: 'orni-hermes' },
-              'Ruhelage jedes Gelenks bei neutralem Input.'
+              t('ornithopter.trimsNote')
             h 'div', { className: 'orni-grid' },
-              for t in trims
-                do (t) ->
-                  h Field, { key: t.prop, label: t.label },
+              for trim in trims
+                do (trim) ->
+                  h Field, { key: trim.prop, label: t(trim.label) },
                     h 'input',
                       className: 'orni-slider'
                       type: 'range'
                       min: -50
                       max: 50
-                      value: draft.trims[t.prop]
-                      onChange: (e) -> orni.setTrim t.prop, Number e.target.value
+                      value: draft.trims[trim.prop]
+                      onChange: (e) -> orni.setTrim trim.prop, Number e.target.value
 
     # ── Flugwerk ──────────────────────────────────────
     if subtab is 'airframe'
       h Section,
         icon: 'ruler'
-        title: 'Flugwerk'
-        hermes:
-          'Spannweite, Masse und Schwerpunkt — die Zelle, ' +
-          'die der Schlag trägt.'
+        title: t('nav.subtabs.basic.airframe')
+        hermes: t('ornithopter.airframeHermes')
       ,
         h 'div', { className: 'orni-grid' },
           for field in AIRFRAME_FIELDS
@@ -202,8 +196,8 @@ OrnithopterView = ->
               value = draft.airframe[field.id]
               h Field,
                 key: field.id
-                label: field.label
-                hermes: field.hermes
+                label: t(field.label)
+                hermes: t(field.hermes)
               ,
                 h 'div', { className: 'orni-slider-row' },
                   h 'input',
@@ -218,23 +212,24 @@ OrnithopterView = ->
                     "#{signedValue value, limits} #{field.unit}"
         h 'div', { className: 'orni-derived' },
           h 'span', { className: 'orni-hermes' },
-            "Flügelfläche #{airDerived.wingArea.toFixed 0} cm²"
+            t('ornithopter.wingArea', { area: airDerived.wingArea.toFixed 0 })
           h 'span', { className: 'orni-hermes' },
-            "Streckung #{airDerived.aspectRatio.toFixed 1}"
+            t('ornithopter.aspectRatio', { ratio: airDerived.aspectRatio.toFixed 1 })
         h 'div', { className: 'orni-trims' },
-          h 'h3', null, 'Servo-Montage'
+          h 'h3', null, t('ornithopter.servoMount')
           h 'p', { className: 'orni-hermes' },
-            'Lage jedes Flügelpaars: Winkel, Station, Höhe.'
+            t('ornithopter.servoMountNote')
           h 'div', { className: 'orni-grid' },
             for i in [0...pairCount]
               do (i) ->
                 h 'div', { key: i, className: 'orni-mount' },
-                  h 'div', { className: 'orni-mount-head' }, "Paar #{i + 1}"
+                  h 'div', { className: 'orni-mount-head' }, t('ornithopter.pair', { n: i + 1 })
                   for field in MOUNT_FIELDS
                     do (field) ->
                       limits = MOUNT_LIMITS[field.id]
                       value = draft.airframe.mounts[i][field.id]
-                      h Field, { key: field.id, label: field.label },
+                      h Field, { key: field.id, label: t(field.label) },
+
                         h 'div', { className: 'orni-slider-row' },
                           h 'input',
                             className: 'orni-slider'
@@ -251,7 +246,6 @@ OrnithopterView = ->
 
     h 'footer', { className: 'orni-foot' },
       h 'span', { className: 'orni-hermes' },
-        'Körperplan im Studio · GPIOs in der Firmware · ' +
-        'Flügel im Himmel.'
+        t('ornithopter.footer')
 
 export default OrnithopterView

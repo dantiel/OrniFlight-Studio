@@ -2,16 +2,18 @@
 import { memo } from 'react'
 import useVtxStore from '../../../stores/useVtxStore.coffee'
 import { VTX_BANDS, VTX_CHANNEL_COUNT, VTX_POWER_LEVELS, VTX_TYPE_LABELS, bandLabel, bandLetter, lookupBandChannel } from '../../../lib/vtxCatalog.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - store = useVtxStore()
+- { t } = useI18n()
 - draft = store.draft
-- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- modeLabel = if store.mode == 'sim' then t('common.simulation') else t('common.device')
 - readDisabled = store.mode != 'device' or !store.session
 - saveDisabled = store.mode == 'device' and !store.loadedSession
-- typeLabel = VTX_TYPE_LABELS[draft.vtxType] ? 'Unknown'
+- typeLabel = VTX_TYPE_LABELS[draft.vtxType] ? t('vtx.unknown')
 - located = if draft.band == 0 then lookupBandChannel(draft.freq) else null
-- freqNote = if draft.band >= 1 then "#{bandLabel(draft.band)} CH#{draft.channel} — #{bandLetter(draft.band)}#{draft.channel}" else if located? then "CUSTOM — ≈ #{bandLabel(located.band)} #{located.channel}" else 'CUSTOM'
+- freqNote = if draft.band >= 1 then "#{bandLabel(draft.band)} CH#{draft.channel} — #{bandLetter(draft.band)}#{draft.channel}" else if located? then t('vtx.customNote', { band: bandLabel(located.band), channel: located.channel }) else t('vtx.custom')
 - valueFromEvent = (f) -> (e) -> f e.target.value
 - boolFromEvent = (f) -> (e) -> f e.target.checked
 - log = (label) -> (error) -> console.error label, error
@@ -23,38 +25,38 @@ import { VTX_BANDS, VTX_CHANNEL_COUNT, VTX_POWER_LEVELS, VTX_TYPE_LABELS, bandLa
       %span.system-mode-badge{ className: "system-mode-#{store.mode}" }
         = modeLabel
       - if store.dirty
-        %span.system-dirty-badge DIRTY
-    %h1.system-view-title VTX
+        %span.system-dirty-badge= t('common.unsaved')
+    %h1.system-view-title= t('vtx.title')
     .system-view-actions
       %button.system-action.system-action-read{ type: 'button', onClick: readFromDevice, disabled: readDisabled }
-        Read device
+        = t('common.read')
       %button.system-action.system-action-save{ type: 'button', onClick: saveToDevice, disabled: saveDisabled }
-        Save
+        = t('common.save')
       %button.system-action.system-action-revert{ type: 'button', onClick: (-> store.revert()), disabled: !store.dirty }
-        Revert
-  %Section{ heading: 'VTX Transmitter', subheading: 'MSP 88/89 — 5.8 GHz, band 0 = custom.' }
+        = t('common.revert')
+  %Section{ heading: t('vtx.heading'), subheading: t('vtx.sub') }
     %p.system-note
-      = "Device type: #{typeLabel}"
+      = t('vtx.deviceType', { type: typeLabel })
   .system-card
     .system-card-grid
       %label.system-field
-        %span.system-field-label Band
+        %span.system-field-label= t('vtx.band')
         %select.vtx-select{ value: String(draft.band), onChange: valueFromEvent((value) -> store.setBand Number(value)) }
-          %option{ value: '0', disabled: true } CUSTOM
+          %option{ value: '0', disabled: true }= t('vtx.custom')
           - for band in VTX_BANDS
             %option{ key: "band-#{band.index}", value: String(band.index) }
               = band.name
       %label.system-field
-        %span.system-field-label Channel
+        %span.system-field-label= t('vtx.channel')
         %select.vtx-select{ value: String(draft.channel), disabled: draft.band == 0, onChange: valueFromEvent((value) -> store.setChannel Number(value)) }
           - for channel in [1..VTX_CHANNEL_COUNT]
             %option{ key: "ch-#{channel}", value: String(channel) }
               = "CH#{channel}"
       %label.system-field
-        %span.system-field-label Custom MHz
+        %span.system-field-label= t('vtx.customMhz')
         %input.vtx-freq-input{ type: 'number', min: '5600', max: '5950', step: '1', value: String(draft.freq), onChange: valueFromEvent((value) -> store.setCustomFreq value) }
       %label.system-field
-        %span.system-field-label Power
+        %span.system-field-label= t('vtx.power')
         %select.vtx-select{ value: String(draft.power), onChange: valueFromEvent((value) -> store.setPower Number(value)) }
           - for level in VTX_POWER_LEVELS
             %option{ key: "power-#{level.value}", value: String(level.value) }
@@ -62,14 +64,14 @@ import { VTX_BANDS, VTX_CHANNEL_COUNT, VTX_POWER_LEVELS, VTX_TYPE_LABELS, bandLa
     .system-toggle-row
       %label.system-toggle
         %input.system-check{ type: 'checkbox', checked: Boolean(draft.pitmode), onChange: boolFromEvent((value) -> store.setPitMode value) }
-        %span Pit mode
+        %span= t('vtx.pitMode')
       %label.system-toggle
         %input.system-check{ type: 'checkbox', checked: Boolean(draft.lowPowerDisarm), onChange: boolFromEvent((value) -> store.setLowPowerDisarm value) }
-        %span Low power on disarm
+        %span= t('vtx.lowPowerDisarm')
   .system-frequency-block
     .vtx-frequency
       = draft.freq
-      %span.system-frequency-unit MHz
+      %span.system-frequency-unit= t('vtx.mhz')
     .system-frequency-note
       = freqNote
   .system-band-table

@@ -22,6 +22,47 @@ import { MATH_PARAMS } from '../lib/mathSuite.coffee'
 TWO_PI = 2 * Math.PI
 PI     = Math.PI
 
+# Flap cadence bounds — the effective (AUX-modulated) base frequency is
+# clamped here so a frequency-modulator channel can never wind the phase
+# integrator into an unstable region (the historical feedback loop that
+# rocketed cadence to the 20 Hz clamp on tiny stick input).
+MIN_FLAP_HZ = 1.0
+MAX_FLAP_HZ = 20.0
+
+# Pilot steering centre deflection — full-stick elevator (pitch) or
+# aileron (roll) shifts the wing stroke centre by this many degrees.
+# Faithful to ../OrniFlight/ mixer (servos.c servoMixerOrnithopter): steering
+# lives on the CENTRE (elevator = common, aileron = differential), not on
+# the amplitude axis.
+CENTER_MAX_DEG = 30.0
+
+# PID flap-centre authority — @pidSumF is clamped to ±PID_CORR_LIMIT
+# (40 rad/s²); this maps a saturated correction to a visible ±10° wing
+# centre deflection in BOTH glide and flapping (the configurator's
+# flap-centre path: PID controls where the wing spends its time).
+PID_CENTER_DEG_PER_UNIT = 0.25
+
+# Glide/flap boundary — below this throttle the bird stops flapping and
+# holds both wings at the profile glide angle. Faithful to ../OrniFlight/
+# firmware pg.h:201 GLIDE_MODE_THRESHOLD = 1040µs PWM.
+GLIDE_MODE_THRESHOLD = 1040
+
+# Rate-PID authority guard — the configurator's clamp+low-pass. With the
+# gyro integrated (not recomputed) the derivative-on-measurement term
+# sees its own last-substep injection and self-resonates; bounding the
+# total correction and slewing it through a first-order low-pass breaks
+# that high-frequency loop (configurator: Sum clamp ±5, α=0.25).
+PID_CORR_LIMIT = 40.0    # rad/s² — ample for P to track the ±720°/s target
+PID_CORR_ALPHA  = 0.25
+
+# Derivative attenuation — the raw *_D gains are configurator-scale
+# (roll_D = 23), tuned for its flap-centre control path. The Studio's PID
+# injects the correction straight into the integrated gyro, where a D of
+# 23 reverses its own last-substep injection 23× and self-resonates. Match
+# the configurator's effective derivative authority (~0.12× the per-step
+# change) instead.
+PID_DERIV_SCALE = 0.005
+
 # ═══════════════════════════════════════════════════════════════
 # Pure helpers — zero side effects, zero dependency on instance
 # ═══════════════════════════════════════════════════════════════
@@ -54,22 +95,66 @@ PRESETS =
     yaw_P: 5.0
 
 # ═══════════════════════════════════════════════════════════════
-# Servo arrangements — named ornithopter layouts (mirrors the
-# Servo arrangements — named ornithopter layouts. Each entry owns only
-# the number of wing pairs. Mount geometry (angle/station/vertical),
-# mass and CG belong to the airframe document (setAirframe), not the
-# arrangement archetype — the configuration document is the single
-# source of truth for the physical cell.
+# Servo arrangements — named ornithopter layouts, ported from the
+# orniflight-configurator simulator. Each entry owns the wing-pair
+# count, longitudinal CG station (σ·100, + = nose) and per-pair mount
+# geometry: dihedral angle (deg), fore/aft station (σ·100) and optional
+# vertical deck offset. The 3D viewport renders exactly these pairs;
+# setAirframe may still override for a specific craft, but the archetype
+# is the engine's self-consistent default.
 ARRANGEMENTS =
-  tandem_x:        { pairs: 2 }
-  single:          { pairs: 1 }
-  single_canard:   { pairs: 1 }
-  tandem_parallel: { pairs: 2 }
-  triple:          { pairs: 3 }
-  quad:            { pairs: 4 }
-  double_decker:   { pairs: 4 }
+  tandem_x:
+    pairs: 2
+    cg: 0
+    angles: [30, -30, 0, 0]
+    dists:  [40, -40, 0, 0]
+  single:
+    pairs: 1
+    cg: -20
+    angles: [0, 0, 0, 0]
+    dists:  [0, 0, 0, 0]
+  single_canard:
+    pairs: 1
+    cg: 20
+    angles: [0, 0, 0, 0]
+    dists:  [0, 0, 0, 0]
+  tandem_parallel:
+    pairs: 2
+    cg: 0
+    angles: [20, 20, 0, 0]
+    dists:  [40, -40, 0, 0]
+  triple:
+    pairs: 3
+    cg: 0
+    angles: [30, 0, -30, 0]
+    dists:  [45, 0, -45, 0]
+  quad:
+    pairs: 4
+    cg: 0
+    angles: [30, 10, -10, -30]
+    dists:  [50, 17, -17, -50]
+  double_decker:
+    pairs: 4
+    cg: 0
+    angles: [30, 30, -30, -30]
+    dists:  [40, 40, -40, -40]
+    ys:     [6, -6, 6, -6]
 
 DEFAULT_ARRANGEMENT = 'tandem_x'
+
+# Arrangement spec → per-pair servo-mount array (engine σ convention).
+# dists are σ·100 (40 → +0.4σ fore, matching the airframe's 120 mm/300);
+# ys are deck offsets (6 → 0.3σ vertical, matching vertical 90 mm/300).
+buildServoMounts = (spec) ->
+  n = spec.pairs ? 1
+  ys = spec.ys ? []
+  for i in [0...n]
+    index: i
+    x: 0
+    z: (spec.dists?[i] ? 0) / 100
+    y: (ys[i] ? 0) * 0.05
+    angle: spec.angles?[i] ? 0
+    phaseShift: 0
 
 # ONDAS gain defaults (mirror of constructor @ondas) + scaling
 ONDAS_DEFAULTS =
@@ -117,6 +202,18 @@ export arrangementNames = -> Object.keys ARRANGEMENTS
 export getArrangement = (name) ->
   ARRANGEMENTS[name] ? ARRANGEMENTS[DEFAULT_ARRANGEMENT]
 
+# Arrangement → airframe-document mounts (angle deg, station mm, vertical
+# mm). dists are σ·100 → station = dist·3 (300 mm/σ); ys deck units →
+# vertical = ys·15 (fits the ±100 mm MOUNT_LIMITS). Re-seeded into the
+# airframe document when the mixer profile changes so multi-wing layouts
+# (single → quad, double_decker biplane) render faithfully.
+export arrangementMounts = (name) ->
+  spec = getArrangement name
+  for i in [0...4]
+    angle:    spec.angles?[i] ? 0
+    station:  (spec.dists?[i] ? 0) * 3
+    vertical: (spec.ys?[i] ? 0) * 15
+
 # ═══════════════════════════════════════════════════════════════
 # OrnithopterModel — the bird's physics, PID, and ONDAS soul
 # ═══════════════════════════════════════════════════════════════
@@ -135,10 +232,19 @@ export class OrnithopterModel
     @targetRates = { roll: 0, pitch: 0, yaw: 0 }
     @pidI        = { roll: 0, pitch: 0, yaw: 0 }
     @prevGyro    = { roll: 0, pitch: 0, yaw: 0 }
+    @pidSumF     = { roll: 0, pitch: 0, yaw: 0 }
 
     @flapPhase     = 0.0
     @flapFrequency = 6.0
     @baseAmplitude = 45.0
+
+    # AUX frequency modulator — an AUX channel offsets the base cadence
+    # (OrniFlight behaviour): deflection around 1500 maps to ±gain Hz.
+    # freqAuxChannel is 0-based (AUX1..AUX14); -1 = off.
+    @freqAuxChannel = 3     # AUX4
+    @freqAuxGain    = 6.0   # Hz at full stick deflection
+    @_effectiveFrequency = 6.0
+    @cadenceHz      = 6.0
 
     # Phase-quantized harmonizer state (Josephson washboard pendulum).
     # basePhase = virtual beat grid (advances at flapFrequency); phaseOffset
@@ -203,6 +309,16 @@ export class OrnithopterModel
       pitch:    1500
       yaw:      1500
 
+    # Throttle % above the glide/flap boundary — drives stroke amplitude
+    # (OrniFlight: throttle scales amplitude, CH6 commands frequency).
+    @throttlePct = clamp 0, 1,
+      (@sticks.throttle - GLIDE_MODE_THRESHOLD) / (2000 - GLIDE_MODE_THRESHOLD)
+
+    # AUX channels (AUX1..AUX14) — pure RC surface, no physics. They
+    # drive the modes range document and the receiver channel bars in
+    # simulation so the UI is testable end-to-end without a controller.
+    @aux = (1500 for i in [0...14])
+
     @battery =
       voltage:  12.6
       current:  0.8
@@ -215,21 +331,23 @@ export class OrnithopterModel
       cgX: 0
       cgZ: 0
       cgLat: 0
-    @pairCount = 2
-    @servoMounts = for i in [0...@pairCount]
-      { index: i, x: 0, z: 0, y: 0, angle: 0, phaseShift: 0 }
+    @applyArrangement DEFAULT_ARRANGEMENT
 
     # Sim tuning — aeroelastic coefficients, yaw authority split and
     # servo travel time mirror the configurator's mature physics knobs.
-    @arrangement = DEFAULT_ARRANGEMENT
     @selfLevelGain = 3.0
     @yawAmpMix = 0.5
     @aeroelasticFlapCoefficient = 20.0
     @aeroelasticGlideCoefficient = 4.0
     @servoTravelTimeMs = 300
 
+    # Firmware amplitude coupling (../OrniFlight/ servos.c pgResetFn):
+    # flap_magnitude=4 (centi-deg/µs above threshold), flap_base_amplitude=60.
+    @flapMagnitude     = 4
+    @flapBaseAmplitude = 60
+
     # Waveform — the stroke's shape soul. Runtime params mirror the
-    # PteronautOS FlightProfileParams: ferocity (dwell), form mix
+    # orniflight-configurator simulator: ferocity (dwell), form mix
     # (square↔triangle), centre skew per half, and the throttle/
     # aileron skew+slew couplings. Three flight profiles carry their
     # own waveform + glide/flap centres; CH7 selects the active one.
@@ -246,11 +364,14 @@ export class OrnithopterModel
 
     @connected        = false
     @disturbancePulse = 0.0
+    # Disturbance authority (deg/s) — the strength of a drag-to-disturb
+    # nudge. Mirrors the configurator's disturb_force (10..300, 80 base).
+    @disturbForce     = 80.0
 
     @_servoAngles = [0, 0, 0, 0]
     @_servoPwm    = [1500, 1500, 1500, 1500]
 
-    # Skew/slew transient state — mirror of PteronautOS Ornithopter.cpp.
+    # Skew/slew transient state — mirror of the configurator's skew/slew.
     # Sentinels seed the rate LPF without a stale kick on first flap tick.
     @_prevThrottlePct = -1.0
     @_throttleRateLPF = 0.0
@@ -266,6 +387,7 @@ export class OrnithopterModel
       pairCount:       2
       servoMounts:     []
       flapFrequency:   6.0
+      cadence:         6.0
       amplitude:       45.0
       batteryVoltage:  12.6
       servoPositions:  [1500, 1500, 1500, 1500]
@@ -288,6 +410,8 @@ export class OrnithopterModel
     @gyro       = { roll: 0, pitch: 0, yaw: 0 }
     @pidI       = { roll: 0, pitch: 0, yaw: 0 }
     @prevGyro   = { roll: 0, pitch: 0, yaw: 0 }
+    @pidSumF    = { roll: 0, pitch: 0, yaw: 0 }
+    @disturbancePulse = 0.0
     @flapPhase  = 0.0
     @basePhase   = 0.0
     @phaseOffset = 0.0
@@ -301,7 +425,21 @@ export class OrnithopterModel
   setStick: (axis, value) ->
     @sticks[axis] = clamp 1000, 2000, value
     @_updateTargetRates()
-    @throttle = (@sticks.throttle - 1000) / 1000
+    @throttle    = (@sticks.throttle - 1000) / 1000
+    @throttlePct = clamp 0, 1,
+      (@sticks.throttle - GLIDE_MODE_THRESHOLD) / (2000 - GLIDE_MODE_THRESHOLD)
+    @
+
+  setAux: (index, value) ->
+    return @ unless 0 <= index < @aux.length
+    @aux[index] = clamp 900, 2100, value
+    @
+
+  setFreqMod: (patch = {}) ->
+    if patch.auxChannel?
+      @freqAuxChannel = clamp -1, @aux.length - 1, Math.round patch.auxChannel
+    if patch.gain?
+      @freqAuxGain = clamp 0, 12, Number(patch.gain) or 0
     @
 
   setOndasParam: (name, value) ->
@@ -334,13 +472,13 @@ export class OrnithopterModel
   setGlideAngle: (index, value) ->
     profile = @flightProfiles[index]
     return @ unless profile?
-    profile.glideAngle = clamp -15, 15, value
+    profile.glideAngle = clamp -90, 90, value
     @
 
   setFlappingAngle: (index, value) ->
     profile = @flightProfiles[index]
     return @ unless profile?
-    profile.flappingAngle = clamp -15, 15, value
+    profile.flappingAngle = clamp -90, 90, value
     @
 
   applyFlightProfile: (index) ->
@@ -380,7 +518,9 @@ export class OrnithopterModel
   applyArrangement: (name) ->
     spec = ARRANGEMENTS[name] ? ARRANGEMENTS[DEFAULT_ARRANGEMENT]
     @arrangement = name
-    @pairCount = spec.pairs
+    @pairCount   = spec.pairs
+    @cgStation   = (spec.cg ? 0) / 100
+    @servoMounts = buildServoMounts spec
     @
 
   setSimulationParams: (params = {}) ->
@@ -407,6 +547,8 @@ export class OrnithopterModel
     subSteps = 5
     subDt    = @dt / subSteps
 
+    @_applyFrequencyModulator()
+
     for [0...subSteps]
       @_physicsStep subDt
       @_pidStep subDt
@@ -425,7 +567,38 @@ export class OrnithopterModel
     @
 
   bump: ->
-    @disturbancePulse = 5.0
+    # Random omnidirectional nudge — the one-shot "DISTURB" pulse.
+    # Scaled by @disturbForce so the strength slider governs it too.
+    f = @disturbForce * PI / 180
+    @gyro.roll  += (Math.random() - 0.5) * f * 2.0
+    @gyro.pitch += (Math.random() - 0.5) * f * 2.0
+    @gyro.yaw   += (Math.random() - 0.5) * f * 0.7
+    @
+
+  # Directional disturbance (deg/s) — fed by the 3D bird's right-drag
+  # while dragging. Applied straight into the gyro rates so the PID +
+  # ONDAS couplings must fight it, exactly as the configurator's
+  # _applyDisturbDrag injects wx/wy/wz into gyroRoll/Pitch/Yaw.
+  disturb: (dRollDeg = 0, dPitchDeg = 0, dYawDeg = 0) ->
+    k = PI / 180
+    @gyro.roll  += dRollDeg  * k
+    @gyro.pitch += dPitchDeg * k
+    @gyro.yaw   += dYawDeg   * k
+    @
+
+  setDisturbForce: (value) ->
+    @disturbForce = clamp 0, 400, value
+    @
+
+  # Zero the rigid-body state (gyro + attitude + PID integrators) while
+  # leaving the stroke running — the configurator's "Reset" button.
+  resetAttitude: ->
+    @attitude   = { roll: 0, pitch: 0, yaw: 0 }
+    @gyro       = { roll: 0, pitch: 0, yaw: 0 }
+    @pidI       = { roll: 0, pitch: 0, yaw: 0 }
+    @prevGyro   = { roll: 0, pitch: 0, yaw: 0 }
+    @pidSumF    = { roll: 0, pitch: 0, yaw: 0 }
+    @disturbancePulse = 0.0
     @
 
   # ── Presets ────────────────────────────────────────────────
@@ -462,22 +635,72 @@ export class OrnithopterModel
       @targetRates.pitch += -@attitude.pitch * @selfLevelGain
       @targetRates.yaw   += -@attitude.yaw   * @selfLevelGain * 0.6
 
+  # Recompute the effective cadence once per frame. Frequency lives on
+  # the AUX/CH6 axis, NOT throttle — ../OrniFlight/ firmware maps AUX
+  # directly to [ornithopter_freq_min .. ornithopter_freq_max]; throttle
+  # scales stroke AMPLITUDE. The Studio keeps @flapFrequency as the
+  # no-AUX fallback base and @freqAuxGain as the deflection scale.
+  _applyFrequencyModulator: ->
+    baseHz = @flapFrequency
+    mod = 0
+    channel = @freqAuxChannel
+    if 0 <= channel < @aux.length
+      norm = clamp -1, 1, (@aux[channel] - 1500) / 500
+      mod = norm * @freqAuxGain
+    @_effectiveFrequency =
+      clamp MIN_FLAP_HZ, MAX_FLAP_HZ, baseHz + mod
+    @
+
+  # Firmware getFlappingAmplitude (../OrniFlight/ pid.c:1091) — coupled
+  # mode (the default, BOXORNITHOPTERINDEPENDENT inactive):
+  #   ampLin = (throttle − GLIDE_MODE_THRESHOLD) · flap_magnitude·0.01
+  #              · flap_base_amplitude·0.1
+  #   amp    = ampLin · maxAmp / √(ampLin² + maxAmp²)   (Marcinkiewicz soft knee)
+  # maxAmp = @baseAmplitude (the servo_max_amplitude analogue). Returns
+  # degrees; callers convert to radians.
+  _firmwareAmplitude: (throttleUs) ->
+    return 0 if throttleUs <= GLIDE_MODE_THRESHOLD
+    ampLin = (throttleUs - GLIDE_MODE_THRESHOLD) * @flapMagnitude * 0.01 *
+               @flapBaseAmplitude * 0.1
+    maxAmp = @baseAmplitude
+    (ampLin * maxAmp) / Math.sqrt(ampLin * ampLin + maxAmp * maxAmp)
+
   _physicsStep: (subDt) ->
+    # Rigid-body rate integration, faithful to the configurator's
+    # _physicsStep: gyro += (ctrl − gyro·damp)·dt. The wing forcing is
+    # the flap's own aero reaction (small); passive aerodynamic damping
+    # scales with flapping authority + the ONDAS anchor gain; external
+    # disturbance (drag-to-disturb) injects directly into the rates.
+    # This replaces the old "gyro = wingAngle·thrust" recompute that
+    # overwrote any injected disturbance every substep — which is why
+    # the ONDAS filters never visibly reacted.
     thrustFactor =
-      @throttle * @baseAmplitude *
-        @flapFrequency * @flapFrequency * 0.00015
+      @_firmwareAmplitude(@sticks.throttle) *
+        @_effectiveFrequency * @_effectiveFrequency * 0.00015
 
     wingRoll  = (@wingAngleL - @wingAngleR) * 0.02
     wingPitch = (@wingAngleL + @wingAngleR) * 0.02
+    wingYaw   = (@wingAngleR - @wingAngleL) * 0.005
 
-    @gyro.roll  = wingRoll  * thrustFactor
-    @gyro.pitch = wingPitch * thrustFactor
-    @gyro.yaw   = (@wingAngleR - @wingAngleL) * 0.005 * thrustFactor
+    # Passive aerodynamic damping — a rotating bird meets asymmetric
+    # airflow that opposes rotation. Authority gates it (folded wings =
+    # free tumble); the anchor gain stiffens it (ONDAS damping anchor).
+    authority = clamp 0.05, 1, @baseAmplitude / 45.0
+    dampBase  = 1.3
+    anchorBoost = @ondas.anchor_gain * 0.08
+    dampRoll  = (dampBase + anchorBoost) * authority
+    dampPitch = (dampBase + anchorBoost) * authority
+    dampYaw   = (dampBase * 0.6 + anchorBoost) * authority
 
-    gyroDamp = 0.92
-    @gyro.roll  *= gyroDamp
-    @gyro.pitch *= gyroDamp
-    @gyro.yaw   *= gyroDamp
+    @gyro.roll  += (wingRoll  * thrustFactor - @gyro.roll  * dampRoll)  * subDt
+    @gyro.pitch += (wingPitch * thrustFactor - @gyro.pitch * dampPitch) * subDt
+    @gyro.yaw   += (wingYaw   * thrustFactor - @gyro.yaw   * dampYaw)   * subDt
+
+    # Safety clamp — the configurator's 1500 deg/s limit.
+    GYRO_LIMIT = 26.18
+    @gyro.roll  = clamp -GYRO_LIMIT, GYRO_LIMIT, @gyro.roll
+    @gyro.pitch = clamp -GYRO_LIMIT, GYRO_LIMIT, @gyro.pitch
+    @gyro.yaw   = clamp -GYRO_LIMIT, GYRO_LIMIT, @gyro.yaw
 
     noiseFloor = 0.0001
     @gyro.roll  += (Math.random() - 0.5) * noiseFloor
@@ -511,11 +734,33 @@ export class OrnithopterModel
       # turned every setpoint jump into a derivative kick — a stick
       # release spiked gyro to -289 rad/s and whipped the model back.
       dMeas = current - @prevGyro[axis]
-      dOut  = if subDt > 0 then -(dMeas / subDt) * D else 0
+      dOut  =
+        if subDt > 0 then -(dMeas / subDt) * D * PID_DERIV_SCALE else 0
       @prevGyro[axis] = current
 
       correction = pOut + iOut + dOut
-      @gyro[axis] += correction * subDt
+
+      # Authority guard — see PID_CORR_LIMIT. Bounding + slewing the
+      # total keeps the D term from self-resonating against the newly
+      # integrated gyro (its own injection reappears in dMeas next step).
+      correction = clamp -PID_CORR_LIMIT, PID_CORR_LIMIT, correction
+      @pidSumF[axis] += PID_CORR_ALPHA * (correction - @pidSumF[axis])
+      @gyro[axis] += @pidSumF[axis] * subDt
+
+  # Flap-centre offsets (rad) — pilot stick + PID correction, the SAME
+  # signal in glide and flapping. Firmware: PID controls where the wing
+  # spends its time (flap centre), so the stabilizer keeps steering even
+  # with amplitude collapsed to zero in glide. Elevator = common (both
+  # wings), aileron = differential (L/R opposite), yaw = differential
+  # (glide-capable rudder). @pidSumF is the low-passed rate correction.
+  _flapCenters: ->
+    elevatorNorm = (@sticks.pitch - 1500) / 500
+    aileronNorm  = (@sticks.roll  - 1500) / 500
+    pitch: (elevatorNorm * CENTER_MAX_DEG +
+      @pidSumF.pitch * PID_CENTER_DEG_PER_UNIT) * (PI / 180)
+    roll: (aileronNorm * CENTER_MAX_DEG +
+      @pidSumF.roll * PID_CENTER_DEG_PER_UNIT) * (PI / 180)
+    yaw: (@pidSumF.yaw * PID_CENTER_DEG_PER_UNIT) * (PI / 180)
 
   _ondasStep: (subDt) ->
     g = scaleGains @ondas
@@ -525,17 +770,25 @@ export class OrnithopterModel
       pitch: @targetRates.pitch - @gyro.pitch
       yaw:   @targetRates.yaw   - @gyro.yaw
 
+    # ── Glide mode ──────────────────────────────────────────────
+    # Throttle at/below the flap boundary stops the stroke and holds both
+    # wings at the profile glide angle, still steered by the pitch/roll
+    # centres (OrniFlight firmware: throttle ≤ GLIDE_MODE_THRESHOLD 1040µs
+    # → glide branch; servoMixer keeps pidData.Sum in charge).
+    return @_glideStep() if @throttlePct <= 0
+
     # ── Phase-quantized harmonization (Josephson washboard pendulum) ──
     # The base frequency is a beat GRID. ONDAS cadence demand (kGainMod>1)
     # is a *rate* target for the phase debt, not a raw frequency scale.
     # Weak demand nudges the phase and rings back onto the SAME beat; a
     # strong demand whips the debt over the π barrier — a quantized whole-
     # stroke slip (2π) — so the flap always lands on a beat, never between.
-    cadenceTarget = @flapFrequency * TWO_PI
+    cadenceTarget = @_effectiveFrequency * TWO_PI
     kGainMod      = clamp 0.5, 2.0, 1.0 + rateError.pitch * g.cadence_gain * 0.01
     { phase, cadence } = advanceHarmonizedPhase @, cadenceTarget, kGainMod, subDt
     @flapPhase = phase
     cadenceFreq = cadence / TWO_PI
+    @cadenceHz  = cadenceFreq
 
     sinPhi = Math.sin @flapPhase
     cosPhi = Math.cos @flapPhase
@@ -554,14 +807,22 @@ export class OrnithopterModel
     @ferHold += @ferHoldVel * subDt
 
     heldError = { rateError..., pitch: @ferHold }
-    live = modulateWaveform @waveform, g, heldError
+    # The ONDAS Ferocity layer (downstroke/upstroke 1..100) is the base
+    # stroke shape — the sim must breathe from the SAME sliders the
+    # signature ribbon previews. The waveform stroke/return ferocity are
+    # the device-profile echo; ONDAS is the live soul driving shapeWave.
+    ferBase =
+      strokeFerocity:  @ondas.ferocity_downstroke
+      returnFerocity:  @ondas.ferocity_upstroke
+      ferocityShapeMix: @waveform.ferocityShapeMix
+    live = modulateWaveform ferBase, g, heldError
 
-    # ── Skew + slew coupling (PteronautOS Ornithopter.cpp) ──
+    # ── Skew + slew coupling (orniflight-configurator simulator) ──
     # Throttle → symmetric skew: gas front-loads the downstroke, idle
     # front-loads the upstroke. Aileron → differential skew: one wing
     # front-loads while the other late-loads (roll torque). Rate slew
     # adds a transient kick, decayed by LPF τ once the stick rests.
-    throttle01  = @throttle
+    throttle01  = @throttlePct
     aileronNorm = (@sticks.roll - 1500) / 500
 
     thrSkewShift = throttleSkewShift throttle01, @waveform.throttleSkewMix
@@ -610,20 +871,36 @@ export class OrnithopterModel
     pulseR = shapeWave @flapPhase,
       fLiveStroke, fLiveReturn, -1, live.ferocityShapeMix,
       strokeSkewR, returnSkewR
-    amp    = @baseAmplitude * (PI / 180)
+    amp    = @_firmwareAmplitude(@sticks.throttle) * (PI / 180)
 
     rollDiff  = rateError.roll * g.warp_gain * 0.3
     rollDiff += rateError.roll * g.ferocity_roll_gain * 0.1 *
       (if sinPhi > 0 then 1.0 else 0.6)
 
-    yawDiff  = rateError.yaw * g.warp_yaw_gain * 0.2
-    yawDiff += rateError.yaw * g.ferocity_yaw_gain * 0.08 * Math.abs sinPhi
+    # NOTE — YAW is NOT a raw amplitude offset. The firmware (pid.c:2060)
+    # routes yaw through the smooth ferocity wave-shaping path
+    # (flappingFerocityDifferentialYaw, pendulum-filtered ferHold, gated by
+    # yaw_amp_mix) and the flap-CENTRE twist (servoMixerOrnithopter
+    # INPUT_STABILIZED_YAW). A direct `rateError.yaw · gain` added to ampL/ampR
+    # jumps the instant the yaw stick moves (targetRates.yaw steps) and kinks
+    # at sinΦ=0 via |sinΦ| — the "weird jump" in the curve. Yaw authority here
+    # lives in yawCenter (differential flap-centre, below), matching firmware.
 
-    # rateError is in rad/s (±12.57 at full stick). A 0.4 factor here
-    # drove pitchMod to ±1.5 — amplitude swung 0.5×…2.5×, pegging the
-    # servos on the way up and reversing wing phase on the way down.
-    # 0.1 keeps pitchMod ≈ ±0.4 (amplitude 0.6×…1.4×) at full stick.
-    pitchMod     = rateError.pitch * g.cadence_gain * 0.1
+    # Centre terms — faithful to the OrniFlight firmware mixer:
+    #   · elevator (pitch) → COMMON centre: both wings shift the SAME
+    #     physical direction (the flapping analogue of the elevator —
+    #     nose-up raises both stroke centres, nose-down lowers them)
+    #   · aileron  (roll)  → DIFFERENTIAL centre: one wing up, the
+    #     other down (roll torque)
+    # Pilot stick + PID drive the centre (the configurator's flap-centre
+    # path — PID controls where the wing spends its time, same in glide
+    # & flapping). The amplitude/ferocity couplings below layer agility
+    # and aggression on top of that stabilizer centre.
+    centers = @_flapCenters()
+    pitchCenter = centers.pitch
+    rollCenter  = centers.roll
+    yawCenter   = centers.yaw
+
     resonanceMod = (rateError.roll * sinPhi) * g.resonance_gain * 0.1
     balanceMod   = @pidI.pitch * g.balance_gain * 0.2
 
@@ -632,19 +909,17 @@ export class OrnithopterModel
         Math.abs(@gyro.yaw)
     anchorMod = 1.0 / (1.0 + totalRate * g.anchor_gain * 0.5)
 
-    # Left wing
-    ampL  = amp * (1.0 + pitchMod + resonanceMod) * anchorMod
+    # Left wing — common pitch centre + differential roll centre + flap
+    ampL  = amp * (1.0 + resonanceMod) * anchorMod
     ampL += rollDiff
-    ampL += yawDiff
     ampL += balanceMod * (if sinPhi < 0 then 1.0 else 0.0)
-    @wingAngleL = pulseL * ampL
+    @wingAngleL = pitchCenter + rollCenter + yawCenter + pulseL * ampL
 
-    # Right wing
-    ampR  = amp * (1.0 + pitchMod + resonanceMod) * anchorMod
+    # Right wing — same common pitch centre, mirrored roll centre + flap
+    ampR  = amp * (1.0 + resonanceMod) * anchorMod
     ampR -= rollDiff
-    ampR += yawDiff * 0.3
     ampR += balanceMod * (if sinPhi < 0 then 1.0 else 0.0)
-    @wingAngleR = pulseR * ampR
+    @wingAngleR = pitchCenter - rollCenter - yawCenter + pulseR * ampR
 
     # Wing velocities
     @wingVelocityL = cosPhi * ampL * cadenceFreq * TWO_PI
@@ -657,6 +932,34 @@ export class OrnithopterModel
     # @flapFrequency stays the base, set by preset/thrust physics.
 
     @_computeServoSignals sinPhi, ampL, ampR
+
+  _glideStep: ->
+    centers = @_flapCenters()
+    glideAngle =
+      @flightProfiles[@activeFlightProfile].glideAngle * (PI / 180)
+
+    # Glide is the flap-centre path with amplitude collapsed to zero: the
+    # wings hold at the profile glide angle PLUS the live PID centre
+    # (elevator common, aileron/yaw differential). The stabilizer keeps
+    # steering — a disturbed glide visibly deflects the wings to correct,
+    # exactly as the firmware's glide branch keeps the PID loop in charge.
+    @wingAngleL = glideAngle + centers.pitch + centers.roll + centers.yaw
+    @wingAngleR = glideAngle + centers.pitch - centers.roll - centers.yaw
+    @wingVelocityL = 0.0
+    @wingVelocityR = 0.0
+    @cadenceHz     = 0.0
+
+    # Purge flapping transients so a fresh flap burst starts clean
+    # (no stale slew/ferocity kick) — OrniFlight firmware glide branch.
+    @_prevThrottlePct = -1.0
+    @_throttleRateLPF = 0.0
+    @_prevAileronNorm = -2.0
+    @_aileronRateLPF  = 0.0
+    @ferHold     = 0.0
+    @ferHoldVel  = 0.0
+
+    @_computeServoSignals 0, 0, 0
+    @
 
   _computeServoSignals: (sinPhi, ampL, ampR) ->
     angleL_deg = @wingAngleL * 180 / PI
@@ -690,7 +993,8 @@ export class OrnithopterModel
     tel.flapPhase      = @flapPhase
     tel.pairCount      = @pairCount
     tel.servoMounts    = @servoMounts.map (m) -> { m... }
-    tel.flapFrequency  = @flapFrequency
+    tel.flapFrequency  = @_effectiveFrequency
+    tel.cadence        = @cadenceHz
     tel.liveWaveform   = { @liveWaveform... }
     tel.amplitude      =
       Math.max(Math.abs(@wingAngleL), Math.abs(@wingAngleR)) *
@@ -700,13 +1004,26 @@ export class OrnithopterModel
     tel.servoPositions =
       @_servoPwm or [1500, 1500, 1500, 1500]
 
+    # The living stroke — every frame carries the full time-domain
+    # truth the StrokeScope needs: wing pair, gyro, the live ferocity
+    # envelope, flap phase and the per-servo PWM. The history is the
+    # single feed for the motion diagrams (scope, phase-plane, ferocity).
     tel.waveformHistory.push
-      t:         @t
-      wingL:     @wingAngleL * 180 / PI
-      wingR:     @wingAngleR * 180 / PI
-      gyroRoll:  @gyro.roll  * 180 / PI
-      gyroPitch: @gyro.pitch * 180 / PI
-      gyroYaw:   @gyro.yaw   * 180 / PI
+      t:          @t
+      wingL:      @wingAngleL * 180 / PI
+      wingR:      @wingAngleR * 180 / PI
+      gyroRoll:   @gyro.roll  * 180 / PI
+      gyroPitch:  @gyro.pitch * 180 / PI
+      gyroYaw:    @gyro.yaw   * 180 / PI
+      flapPhase:  @flapPhase
+      cadence:    @cadenceHz
+      ferStroke:  @liveWaveform.strokeFerocity
+      ferReturn:  @liveWaveform.returnFerocity
+      ferShape:   @liveWaveform.ferocityShapeMix
+      servo1:     @_servoPwm[0]
+      servo2:     @_servoPwm[1]
+      servo3:     @_servoPwm[2]
+      servo4:     @_servoPwm[3]
     tel.waveformHistory.shift() if tel.waveformHistory.length > 200
 
     @battery.consumed += 0.00002

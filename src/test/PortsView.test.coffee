@@ -18,7 +18,7 @@ describe 'PortsView', ->
     expect(screen.getByText 'UART Ports').toBeInTheDocument()
     expect(screen.getByText 'UART1').toBeInTheDocument()
     expect(screen.getByText 'USB VCP').toBeInTheDocument()
-    expect(screen.getByText 'Read device').toBeDisabled()
+    expect(screen.getByText 'Gerät lesen').toBeDisabled()
     expect(screen.getAllByRole 'checkbox').toHaveLength 12
 
   it 'toggles a function with firmware arbitration', ->
@@ -29,7 +29,7 @@ describe 'PortsView', ->
     port = usePortsStore.getState().draft
       .find (p) -> p.identifier == 0
     expect(port.functionMask).toBe FUNCTION_GPS
-    expect(screen.getByText 'DIRTY').toBeInTheDocument()
+    expect(screen.getByText 'UNGESPEICHERT').toBeInTheDocument()
     # arbitration cleared MSP in the row
     row = document.querySelectorAll('.port-row')[0]
     expect(

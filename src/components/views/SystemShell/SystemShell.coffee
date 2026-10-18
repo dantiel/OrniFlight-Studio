@@ -4,6 +4,7 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import Icon from '../../primitives/Icon/Icon.coffee'
 import Section from '../../layout/Section/Section.coffee'
 import { SUBTABS, activeSubtabForPath } from '../../../lib/navigation.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 import useFirmwareConnection from '../../../hooks/useFirmwareConnection.coffee'
 import useDeviceStore from '../../../stores/useDeviceStore.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
@@ -14,6 +15,7 @@ import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 #   right = contextual inspector (a different, minor section)
 SystemShell = ->
   location = useLocation()
+  { t } = useI18n()
   conn = useFirmwareConnection()
   identity = useDeviceStore (state) -> state.identity
   status = useDeviceStore (state) -> state.status
@@ -30,11 +32,11 @@ SystemShell = ->
       className: navClass
     ,
       h Icon, { name: icon, size: 15, strokeWidth: 1.6 }
-      h 'span', { className: 'system-nav-label' }, label
+      h 'span', { className: 'system-nav-label' }, t(label)
 
-  connLabel = if hardware then 'DEVICE CONNECTED' else 'OFFLINE PROFILE'
+  connLabel = if hardware then t('conn.deviceConnected') else t('conn.offlineProfile')
   connClass = "system-conn#{if hardware then ' is-online' else ''}"
-  sourceLabel = if hardware then 'Controller' else 'Simulation'
+  sourceLabel = if hardware then t('conn.controller') else t('conn.simulation')
   firmwareLabel =
     if identity then "#{identity.variant} #{identity.firmware?.version or ''}" else ''
   targetLabel =
@@ -43,45 +45,45 @@ SystemShell = ->
     else
       '—'
   armClass = if status?.armed then 'system-armed' else 'system-safe'
-  armLabel = if status?.armed then 'ARMED' else 'DISARMED'
+  armLabel = if status?.armed then t('conn.armed') else t('conn.disarmed')
 
   h 'div', { className: 'system-shell' },
-    h 'aside', { className: 'system-sidebar', 'aria-label': 'System' },
+    h 'aside', { className: 'system-sidebar', 'aria-label': t('shell.system') },
       h 'div', { className: 'system-sidebar-head' },
         h Icon, { name: 'grid', size: 15, strokeWidth: 1.7 }
-        h 'span', null, 'System'
+        h 'span', null, t('shell.system')
       h 'nav', { className: 'system-nav' }, navItems
     h 'main', { className: 'system-content' },
       h Outlet, null
-    h 'aside', { className: 'system-inspector', 'aria-label': 'Inspector' },
-      h Section, { heading: 'Modul' },
+    h 'aside', { className: 'system-inspector', 'aria-label': t('shell.inspector') },
+      h Section, { heading: t('shell.module') },
         h 'div', { className: 'system-inspector-row' },
           h Icon, { name: active.icon, size: 14, strokeWidth: 1.6 }
-          h 'span', null, active.label
-      h Section, { heading: 'Verbindung' },
+          h 'span', null, t(active.label)
+      h Section, { heading: t('shell.connection') },
         h 'div', { className: connClass },
           h 'span', { className: 'system-conn-dot' }
           h 'span', null, connLabel
         h 'div', { className: 'system-inspector-row' },
-          h 'span', { className: 'system-inspector-key' }, 'Source'
+          h 'span', { className: 'system-inspector-key' }, t('shell.source')
           h 'span', null, sourceLabel
       if identity
-        h Section, { heading: 'Gerät' },
+        h Section, { heading: t('shell.device') },
           h 'div', { className: 'system-inspector-row' },
-            h 'span', { className: 'system-inspector-key' }, 'Firmware'
+            h 'span', { className: 'system-inspector-key' }, t('shell.firmware')
             h 'span', null, firmwareLabel
           h 'div', { className: 'system-inspector-row' },
-            h 'span', { className: 'system-inspector-key' }, 'Target'
+            h 'span', { className: 'system-inspector-key' }, t('shell.target')
             h 'span', null, targetLabel
           h 'div', { className: 'system-inspector-row' },
-            h 'span', { className: 'system-inspector-key' }, 'Status'
+            h 'span', { className: 'system-inspector-key' }, t('shell.status')
             h 'span', { className: armClass }, armLabel
-      h Section, { heading: 'Live' },
+      h Section, { heading: t('shell.live') },
         h 'div', { className: 'system-inspector-row' },
-          h 'span', { className: 'system-inspector-key' }, 'Voltage'
+          h 'span', { className: 'system-inspector-key' }, t('shell.voltage')
           h 'span', null, "#{Number(tele.batteryVoltage or 0).toFixed(1)} V"
         h 'div', { className: 'system-inspector-row' },
-          h 'span', { className: 'system-inspector-key' }, 'CPU'
+          h 'span', { className: 'system-inspector-key' }, t('shell.cpu')
           h 'span', null, "#{status?.cpuLoad or 0}%"
 
 export default SystemShell

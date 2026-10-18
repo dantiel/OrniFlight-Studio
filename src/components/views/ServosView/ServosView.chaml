@@ -8,6 +8,7 @@ import {
   profileById, controlSurfacesForProfile
 } from '../../../lib/mixerCatalog.coffee'
 import { INPUT_SOURCES } from '../../../lib/servoCatalog.coffee'
+import { useI18n, T } from '../../../i18n/index.coffee'
 import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
 ~~~
 
@@ -15,70 +16,70 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
 - orni = useOrnithopterStore()
 - hostRef = useRef(null)
 - useScrollMorph(hostRef)
+- { t } = useI18n()
 - profile = profileById(orni.draft.profileId)
 - surfaces = controlSurfacesForProfile(profile)
-- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- modeLabel = if store.mode == 'sim' then t('servos.simulation') else t('servos.device')
 - readDisabled = store.mode != 'device' or !store.session
 - saveDisabled = store.mode == 'device' and !store.loadedSession
 - surfaceOf = (id) -> store.draft.surfaces[id]
 - sourceChange = (id) -> (e) -> store.setSurfaceSource id, e.target.value
 - channelChange = (id) -> (e) -> store.setSurfaceChannel id, parseInt(e.target.value)
-- channelLabel = (n) -> "Servo #{n + 1}"
+- channelLabel = (n) -> t('servo.channel', { n: n + 1 })
 .morph-doc.layout-servos{ ref: hostRef }
   %header.morph-head
     %div.morph-head-title
       %span.morph-kicker.orgone-kicker
-        = ' GRUNDKONFIGURATION · SERVOS'
+        = t('servos.kicker')
       %h1.orgone-display.orgone-display-shimmer
         %ModuleIcon{ className: 'morph-head-glyph', size: 30 }
-        %span Servos
-      %p.morph-hermes
-        = "Steuerflächen des Getriebe-Vogels: jedes vom Mixer deklarierte Ruder, Leitwerk oder der Motor bekommt eine benannte Eingangsquelle und einen Zielkanal. Flügelpaare — die schlagenden Servos — werden in Schlagdynamik konfiguriert."
+        %span= t('servos.title')
+      %T{ k: 'servos.hermes_markdown', as: 'p', className: 'morph-hermes' }
   .morph-deck.servos-deck
     %span.servos-mode-badge{ className: "servos-mode-#{store.mode}" }
       = modeLabel
     %span.servos-profile-chip
       = "#{profile.name}"
     - if store.dirty
-      %span.servos-dirty-badge DIRTY
+      %span.servos-dirty-badge= t('common.unsaved')
     .servos-actions
       %button.servos-action.servos-action-read{ type: 'button',
                                                 onClick: (-> store.loadFromDevice().catch (-> null)),
                                                 disabled: readDisabled }
-        Read device
+        = t('servos.read')
       %button.servos-action.servos-action-save{ type: 'button',
                                                 onClick: (-> store.save().catch (-> null)),
                                                 disabled: saveDisabled }
-        Save
+        = t('servos.save')
       %button.servos-action.servos-action-revert{ type: 'button',
                                                   onClick: (-> store.revert()),
                                                   disabled: !store.dirty }
-        Revert
+        = t('servos.revert')
   - if surfaces.length == 0
     .servos-empty
-      %Section{ heading: 'Keine Steuerflächen',
-                subheading: 'Dieser Mixer trägt nur Flügelpaare.' }
+      %Section{ heading: t('servos.emptyHeading'),
+                subheading: t('servos.emptySub') }
         %p.servos-note
-          = "Die schlagenden Servos dieses #{profile.name}-Mixers werden als Flügelpaare in Schlagdynamik konfiguriert — nicht hier."
+          = t('servos.emptyNote', { mixer: profile.name })
   - else
     .morph-section.servos-main
-      %Section{ heading: 'Steuerflächen',
-                subheading: "Eingangsquelle und Zielkanal je Fläche — nur die Servos dieses Mixers (#{profile.servos})." }
+      %Section{ heading: t('servos.sectionHeading'),
+                subheading: t('servos.sectionSub', { count: profile.servos }) }
         - for surface in surfaces
           .servos-surface{ key: surface.id }
             %span.servos-surface-name
-              = surface.label
+              = t(surface.label)
             .servos-surface-fields
               %label.servos-surface-field
-                %span.servos-field-label Eingangsquelle
+                %span.servos-field-label= t('servos.inputSource')
                 %select.servos-surface-select{
                   value: surfaceOf(surface.id).inputSource,
                   onChange: sourceChange(surface.id) }
                   - for source in INPUT_SOURCES
                     %option{ key: source.id, value: source.id }
-                      = source.label
+                      = t(source.label)
               %label.servos-surface-field
-                %span.servos-field-label Zielkanal
+                %span.servos-field-label= t('servos.targetChannel')
                 %select.servos-surface-select{
                   value: String(surfaceOf(surface.id).targetChannel),
                   onChange: channelChange(surface.id) }

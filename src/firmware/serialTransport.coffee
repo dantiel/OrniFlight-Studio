@@ -33,6 +33,35 @@ withTimeout = (promise, ms, label) ->
     setTimeout (-> reject new Error "#{label} timed out after #{ms}ms"), ms
   Promise.race [promise, timer]
 
+delay = (ms) -> new Promise (resolve) -> setTimeout resolve, ms
+
+# A reboot-to-bootloader makes the USB device drop off for a moment
+# while it re-enumerates. Retry across that window before failing.
+OPEN_ATTEMPTS  = 10
+OPEN_RETRY_MS = 500
+
+# WebSerial open() rejects with a named DOMException. Distinguish the
+# three real-world causes so the Molt can guide instead of echoing a
+# bare browser message:
+#   InvalidStateError — still open in this page (a close raced)
+#   NetworkError      — device gone (re-enumerated) or claimed elsewhere
+#   NotFoundError     — no such device
+classifySerialOpenError = (error) ->
+  name = error?.name or 'Error'
+  message = error?.message or String(error)
+  hint = switch name
+    when 'InvalidStateError'
+      'port is still open in this page — a previous session did not release it'
+    when 'NotFoundError'
+      'serial device vanished — the board re-enumerated (if it now shows as a DFU/bootloader device, use WebUSB instead)'
+    when 'NetworkError'
+      'serial port could not be claimed — another program may hold it (close any serial monitor/flasher) or the board re-enumerated after reboot'
+    else
+      'serial port could not be opened'
+  wrapped = new Error "#{message} — #{hint}"
+  wrapped.name = name
+  wrapped
+
 # ── port IO (buffered read, blocking) ────────
 makePortIO = (port) ->
   reader = port.readable.getReader()
@@ -63,13 +92,20 @@ makePortIO = (port) ->
 # AN3155 mandates 8E1 — the USART bootloader drops frames with
 # parity errors, so 'none' guarantees a dead handshake.
 openPort = (port, baud = BAUD) ->
-  await port.open
-    baudRate: baud
-    dataBits: 8
-    stopBits: 1
-    parity: 'even'
-    flowControl: 'none'
-  makePortIO port
+  lastError = null
+  for attempt in [0...OPEN_ATTEMPTS]
+    try
+      await port.open
+        baudRate: baud
+        dataBits: 8
+        stopBits: 1
+        parity: 'even'
+        flowControl: 'none'
+      return makePortIO port
+    catch error
+      lastError = error
+      await delay OPEN_RETRY_MS if attempt < OPEN_ATTEMPTS - 1
+  throw classifySerialOpenError lastError
 
 # sync with retry — the bootloader locks baud on the first clean 0x7F
 syncWithRetry = (io) ->
@@ -234,6 +270,7 @@ reboot = (actor, onLog = (->), port) ->
 export {
   isSupported, requestPort
   openPort, makePortIO
+  classifySerialOpenError
   detect
   run, reboot
   fetchFirmware, sha256Hex

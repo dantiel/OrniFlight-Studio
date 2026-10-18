@@ -1,8 +1,10 @@
 ~~~
 import { fmt1 } from '../../../lib/essential.coffee'
 import { useDeferredValue } from 'react'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
+- { t } = useI18n()
 - DEFAULT_GYRO = { roll: 0, pitch: 0, yaw: 0 }
 - DEFAULT_SERVOS = [0, 0, 0, 0, 0, 0]
 - wc0 = (props.waveCurves || ['wingL', 'wingR'])[0] || 'wingL'
@@ -15,43 +17,43 @@ import { useDeferredValue } from 'react'
   %LabPanel
     .lab-heading
       %span
-        Wing Rhythm
+        = t('telemetryLab.wingRhythm')
       %select.curve-select{ value: wc0, onChange: (e) -> props.onWaveCurveChange && props.onWaveCurveChange([e.target.value, wc1]) }
         %option{ value: 'wingL' }
-          Left Wing
+          = t('telemetryLab.leftWing')
         %option{ value: 'wingR' }
-          Right Wing
+          = t('telemetryLab.rightWing')
         %option{ value: 'gyroRoll' }
-          Gyro Roll
+          = t('telemetryLab.gyroRoll')
         %option{ value: 'gyroPitch' }
-          Gyro Pitch
+          = t('telemetryLab.gyroPitch')
         %option{ value: 'gyroYaw' }
-          Gyro Yaw
+          = t('telemetryLab.gyroYaw')
       %select.curve-select{ value: wc1, onChange: (e) -> props.onWaveCurveChange && props.onWaveCurveChange([wc0, e.target.value]) }
         %option{ value: 'wingL' }
-          Left Wing
+          = t('telemetryLab.leftWing')
         %option{ value: 'wingR' }
-          Right Wing
+          = t('telemetryLab.rightWing')
         %option{ value: 'gyroRoll' }
-          Gyro Roll
+          = t('telemetryLab.gyroRoll')
         %option{ value: 'gyroPitch' }
-          Gyro Pitch
+          = t('telemetryLab.gyroPitch')
         %option{ value: 'gyroYaw' }
-          Gyro Yaw
+          = t('telemetryLab.gyroYaw')
     %WaveformPlot{ history: deferredHistory, curves: (props.waveCurves || ['wingL', 'wingR']) }
   %LabPanel
     .lab-heading
       %span
-        Body Response
+        = t('telemetryLab.bodyResponse')
       %select.curve-select{ value: gc0, onChange: (e) -> props.onGyroCurveChange && props.onGyroCurveChange([e.target.value]) }
         %option{ value: 'gyroRoll' }
-          Roll
+          = t('telemetryLab.roll')
         %option{ value: 'gyroPitch' }
-          Pitch
+          = t('telemetryLab.pitch')
         %option{ value: 'gyroYaw' }
-          Yaw
+          = t('telemetryLab.yaw')
     %GyroBars{ gyro: deferredGyro }
   %LabPanel
-    .lab-heading Servo Voice
+    %div.lab-heading= t('telemetryLab.servoVoice')
     %Readout{ items: deferredServos.map((val, i) -> ({label: "CH" + (i + 1), value: String(val)})) }
-    %Readout{ items: [{label: 'Rate Roll', value: fmt1(deferredGyro.roll)}, {label: 'Rate Pitch', value: fmt1(deferredGyro.pitch)}, {label: 'Rate Yaw', value: fmt1(deferredGyro.yaw)}] }
+    %Readout{ items: [{label: t('telemetryLab.rateRoll'), value: fmt1(deferredGyro.roll)}, {label: t('telemetryLab.ratePitch'), value: fmt1(deferredGyro.pitch)}, {label: t('telemetryLab.rateYaw'), value: fmt1(deferredGyro.yaw)}] }

@@ -16,7 +16,7 @@ describe 'OrnithopterView', ->
 
   it 'renders the drive-side body plan under Grundkonfiguration', ->
     renderAt()
-    expect(screen.getByText 'GRUNDKONFIGURATION').toBeInTheDocument()
+    expect(screen.getByText 'Grundkonfiguration').toBeInTheDocument()
     expect(screen.getByText 'Körperplan').toBeInTheDocument()
     expect(screen.getByText 'GPIO-Map').toBeInTheDocument()
 

@@ -21,7 +21,7 @@ describe 'ServosView', ->
     renderView()
     expect(document.querySelector '.layout-servos').toBeInTheDocument()
     expect(screen.getByText 'SIMULATION').toBeInTheDocument()
-    expect(screen.getByText 'Steuerflächen').toBeInTheDocument()
+    expect(screen.getAllByText('Steuerflächen').length).toBeGreaterThan(0)
     expect(screen.queryByText 'Keine Steuerflächen').not.toBeInTheDocument()
 
   it 'renders only the surfaces the active mixer declares', ->
@@ -60,7 +60,7 @@ describe 'ServosView', ->
     fireEvent.change selects[0], { target: { value: 'rcYaw' } }
     expect(useServoStore.getState().draft.surfaces.rudder.inputSource
     ).toBe 'rcYaw'
-    expect(screen.getByText 'DIRTY').toBeInTheDocument()
+    expect(screen.getByText 'UNGESPEICHERT').toBeInTheDocument()
 
   it 'assigns a target channel and reverts cleanly', ->
     renderView()
@@ -68,8 +68,8 @@ describe 'ServosView', ->
     fireEvent.change selects[1], { target: { value: '2' } }
     expect(useServoStore.getState().draft.surfaces.rudder.targetChannel
     ).toBe 2
-    fireEvent.click screen.getByText 'Revert'
-    expect(screen.queryByText 'DIRTY').not.toBeInTheDocument()
+    fireEvent.click screen.getByText 'Verwerfen'
+    expect(screen.queryByText 'UNGESPEICHERT').not.toBeInTheDocument()
     expect(useServoStore.getState().draft.surfaces.rudder.targetChannel
     ).toBe 0
 
@@ -77,7 +77,7 @@ describe 'ServosView', ->
     renderView()
     selects = document.querySelectorAll '.servos-surface-select'
     fireEvent.change selects[0], { target: { value: 'rcYaw' } }
-    fireEvent.click screen.getByText 'Save'
-    expect(screen.queryByText 'DIRTY').not.toBeInTheDocument()
+    fireEvent.click screen.getByText 'Speichern'
+    expect(screen.queryByText 'UNGESPEICHERT').not.toBeInTheDocument()
     expect(useServoStore.getState().saved.surfaces.rudder.inputSource
     ).toBe 'rcYaw'

@@ -4,21 +4,26 @@ import ArrangementPanel from '../../panels/ArrangementPanel/ArrangementPanel.cha
 import useEngineStore from '../../../stores/useEngineStore.coffee'
 import useTelemetryStore from '../../../stores/useTelemetryStore.coffee'
 import useAppStore from '../../../stores/useAppStore.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
+- { t } = useI18n()
 - sim = useEngineStore()
 - tele = useTelemetryStore()
 - waveCurves = useAppStore (s) -> s.waveCurves
 - setWaveCurves = useAppStore (s) -> s.setWaveCurves
 - gyroCurves = useAppStore (s) -> s.gyroCurves
 - setGyroCurves = useAppStore (s) -> s.setGyroCurves
+- cadenceBadge = t('flight.cadence', { hz: fmt1(tele.flapFrequency) })
+- strokeBadge = t('flight.stroke', { amp: fmt1(tele.amplitude) })
+- timeBadge = t('flight.time', { t: fmt1(tele.t) })
 .view-layout.layout-wings
   %ViewArea{ area: 'side' }
     %Sidebar{ servos: sim.servos, selectedServoIndex: sim.selectedServoIndex, onSelectServo: sim.selectServo, sticks: sim.sticks, onStickChange: sim.setStick, onApplyPreset: sim.applyPreset }
     %ArrangementPanel
   %ViewArea{ area: 'vport' }
     %DeferredAircraftViewport{ attitude: tele.attitude || [0, 0, 0], wingAngleL: tele.wingAngleL || 0, wingAngleR: tele.wingAngleR || 0, flapFrequency: tele.flapFrequency || 0, flapPhase: tele.flapPhase || 0, amplitude: tele.amplitude || 45, pairCount: tele.pairCount || 2, servoMounts: tele.servoMounts || [], aeroelasticFlapCoefficient: sim.simParams.aeroelasticFlapCoefficient, aeroelasticGlideCoefficient: sim.simParams.aeroelasticGlideCoefficient, onBump: sim.bump }
-    %ViewportOverlay{ badges: ["Cadence #{fmt1(tele.flapFrequency)} Hz", "Stroke #{fmt1(tele.amplitude)}°", "t #{fmt1(tele.t)}s"] }
+    %ViewportOverlay{ badges: [cadenceBadge, strokeBadge, timeBadge] }
   %ViewArea{ area: 'insp' }
     %ConfigSections
     %ServoInspector{ servo: sim.servos[sim.selectedServoIndex], index: sim.selectedServoIndex, onParamChange: sim.setServoParam, pidGains: sim.pidGains, onPidChange: sim.setPidGain, ondasParams: sim.ondasParams, onOndasChange: sim.setOndasParam, mode: 'servos' }

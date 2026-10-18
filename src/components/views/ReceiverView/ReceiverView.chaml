@@ -8,14 +8,16 @@ import {
   SERIALRX_PROVIDERS, RC_CHANNEL_LETTERS, RXFAIL_MODE, RXFAIL_STEP_MAX
 } from '../../../protocol/mspDecoders.coffee'
 import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
+import { useI18n } from '../../../i18n/index.coffee'
 ~~~
 
 - store = useReceiverStore()
 - draft = store.draft
 - hostRef = useRef(null)
 - useScrollMorph(hostRef)
+- { t } = useI18n()
 - telemetry = useTelemetryStore (state) -> state.rcChannels
-- modeLabel = if store.mode == 'sim' then 'SIMULATION' else 'DEVICE'
+- modeLabel = if store.mode == 'sim' then t('common.simulation') else t('common.device')
 - readDisabled = store.mode != 'device' or !store.session
 - saveDisabled = store.mode == 'device' and !store.loadedSession
 - POSITION_LABELS = ['ROLL', 'PITCH', 'YAW', 'THROTTLE', 'AUX1', 'AUX2', 'AUX3', 'AUX4']
@@ -40,40 +42,40 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
   %header.morph-head
     %div.morph-head-title
       %span.morph-kicker.orgone-kicker
-        = ' STEUERUNG · RECEIVER'
+        = t('receiver.kicker')
       %h1.orgone-display.orgone-display-shimmer
         %ModuleIcon{ className: 'morph-head-glyph', size: 30 }
-        %span Receiver
+        %span= t('receiver.title')
       %p.morph-hermes
-        = "Empfängerdokument: Provider und Pulsgrenzen, Kanal-Mapping, Failsafe-Slots und der gemappte Live-Kanalstrom."
+        = t('receiver.hermes')
   .morph-deck.receiver-deck
     %span.receiver-mode-badge{ className: "receiver-mode-#{store.mode}" }
       = modeLabel
     - if store.dirty
-      %span.receiver-dirty-badge DIRTY
+      %span.receiver-dirty-badge= t('common.unsaved')
     .receiver-actions
       %button.receiver-action.receiver-action-read{ type: 'button',
                                                     onClick: readFromDevice,
                                                     disabled: readDisabled }
-        Read device
+        = t('common.read')
       %button.receiver-action.receiver-action-save{ type: 'button',
                                                     onClick: saveToDevice,
                                                     disabled: saveDisabled }
-        Save
+        = t('common.save')
       %button.receiver-action.receiver-action-revert{ type: 'button',
                                                       onClick: (-> store.revert()),
                                                       disabled: !store.dirty }
-        Revert
+        = t('common.revert')
   .receiver-split
     .morph-section.receiver-side
-      %Section{ heading: 'RX Protocol',
-                subheading: 'Serial receiver provider and pulse bounds (MSP 44).' }
+      %Section{ heading: t('receiver.protocol'),
+                subheading: t('receiver.protocolSub') }
         %select.receiver-provider{ value: String(draft.provider), onChange: valueFromEvent(setRx('provider')) }
           - for provider in SERIALRX_PROVIDERS
             %option{ key: "provider-#{provider.id}", value: String(provider.id) }
               = provider.label
         %ParamRow{ key: 'maxcheck',
-                   label: 'Max check',
+                   label: t('receiver.maxCheck'),
                    value: draft.maxcheck,
                    min: '500',
                    max: '2500',
@@ -81,7 +83,7 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: maxcheckDisplay,
                    onInput: intFromEvent(setRx('maxcheck')) }
         %ParamRow{ key: 'midrc',
-                   label: 'Mid RC',
+                   label: t('receiver.midRc'),
                    value: draft.midrc,
                    min: '500',
                    max: '2500',
@@ -89,7 +91,7 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: midrcDisplay,
                    onInput: intFromEvent(setRx('midrc')) }
         %ParamRow{ key: 'mincheck',
-                   label: 'Min check',
+                   label: t('receiver.minCheck'),
                    value: draft.mincheck,
                    min: '500',
                    max: '2500',
@@ -97,7 +99,7 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: mincheckDisplay,
                    onInput: intFromEvent(setRx('mincheck')) }
         %ParamRow{ key: 'rx-min-usec',
-                   label: 'RX min pulse',
+                   label: t('receiver.rxMinPulse'),
                    value: draft.rxMinUsec,
                    min: '500',
                    max: '3000',
@@ -105,7 +107,7 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: rxMinUsecDisplay,
                    onInput: intFromEvent(setRx('rxMinUsec')) }
         %ParamRow{ key: 'rx-max-usec',
-                   label: 'RX max pulse',
+                   label: t('receiver.rxMaxPulse'),
                    value: draft.rxMaxUsec,
                    min: '500',
                    max: '3000',
@@ -113,7 +115,7 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: rxMaxUsecDisplay,
                    onInput: intFromEvent(setRx('rxMaxUsec')) }
         %ParamRow{ key: 'airmode-threshold',
-                   label: 'Airmode threshold',
+                   label: t('receiver.airmodeThreshold'),
                    value: draft.airModeActivateThreshold,
                    min: '0',
                    max: '250',
@@ -121,8 +123,8 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                    display: airmodeDisplay,
                    onInput: intFromEvent(setRx('airModeActivateThreshold')) }
     .morph-section.receiver-map
-      %Section{ heading: 'Channel Map',
-                subheading: 'Logical inputs to physical channels (MSP 64).' }
+      %Section{ heading: t('receiver.channelMap'),
+                subheading: t('receiver.channelMapSub') }
         - for position in [0...8]
           .channel-map-row{ key: "cmap-#{position}" }
             %span.channel-map-label
@@ -132,12 +134,12 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
                 %option{ key: "letter-#{letter}", value: letter }
                   = letter
   .morph-section.receiver-failsafe
-    %Section{ heading: 'Failsafe Channels',
-              subheading: 'Per-channel loss behaviour — value slots in 750–2250 µs (MSP 77).' }
+    %Section{ heading: t('receiver.failsafeChannels'),
+              subheading: t('receiver.failsafeChannelsSub') }
     - for channel, index in draft.rxFail
       .rxfail-row{ key: "rxfail-#{index}" }
         %span.rxfail-label
-          = "Ch #{index + 1}"
+          = t('receiver.channel', { n: index + 1 })
         %select.rxfail-mode{ value: String(channel.mode), onChange: valueFromEvent(setFail(index, 'mode')) }
           - for label, modeValue in RXFAIL_LABELS
             %option{ key: "rxfail-mode-#{modeValue}", value: String(modeValue) }
@@ -146,8 +148,8 @@ import ModuleIcon from '../../primitives/ModuleIcon/ModuleIcon.coffee'
         %span.rxfail-value
           = "#{fmt0(750 + channel.step * 25)} µs"
   .morph-section.receiver-tele
-    %Section{ heading: 'Live Channels',
-              subheading: 'Physical channel stream — mapped preview of the receiver document.' }
+    %Section{ heading: t('receiver.liveChannels'),
+              subheading: t('receiver.liveChannelsSub') }
     .channel-bars
       - for index in [0...18]
         .channel-bar-cell{ key: "chan-#{index}" }
